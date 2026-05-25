@@ -29,7 +29,7 @@
 </p>
 
 <p align="center">
-  <img src="./docs/public/demo.gif" alt="Demo showing an AI client asking EasyEDA Pro MCP for live bridge and schematic context" width="760" />
+  <img src="./docs/public/demo.gif" alt="Demo showing EasyEDA Pro with the MCP Bridge workflow in action" width="760" />
 </p>
 
 ## What It Is
