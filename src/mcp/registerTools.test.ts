@@ -201,4 +201,37 @@ describe("mutation confirmation guard", () => {
       }
     });
   });
+
+  it("marks the active document as available when documentInfo exists", async () => {
+    const bridge = {
+      endpoint: "ws://127.0.0.1:8765",
+      getStatus: () => ({
+        connected: true,
+        connectionState: "connected",
+        activeDocumentType: "schematic",
+        documentInfo: {
+          documentType: 1,
+          uuid: "doc-123"
+        },
+        updatedAt: new Date().toISOString()
+      }),
+      call: vi.fn()
+    };
+    const client = await makeClient(bridge);
+
+    const result = await client.callTool({
+      name: "easyeda_doctor",
+      arguments: {}
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(result.structuredContent).toMatchObject({
+      doctor: {
+        activeDocument: {
+          available: true,
+          type: "schematic"
+        }
+      }
+    });
+  });
 });
