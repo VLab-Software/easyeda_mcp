@@ -17,13 +17,13 @@
 </p>
 
 <p align="center">
-  <a href="./docs/quick-start.md">Quick Start</a>
+  <a href="http://vlabsoft.org/easyeda_mcp/quick-start">Quick Start</a>
   ·
-  <a href="./docs/ai-client-setup.md">AI Client Setup</a>
+  <a href="http://vlabsoft.org/easyeda_mcp/ai-client-setup">AI Client Setup</a>
   ·
-  <a href="./docs/tools.md">Tools</a>
+  <a href="http://vlabsoft.org/easyeda_mcp/tools">Tools</a>
   ·
-  <a href="./docs/troubleshooting.md">Troubleshooting</a>
+  <a href="http://vlabsoft.org/easyeda_mcp/troubleshooting">Troubleshooting</a>
   ·
   <a href="https://github.com/VLab-Software/easyeda_mcp/releases">Releases</a>
 </p>
@@ -59,7 +59,7 @@ Once connected, your AI client can inspect the schematic or PCB you already have
 
 If this is your first time, use the beginner-friendly guide:
 
-[Start with the cross-platform Quick Start](./docs/quick-start.md)
+[Start with the cross-platform Quick Start](http://vlabsoft.org/easyeda_mcp/quick-start)
 
 The short version:
 
@@ -121,18 +121,18 @@ Run easyeda_trace_component for USB1 and summarize its connected nets.
 
 Start here:
 
-- [Quick Start](./docs/quick-start.md)
-- [Getting Started](./docs/getting-started.md)
-- [AI Client Setup](./docs/ai-client-setup.md)
-- [EasyEDA Pro Extension Setup](./docs/easyeda-extension.md)
-- [Troubleshooting](./docs/troubleshooting.md)
+- [Quick Start](http://vlabsoft.org/easyeda_mcp/quick-start)
+- [Getting Started](http://vlabsoft.org/easyeda_mcp/getting-started)
+- [AI Client Setup](http://vlabsoft.org/easyeda_mcp/ai-client-setup)
+- [EasyEDA Pro Extension Setup](http://vlabsoft.org/easyeda_mcp/easyeda-extension)
+- [Troubleshooting](http://vlabsoft.org/easyeda_mcp/troubleshooting)
 
 Reference:
 
-- [Tools Reference](./docs/tools.md)
-- [MCP Client Setup](./docs/mcp-client-setup.md)
-- [Safety Model](./docs/safety.md)
-- [Architecture](./docs/architecture.md)
+- [Tools Reference](http://vlabsoft.org/easyeda_mcp/tools)
+- [MCP Client Setup](http://vlabsoft.org/easyeda_mcp/mcp-client-setup)
+- [Safety Model](http://vlabsoft.org/easyeda_mcp/safety)
+- [Architecture](http://vlabsoft.org/easyeda_mcp/architecture)
 
 ## Build and Test
 
