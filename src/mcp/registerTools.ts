@@ -4,6 +4,76 @@ import { ok, fail } from "./toolResult.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 const DefaultTimeoutSchema = z.number().int().positive().max(120_000).default(10_000);
+const EndpointRefSchema = z.union([
+  z.object({
+    component: z.string().min(1),
+    pin: z.string().min(1).optional(),
+    pinName: z.string().min(1).optional()
+  }),
+  z.object({
+    net: z.string().min(1)
+  })
+]);
+const PassiveConstraintSchema = z.object({
+  kind: z.enum(["resistor", "capacitor", "inductor", "diode", "led", "passive"]).optional(),
+  component: z.string().min(1).optional(),
+  value: z.string().min(1).optional()
+});
+const ConnectionCheckSchema = z.discriminatedUnion("type", [
+  z.object({
+    id: z.string().min(1).optional(),
+    type: z.literal("pin_connected"),
+    component: z.string().min(1),
+    pin: z.string().min(1).optional(),
+    pinName: z.string().min(1).optional()
+  }),
+  z.object({
+    id: z.string().min(1).optional(),
+    type: z.literal("pin_on_net"),
+    component: z.string().min(1),
+    pin: z.string().min(1).optional(),
+    pinName: z.string().min(1).optional(),
+    net: z.string().min(1)
+  }),
+  z.object({
+    id: z.string().min(1).optional(),
+    type: z.literal("same_node"),
+    left: EndpointRefSchema,
+    right: EndpointRefSchema
+  }),
+  z.object({
+    id: z.string().min(1).optional(),
+    type: z.literal("path_exists"),
+    from: EndpointRefSchema,
+    to: EndpointRefSchema,
+    through: PassiveConstraintSchema.optional(),
+    maxHops: z.number().int().positive().max(20).optional()
+  }),
+  z.object({
+    id: z.string().min(1).optional(),
+    type: z.literal("path_absent"),
+    from: EndpointRefSchema,
+    to: EndpointRefSchema,
+    through: PassiveConstraintSchema.optional(),
+    maxHops: z.number().int().positive().max(20).optional()
+  }),
+  z.object({
+    id: z.string().min(1).optional(),
+    type: z.literal("pull_to_net"),
+    signal: EndpointRefSchema,
+    net: z.string().min(1),
+    through: PassiveConstraintSchema,
+    maxHops: z.number().int().positive().max(20).optional()
+  }),
+  z.object({
+    id: z.string().min(1).optional(),
+    type: z.literal("decoupled_to_net"),
+    power: EndpointRefSchema,
+    referenceNet: z.string().min(1),
+    capacitorValue: z.string().min(1).optional(),
+    maxHops: z.number().int().positive().max(20).optional()
+  })
+]);
 
 const mutatingConfirmationRegex = /\bconfirma\b|\bconfirmo\b|\bconfirmed\b|\bi confirm\b/i;
 
@@ -170,6 +240,21 @@ export function registerEasyEdaTools(server: McpServer, bridge: EasyEdaBridge): 
       timeoutMs: DefaultTimeoutSchema.default(30_000)
     },
     summary: "Validated EasyEDA Pro schematic area."
+  });
+
+  registerReadTool(server, bridge, {
+    name: "easyeda_verify_connections",
+    title: "Verify schematic connections",
+    description: "Runs generic read-only connection assertions against the active schematic, including pin/net checks and passive paths through resistors, capacitors, inductors, diodes, or LEDs.",
+    method: "verifyConnections",
+    inputSchema: {
+      checks: z.array(ConnectionCheckSchema).min(1).max(50).describe("Structured connection assertions to verify against the active schematic."),
+      includeRaw: z.boolean().default(false),
+      allPages: z.boolean().default(true),
+      maxHops: z.number().int().positive().max(20).default(4),
+      timeoutMs: DefaultTimeoutSchema.default(30_000)
+    },
+    summary: "Verified EasyEDA Pro schematic connections."
   });
 
   registerReadTool(server, bridge, {

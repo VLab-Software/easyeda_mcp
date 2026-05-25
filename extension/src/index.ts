@@ -7,6 +7,7 @@ import {
   traceComponent,
   traceNet,
   validateSchematicArea,
+  verifyConnections,
   type RawSchematicData,
   type SchematicSnapshot
 } from "../../src/schematic/analysis.js";
@@ -59,6 +60,8 @@ const handlers: Record<string, (params: Record<string, any>) => Promise<unknown>
   findUnconnectedPinsTool,
   validateSchematicArea: validateSchematicAreaTool,
   validateSchematicAreaTool,
+  verifyConnections: verifyConnectionsTool,
+  verifyConnectionsTool,
   navigateComponent,
   navigateRegion,
   zoomBoard,
@@ -303,6 +306,19 @@ async function validateSchematicAreaTool(params: Record<string, any>): Promise<R
     components: Array.isArray(params.components) ? params.components.map(String) : undefined,
     nets: Array.isArray(params.nets) ? params.nets.map(String) : undefined,
     includeGlobalChecks: params.includeGlobalChecks !== false
+  });
+  return {
+    ...result,
+    snapshotCounts: snapshot.counts,
+    snapshotWarnings: snapshot.warnings,
+    betaApi: true
+  };
+}
+
+async function verifyConnectionsTool(params: Record<string, any>): Promise<Record<string, unknown>> {
+  const snapshot = await collectSchematicSnapshot({ includeRaw: params.includeRaw !== false, allPages: params.allPages !== false });
+  const result = verifyConnections(snapshot, Array.isArray(params.checks) ? params.checks : [], {
+    maxHops: Number(params.maxHops ?? 4)
   });
   return {
     ...result,
