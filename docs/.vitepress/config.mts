@@ -20,16 +20,7 @@ export default defineConfig({
     ],
     sidebar: [
       {
-        text: "Overview",
-        items: [
-          { text: "Documentation Home", link: "/" },
-          { text: "Repository Docs Index", link: "/README" },
-          { text: "Changelog", link: "/changelog" },
-          { text: "Versioning", link: "/versioning" }
-        ]
-      },
-      {
-        text: "Guide",
+        text: "Start Here",
         items: [
           { text: "Getting Started", link: "/getting-started" },
           { text: "MCP Client Setup", link: "/mcp-client-setup" },
@@ -39,15 +30,18 @@ export default defineConfig({
       {
         text: "Reference",
         items: [
-          { text: "Architecture", link: "/architecture" },
           { text: "Tools Reference", link: "/tools" },
+          { text: "Architecture", link: "/architecture" },
           { text: "Safety Model", link: "/safety" },
           { text: "Troubleshooting", link: "/troubleshooting" }
         ]
       },
       {
         text: "Project",
+        collapsed: true,
         items: [
+          { text: "Documentation Home", link: "/" },
+          { text: "Repository Docs Index", link: "/README" },
           { text: "Changelog", link: "/changelog" },
           { text: "Versioning", link: "/versioning" },
           { text: "GitHub Repository", link: "https://github.com/VLab-Software/easyeda_mcp" }
