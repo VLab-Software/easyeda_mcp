@@ -7,3 +7,7 @@ coverage/
 .env
 .DS_Store
 docs/.vitepress/dist/
+docs/.vitepress/cache/
+.agents/
+PROJECT_MEMORY.md
+prompt-home-3d.md

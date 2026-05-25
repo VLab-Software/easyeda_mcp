@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 import WebSocket from "ws";
 import { EasyEdaBridge } from "./EasyEdaBridge.js";
-import { BridgeRpcError, BridgeUnavailableError } from "./errors.js";
+import { BridgeProtocolCompatibilityError, BridgeRpcError, BridgeUnavailableError } from "./errors.js";
 
 const bridges: EasyEdaBridge[] = [];
 
@@ -68,6 +68,25 @@ describe("EasyEdaBridge", () => {
     client.close();
   });
 
+  it("blocks calls when the extension protocol is incompatible", async () => {
+    const bridge = await startBridge();
+    const client = await connectClient(bridge.endpoint);
+    client.send(JSON.stringify({
+      kind: "hello",
+      client: "easyeda-pro-extension",
+      version: "0.1.0",
+      protocolVersion: "9.9.9",
+      capabilities: {
+        websocket: true
+      }
+    }));
+
+    await wait(20);
+
+    await expect(bridge.call("getContext")).rejects.toBeInstanceOf(BridgeProtocolCompatibilityError);
+    client.close();
+  });
+
   it("turns remote errors into BridgeRpcError", async () => {
     const bridge = await startBridge();
     const client = await connectClient(bridge.endpoint);
@@ -103,6 +122,28 @@ describe("EasyEdaBridge", () => {
     await wait(20);
 
     await expect(bridge.call("getContext")).resolves.toBe("new-client");
+    oldClient.close();
+    newClient.close();
+  });
+
+  it("rejects pending calls when a newer extension connection replaces the old one", async () => {
+    const bridge = await startBridge();
+    const oldClient = await connectClient(bridge.endpoint);
+    const pendingCall = bridge.call("getContext");
+    pendingCall.catch(() => undefined);
+
+    await wait(20);
+    const newClient = await connectClient(bridge.endpoint);
+    newClient.on("message", (data) => {
+      const message = JSON.parse(data.toString());
+      newClient.send(JSON.stringify({
+        kind: "result",
+        requestId: message.requestId,
+        result: "new-client"
+      }));
+    });
+
+    await expect(pendingCall).rejects.toBeInstanceOf(BridgeUnavailableError);
     oldClient.close();
     newClient.close();
   });

@@ -1,4 +1,4 @@
-import { BridgeRpcError, BridgeTimeoutError, BridgeUnavailableError } from "../bridge/errors.js";
+import { BridgeProtocolCompatibilityError, BridgeRpcError, BridgeTimeoutError, BridgeUnavailableError } from "../bridge/errors.js";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 
 export type ToolResult = CallToolResult;
@@ -24,11 +24,13 @@ function normalizeError(error: unknown): { message: string; [key: string]: unkno
     return {
       error: "bridge_unavailable",
       message: error.message,
+      retryable: true,
       nextSteps: [
         "Open EasyEDA Pro.",
         "Install and enable the EasyEDA MCP extension.",
         "Allow external interaction/WebSocket permission in EasyEDA Pro.",
-        "Keep this MCP server running while using the extension."
+        "Keep this MCP server running while using the extension.",
+        "Use easyeda_doctor for a deeper connection diagnosis."
       ]
     };
   }
@@ -37,7 +39,26 @@ function normalizeError(error: unknown): { message: string; [key: string]: unkno
     return {
       error: "bridge_timeout",
       message: error.message,
-      nextSteps: ["Check whether EasyEDA Pro is busy, then retry the tool call."]
+      retryable: true,
+      nextSteps: [
+        "Check whether EasyEDA Pro is busy, then retry the tool call.",
+        "Use easyeda_doctor if timeouts continue."
+      ]
+    };
+  }
+
+  if (error instanceof BridgeProtocolCompatibilityError) {
+    return {
+      error: "bridge_protocol_mismatch",
+      message: error.message,
+      retryable: false,
+      expectedProtocolVersion: error.expectedProtocolVersion,
+      actualProtocolVersion: error.actualProtocolVersion,
+      nextSteps: [
+        "Rebuild and reload the EasyEDA Pro extension.",
+        "Restart the MCP client session so it reloads the tool catalog.",
+        "Use easyeda_doctor to confirm protocol compatibility."
+      ]
     };
   }
 
@@ -45,12 +66,14 @@ function normalizeError(error: unknown): { message: string; [key: string]: unkno
     return {
       error: error.code ?? "easyeda_rpc_error",
       message: error.message,
+      retryable: false,
       details: error.details
     };
   }
 
   return {
     error: "unexpected_error",
-    message: error instanceof Error ? error.message : String(error)
+    message: error instanceof Error ? error.message : String(error),
+    retryable: false
   };
 }

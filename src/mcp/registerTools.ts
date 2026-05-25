@@ -2,6 +2,7 @@ import * as z from "zod/v4";
 import type { EasyEdaBridge } from "../bridge/EasyEdaBridge.js";
 import { ok, fail } from "./toolResult.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { PROTOCOL_VERSION, type EditorStatus } from "../protocol/messages.js";
 
 const DefaultTimeoutSchema = z.number().int().positive().max(120_000).default(10_000);
 const EndpointRefSchema = z.union([
@@ -97,9 +98,70 @@ export function registerEasyEdaTools(server: McpServer, bridge: EasyEdaBridge): 
     },
     async () => {
       const status = bridge.getStatus();
-      return ok(status.connected ? "EasyEDA Pro extension is connected." : "EasyEDA Pro extension is not connected.", {
+      const summary = status.connected
+        ? status.compatibility?.compatible === false
+          ? "EasyEDA Pro extension is connected, but its bridge protocol is incompatible."
+          : "EasyEDA Pro extension is connected."
+        : "EasyEDA Pro extension is not connected.";
+      return ok(summary, {
         status,
         bridgeEndpoint: bridge.endpoint
+      });
+    }
+  );
+
+  server.registerTool(
+    "easyeda_doctor",
+    {
+      title: "EasyEDA Pro bridge diagnostics",
+      description: "Returns a structured diagnosis of the local MCP bridge, EasyEDA Pro extension connection state, protocol compatibility, active document context, and suggested next steps.",
+      inputSchema: {},
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: false
+      }
+    },
+    async () => {
+      const status = bridge.getStatus();
+      const nextSteps = doctorNextSteps(status);
+      const summary = status.connected
+        ? status.compatibility?.compatible === false
+          ? "Bridge diagnostics found a protocol compatibility problem."
+          : "Bridge diagnostics look healthy."
+        : "Bridge diagnostics found that the EasyEDA Pro extension is disconnected.";
+      return ok(summary, {
+        doctor: {
+          server: {
+            name: "easyeda-pro-mcp",
+            version: "0.1.0",
+            protocolVersion: PROTOCOL_VERSION
+          },
+          bridge: {
+            endpoint: bridge.endpoint
+          },
+          extension: {
+            connected: status.connected,
+            connectionState: status.connectionState ?? (status.connected ? "connected" : "disconnected"),
+            version: status.extensionVersion,
+            protocolVersion: status.protocolVersion,
+            compatibility: status.compatibility ?? {
+              compatible: false,
+              expectedProtocolVersion: PROTOCOL_VERSION,
+              actualProtocolVersion: status.protocolVersion,
+              reason: "The extension has not reported protocol compatibility yet."
+            }
+          },
+          activeDocument: {
+            available: Boolean(status.documentName || status.projectName),
+            type: status.activeDocumentType ?? "unknown",
+            projectName: status.projectName,
+            documentName: status.documentName
+          },
+          status,
+          nextSteps
+        }
       });
     }
   );
@@ -382,6 +444,37 @@ export function registerEasyEdaTools(server: McpServer, bridge: EasyEdaBridge): 
       }
     }
   );
+}
+
+function doctorNextSteps(status: EditorStatus): string[] {
+  if (!status.connected) {
+    return [
+      "Open EasyEDA Pro.",
+      "Install or reload the EasyEDA MCP extension.",
+      "Enable external interaction/WebSocket permission in EasyEDA Pro.",
+      "Keep the MCP server running and wait for the extension to auto-connect."
+    ];
+  }
+
+  if (status.compatibility?.compatible === false) {
+    return [
+      "Rebuild and reload the EasyEDA Pro extension.",
+      "Restart the MCP client session so it reloads the latest tool catalog.",
+      "Verify that the extension and MCP server are built from the same repository state."
+    ];
+  }
+
+  if (!status.documentName && !status.projectName) {
+    return [
+      "Open a schematic or PCB document in EasyEDA Pro.",
+      "Run easyeda_get_context or easyeda_live_status again after the document finishes loading."
+    ];
+  }
+
+  return [
+    "The bridge looks healthy.",
+    "Use easyeda_live_status for quick checks and easyeda_get_context for deeper editor state."
+  ];
 }
 
 type ReadToolConfig = {

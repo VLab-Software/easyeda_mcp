@@ -9,11 +9,16 @@ This page tracks notable documentation and product-facing changes for the EasyED
 - Added a VitePress documentation site inside `docs/`
 - Added a custom docs homepage and navigation structure
 - Added dedicated guides for setup, architecture, tools, safety, and troubleshooting
+- Added a beginner-friendly cross-platform Quick Start for Windows, macOS, and Linux
+- Added open source release readiness docs, including license and security policy
+- Reworked setup docs around a short happy path, clear verification steps, and symptom-based troubleshooting
 - Added GitHub Pages deployment through GitHub Actions
 
 ### Project
 
 - Added `easyeda_verify_connections` to the documented MCP tool list
+- Added CI validation for typecheck, tests, builds, extension packaging, and docs
+- Added a release workflow that publishes EasyEDA Pro `.eext` packages and SHA-256 checksums
 
 ## 0.1.0
 

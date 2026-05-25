@@ -4,10 +4,11 @@ import {
   type BridgeCallMessage,
   type ClientToServerMessage,
   createDisconnectedStatus,
+  evaluateProtocolCompatibility,
   type EditorStatus,
   parseClientMessage
 } from "../protocol/messages.js";
-import { BridgeRpcError, BridgeTimeoutError, BridgeUnavailableError } from "./errors.js";
+import { BridgeProtocolCompatibilityError, BridgeRpcError, BridgeTimeoutError, BridgeUnavailableError } from "./errors.js";
 
 type PendingCall = {
   method: string;
@@ -81,6 +82,14 @@ export class EasyEdaBridge {
       throw new BridgeUnavailableError();
     }
 
+    if (this.status.compatibility && !this.status.compatibility.compatible) {
+      throw new BridgeProtocolCompatibilityError(
+        this.status.compatibility.reason ?? "EasyEDA Pro extension protocol is incompatible with the MCP server.",
+        this.status.compatibility.expectedProtocolVersion,
+        this.status.compatibility.actualProtocolVersion
+      );
+    }
+
     const requestId = randomUUID();
     const message: BridgeCallMessage = {
       kind: "call",
@@ -110,12 +119,14 @@ export class EasyEdaBridge {
 
   private attachSocket(socket: WebSocket): void {
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+      this.rejectAll(new BridgeUnavailableError("EasyEDA Pro extension reconnected. Retry the MCP tool call."));
       this.socket.close(1012, "A newer EasyEDA Pro extension connection replaced this one.");
     }
 
     this.socket = socket;
     this.status = {
       connected: true,
+      connectionState: "connecting",
       message: "EasyEDA Pro extension connected. Waiting for hello/status.",
       updatedAt: new Date().toISOString()
     };
@@ -141,22 +152,35 @@ export class EasyEdaBridge {
 
   private handleMessage(message: ClientToServerMessage): void {
     if (message.kind === "hello") {
+      const compatibility = evaluateProtocolCompatibility(message.protocolVersion);
       this.status = {
         connected: true,
+        connectionState: compatibility.compatible ? "connected" : "blocked",
         extensionVersion: message.version,
         protocolVersion: message.protocolVersion,
+        compatibility,
         capabilities: message.capabilities,
         ...message.status,
+        message: compatibility.compatible
+          ? message.status?.message
+          : compatibility.reason,
         updatedAt: new Date().toISOString()
       };
       return;
     }
 
     if (message.kind === "status") {
+      const reportedProtocolVersion = message.status.protocolVersion ?? this.status.protocolVersion;
+      const compatibility = evaluateProtocolCompatibility(reportedProtocolVersion);
       this.status = {
         ...this.status,
         ...message.status,
         connected: true,
+        connectionState: compatibility.compatible ? "connected" : "blocked",
+        compatibility,
+        message: compatibility.compatible
+          ? message.status.message ?? this.status.message
+          : compatibility.reason,
         updatedAt: new Date().toISOString()
       };
       return;

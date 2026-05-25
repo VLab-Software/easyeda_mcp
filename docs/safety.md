@@ -1,82 +1,77 @@
 # Safety Model
 
-This document explains the operational boundaries of the EasyEDA Pro MCP Bridge.
+The bridge is designed to be useful before it is powerful.
 
-## Default Safety Posture
+Default behavior is read-first. Anything that changes the EasyEDA Pro project must be explicit.
 
-The project is designed to be read-first and conservative by default.
+## Safe by Default
 
-Most exposed capabilities are:
-
-- inspection
-- context retrieval
-- schematic analysis
-- navigation
-- export
-
-These operations are intended to be safe for day-to-day engineering assistance because they do not directly change project content.
-
-## Read-Only by Default
-
-The following categories are read-only in practice:
+These workflows do not directly change project content:
 
 - live status
 - editor context
-- component search
-- net search
-- schematic snapshot and tracing
-- connectivity verification
-- navigation helpers
-- export helpers
+- component and net search
+- schematic snapshots
+- pin, net, and component tracing
+- connection verification
+- navigation
+- exports
 
-## Mutating Actions Are Gated
+Use them freely during review and debugging.
 
-Project-changing actions are intentionally limited to:
+## Actions That Can Change the Project
 
-- `easyeda_confirmed_action`
+Project-changing actions go through:
 
-This tool requires explicit human confirmation in the input. A request is blocked unless the confirmation text contains a clearly affirmative phrase.
+```text
+easyeda_confirmed_action
+```
 
-Examples of accepted confirmation language include:
+Supported actions:
+
+- `save`
+- `importChanges`
+- `autoroute`
+- `autolayout`
+
+The tool blocks the request unless the confirmation text contains a clear confirmation phrase.
+
+Accepted examples:
 
 - `I confirm`
 - `confirmed`
 - `confirma salvar`
 - `confirmo`
 
-## Why the Confirmation Gate Exists
+## Why Confirmation Exists
 
-EasyEDA Pro can affect the current project state, so mutation should not happen implicitly during exploratory assistance.
+AI-assisted exploration often involves guesses, retries, and partial context.
 
-The confirmation gate helps ensure:
+The confirmation gate keeps those exploratory reads separate from actions that can affect the open project.
 
-- the user is making an intentional decision
-- read-only workflows stay separate from write workflows
-- automated reasoning does not silently alter project data
+## Confidence Levels
 
-## Current Non-Goals
+Schematic analysis may return a confidence value:
 
-The project does not currently implement commercial or ordering operations.
+- `high`: data is strong enough for normal review
+- `partial`: useful, but some raw EasyEDA data was missing or inferred
+- `low`: treat as a hint and verify manually
 
-It also does not attempt to act as an unrestricted editor automation layer.
+Always read `warnings` when they appear.
 
-## Confidence and Inference
+## Practical Rule
 
-Some schematic reasoning is based on normalized and partially inferred connectivity, especially when raw EasyEDA data is incomplete.
+For important electrical decisions:
 
-For that reason, analysis results may include:
+1. use the MCP tools to find and explain the issue
+2. check warnings and confidence
+3. verify the critical area in EasyEDA Pro
+4. use confirmed actions only when the intent is clear
 
-- `high`
-- `partial`
-- `low`
+## Not Implemented
 
-confidence levels, as well as warnings that describe what data was missing or inferred.
+This project does not implement:
 
-## Recommended Operator Practice
-
-For high-confidence engineering review:
-
-1. inspect the tool output
-2. pay attention to warnings and confidence values
-3. cross-check critical findings in the EasyEDA Pro UI
-4. use confirmed actions only when the intent is explicit
+- commercial/order operations
+- unrestricted editor automation
+- offline `.epro` parsing

@@ -1,39 +1,60 @@
 # EasyEDA MCP Bridge Extension
 
-This extension connects EasyEDA Pro to the local MCP server at `ws://127.0.0.1:8765`.
+This extension connects EasyEDA Pro to the local MCP bridge at:
+
+```text
+ws://127.0.0.1:8765
+```
+
+It is required for live editor access. Without it, the MCP server can start, but tools cannot inspect the open EasyEDA Pro session.
 
 ## Build
 
-From the repository root:
+Run from the repository root:
 
-```powershell
-npm run build:extension
+```bash
+npm run setup:local
 ```
 
-The compiled entry point is `extension/dist/index.js`, referenced by `extension/extension.json`.
+This creates:
 
-## Install in EasyEDA Pro
+```text
+extension/dist/index.js
+```
 
-1. Start the MCP server from the repository root:
+The manifest is:
 
-   ```powershell
-   npm run build
-   node dist/index.js
-   ```
+```text
+extension/extension.json
+```
 
-2. Build the extension:
+## Install
 
-   ```powershell
-   npm run build:extension
-   ```
+In EasyEDA Pro:
 
-3. In EasyEDA Pro, install/load the `extension` folder as a local extension.
-4. Enable the extension's external interaction permission. The EasyEDA Pro WebSocket APIs require it.
-5. Use `MCP Bridge -> Connect to MCP` if it does not connect automatically.
-6. Call the MCP tool `easyeda_live_status`; it should report the extension as connected.
+1. import or load the packaged extension
+2. enable external interaction permission
+3. open a schematic or PCB
+4. use `MCP Bridge -> Reconnect` if it does not connect automatically
+5. use `MCP Bridge -> Run Diagnostics` if you need extension-side status
+
+## Verify
+
+From your MCP client, run:
+
+```text
+Run easyeda_doctor.
+```
+
+Healthy output should show:
+
+- extension connected
+- bridge protocol compatible
+- active document available
 
 ## Notes
 
-- This v1 is live-extension only; it does not parse `.epro` archives.
-- Inspection, navigation, and export tools run directly.
-- Mutating actions are routed through `easyeda_confirmed_action` and require explicit confirmation in the MCP tool arguments.
+- This project is live-extension only; it does not parse `.epro` archives.
+- Read, navigation, and export tools run directly.
+- Project-changing actions go through `easyeda_confirmed_action`.
+- Connection defaults are defined in `extension/src/bridgeConfig.ts`.

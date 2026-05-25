@@ -1,35 +1,179 @@
-@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap");
 
 :root {
   --vp-font-family-base: "IBM Plex Sans", sans-serif;
   --vp-font-family-mono: "IBM Plex Mono", "SFMono-Regular", ui-monospace, monospace;
-  --vp-c-brand-1: #0d8b82;
-  --vp-c-brand-2: #0a6a63;
-  --vp-c-brand-3: #064a46;
-  --vp-c-brand-soft: rgba(13, 139, 130, 0.14);
-  --vp-sidebar-width: 248px;
+  --vp-c-brand-1: #2d8cff;
+  --vp-c-brand-2: #1f6fe5;
+  --vp-c-brand-3: #184fb4;
+  --vp-c-brand-soft: rgba(45, 140, 255, 0.16);
+  --vp-sidebar-width: 264px;
+  --vp-c-bg: #f5f9ff;
+  --vp-c-bg-soft: #edf4ff;
+  --vp-c-bg-elv: #ffffff;
+  --vp-c-text-1: #10233d;
+  --vp-c-text-2: #576c88;
   --vp-home-hero-name-color: transparent;
-  --vp-home-hero-name-background: linear-gradient(135deg, #f5f0dc 0%, #9cf4d3 38%, #36d7c7 100%);
-  --vp-home-hero-image-background-image:
-    radial-gradient(circle at 30% 20%, rgba(54, 215, 199, 0.24), transparent 35%),
-    radial-gradient(circle at 70% 35%, rgba(255, 206, 92, 0.18), transparent 28%),
-    linear-gradient(135deg, rgba(8, 19, 35, 0.96), rgba(13, 30, 49, 0.92));
-  --vp-home-hero-image-filter: blur(0);
-  --vp-button-brand-bg: #0d8b82;
-  --vp-button-brand-hover-bg: #0a6a63;
-  --vp-button-brand-active-bg: #064a46;
+  --vp-home-hero-name-background: linear-gradient(135deg, #12325b 0%, #2e74da 45%, #64abff 100%);
+  --vp-home-hero-image-background-image: none;
+  --vp-home-hero-image-filter: none;
+  --vp-button-brand-bg: #2d8cff;
+  --vp-button-brand-hover-bg: #1f6fe5;
+  --vp-button-brand-active-bg: #184fb4;
+  --easy-topwash:
+    radial-gradient(circle at top left, rgba(66, 145, 255, 0.14), transparent 34%),
+    linear-gradient(180deg, rgba(231, 242, 255, 0.96) 0%, rgba(245, 249, 255, 0.78) 46%, transparent 100%);
+  --easy-hero-image-border: rgba(116, 176, 255, 0.24);
+  --easy-hero-image-shadow:
+    0 24px 60px rgba(64, 103, 161, 0.12),
+    0 0 0 1px rgba(72, 133, 255, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.38);
+  --easy-section-kicker: #2d74da;
+  --easy-card-bg: rgba(255, 255, 255, 0.82);
+  --easy-card-border: rgba(92, 157, 255, 0.16);
+  --easy-card-shadow:
+    0 18px 40px rgba(63, 98, 150, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55);
+  --easy-client-band-bg:
+    linear-gradient(135deg, rgba(250, 252, 255, 0.96), rgba(235, 244, 255, 0.94)),
+    radial-gradient(circle at top right, rgba(88, 154, 255, 0.12), transparent 36%);
+  --easy-client-band-glow: radial-gradient(circle, rgba(73, 144, 255, 0.14), transparent 68%);
+  --easy-client-label: #2f79e2;
+  --easy-pill-border: rgba(110, 174, 255, 0.24);
+  --easy-pill-bg: rgba(82, 135, 219, 0.08);
+  --easy-pill-text: #16365f;
+  --easy-nav-border: rgba(92, 157, 255, 0.14);
+  /* override VitePress's own nav bg token so its scoped rule becomes transparent */
+  --vp-nav-bg-color: transparent;
 }
 
 .dark {
-  --vp-c-bg: #07131f;
-  --vp-c-bg-soft: #0e2133;
-  --vp-c-bg-elv: #10283d;
-  --vp-c-text-1: #e8f1f6;
-  --vp-c-text-2: #b7c8d6;
+  --vp-c-bg: #07111f;
+  --vp-c-bg-soft: #0d1d34;
+  --vp-c-bg-elv: #122744;
+  --vp-c-text-1: #ecf4ff;
+  --vp-c-text-2: #b7c8dc;
+  --vp-home-hero-name-background: linear-gradient(135deg, #eef6ff 0%, #9ec6ff 42%, #3f8dff 100%);
+  --vp-home-hero-image-background-image: none;
+  --easy-topwash:
+    radial-gradient(circle at top left, rgba(66, 145, 255, 0.18), transparent 34%),
+    linear-gradient(180deg, rgba(6, 16, 30, 0.98) 0%, rgba(7, 16, 31, 0.8) 42%, transparent 100%);
+  --easy-hero-image-border: rgba(116, 176, 255, 0.24);
+  --easy-hero-image-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.34),
+    0 0 0 1px rgba(72, 133, 255, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --easy-section-kicker: #8ab9ff;
+  --easy-card-bg: rgba(13, 31, 53, 0.62);
+  --easy-card-border: rgba(92, 157, 255, 0.14);
+  --easy-card-shadow:
+    0 18px 40px rgba(0, 0, 0, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --easy-client-band-bg:
+    linear-gradient(135deg, rgba(12, 31, 54, 0.94), rgba(8, 21, 39, 0.9)),
+    radial-gradient(circle at top right, rgba(88, 154, 255, 0.16), transparent 36%);
+  --easy-client-band-glow: radial-gradient(circle, rgba(73, 144, 255, 0.22), transparent 68%);
+  --easy-client-label: #9dc4ff;
+  --easy-pill-border: rgba(110, 174, 255, 0.18);
+  --easy-pill-bg: rgba(82, 135, 219, 0.08);
+  --easy-pill-text: #f2f8fb;
+  --easy-nav-bg:
+    radial-gradient(circle at left top, rgba(54, 215, 199, 0.12), transparent 28%),
+    linear-gradient(180deg, rgba(6, 16, 28, 0.98) 0%, rgba(7, 19, 31, 0.96) 100%);
+  --easy-nav-border: rgba(156, 244, 211, 0.08);
 }
 
 .VPHome {
   position: relative;
+}
+
+/* ── Navbar ─────────────────────────────────────────────────────── */
+
+/*
+ * VitePress scopes its own background on .VPNavBar via [data-v-*] attributes
+ * which wins against bare class selectors. We override the CSS token it uses
+ * (--vp-nav-bg-color → transparent) and apply our background on the outer
+ * .VPNav wrapper instead, which has no scoping conflict.
+ */
+.VPNav {
+  background: rgba(245, 249, 255, 0.82);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-bottom: 1px solid var(--easy-nav-border);
+  /* keep it above the animated hero blobs */
+  position: sticky;
+  top: 0;
+  z-index: var(--vp-z-index-nav, 100);
+}
+
+.dark .VPNav {
+  background: rgba(7, 17, 31, 0.80);
+  border-bottom-color: rgba(100, 171, 255, 0.10);
+}
+
+/* VPNavBar itself is transparent — the container above carries the bg */
+.VPNavBar,
+.VPNavBar .content,
+.VPNavBar .content-body {
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Fix vertical alignment — don't shift the fixed-height inner layout */
+.VPNavBar .wrapper {
+  height: var(--vp-nav-height, 64px);
+  display: flex;
+  align-items: center;
+}
+
+.VPNavBar .container {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+/* Title + logo row */
+.VPNavBarTitle .title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: var(--vp-c-text-1);
+  text-decoration: none;
+}
+
+.VPNavBarTitle .VPImage.logo {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  object-fit: cover;
+  box-shadow: 0 6px 18px rgba(45, 140, 255, 0.18);
+}
+
+/* Nav links */
+.VPNavBarMenuLink {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--vp-c-text-2);
+  transition: color 0.15s ease;
+}
+
+.VPNavBarMenuLink:hover,
+.VPNavBarMenuLink.active {
+  color: var(--vp-c-brand-1);
+}
+
+/* Divider line below the bar — hide it, the border on .VPNav is enough */
+.VPNav .divider {
+  display: none;
+}
+
+.VPHomeHero .container {
+  padding-top: 36px;
+}
+
+.VPHomeHero .main {
+  padding-bottom: 18px;
 }
 
 .VPHome::before {
@@ -37,9 +181,7 @@
   position: absolute;
   inset: 0 0 auto 0;
   height: 520px;
-  background:
-    radial-gradient(circle at top left, rgba(54, 215, 199, 0.14), transparent 34%),
-    linear-gradient(180deg, rgba(6, 16, 28, 0.96) 0%, rgba(8, 16, 26, 0.76) 42%, transparent 100%);
+  background: var(--easy-topwash);
   pointer-events: none;
   z-index: -1;
 }
@@ -84,16 +226,16 @@
 }
 
 .VPSidebarItem.level-1 .text {
-  font-size: 0.78rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: 0.87rem;
+  letter-spacing: 0.02em;
+  text-transform: none;
   color: var(--vp-c-text-2);
 }
 
 .VPHero .name,
 .VPHero .text {
-  font-family: "Fraunces", serif;
-  letter-spacing: -0.03em;
+  font-family: "IBM Plex Sans Condensed", "IBM Plex Sans", sans-serif;
+  letter-spacing: -0.015em;
 }
 
 .VPHero .text {
@@ -107,19 +249,62 @@
   font-size: 1rem;
 }
 
+.VPHero .actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-top: 16px;
+}
+
+.VPHero .action {
+  min-width: 176px;
+}
+
+.VPHero .action .VPButton {
+  width: 100%;
+  border-radius: 999px;
+  padding-inline: 18px;
+}
+
 .VPHero .image-container {
-  padding: 12px;
+  padding: 16px;
 }
 
 .VPHero .image-bg {
-  border: 1px solid rgba(156, 244, 211, 0.2);
-  box-shadow:
-    0 24px 60px rgba(0, 0, 0, 0.32),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  display: none !important;
 }
 
 .VPHero .image {
   transform: none;
+}
+
+/* ── Hero logo interaction ─────────────────────────────────────── */
+
+.VPImage.image-src {
+  width: min(440px, 76vw);
+  max-width: 100%;
+  filter:
+    drop-shadow(0 18px 32px rgba(45, 140, 255, 0.20))
+    drop-shadow(0 8px 16px rgba(0, 0, 0, 0.10));
+  border-radius: 26px;
+  transform-origin: center bottom;
+  animation: hero-logo-float 3.8s ease-in-out infinite;
+  will-change: transform;
+}
+
+.VPHero .image-container:hover .VPImage.image-src {
+  filter:
+    drop-shadow(0 20px 36px rgba(45, 140, 255, 0.24))
+    drop-shadow(0 9px 18px rgba(0, 0, 0, 0.11));
+}
+
+@keyframes hero-logo-float {
+  0%, 100% {
+    transform: translate(-50%, -50%) translateY(0);
+  }
+  50% {
+    transform: translate(-50%, -50%) translateY(-5px);
+  }
 }
 
 .intro-panel strong,
@@ -128,13 +313,100 @@
   font-size: 0.78rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #9cf4d3;
+  color: var(--easy-section-kicker);
   margin-bottom: 8px;
+}
+
+.client-band {
+  position: relative;
+  overflow: hidden;
+  max-width: 900px;
+  margin: 2px 0 26px;
+  padding: 24px 24px 24px;
+  background: var(--easy-client-band-bg);
+}
+
+.client-band::after {
+  content: "";
+  position: absolute;
+  top: -18px;
+  right: 28px;
+  width: 130px;
+  height: 130px;
+  border-radius: 999px;
+  background: var(--easy-client-band-glow);
+  pointer-events: none;
+}
+
+.client-band-label {
+  position: relative;
+  z-index: 1;
+  margin-bottom: 12px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--easy-client-label);
+}
+
+.client-band-list {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.platform-band-list {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.client-band-list span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--easy-pill-border);
+  border-radius: 999px;
+  background: var(--easy-pill-bg);
+  color: var(--easy-pill-text);
+  font-size: 0.96rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.platform-band-list span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 11px;
+  border: 1px solid rgba(110, 174, 255, 0.16);
+  border-radius: 999px;
+  background: rgba(82, 135, 219, 0.05);
+  color: var(--vp-c-text-2);
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+
+.client-band p {
+  position: relative;
+  z-index: 1;
+  max-width: 700px;
+  margin: 0;
+  color: var(--vp-c-text-2);
+  font-size: 1rem;
 }
 
 .intro-panel {
   max-width: 780px;
-  margin: 18px 0 26px;
+  margin: 0 0 30px;
+  padding-inline: 2px;
 }
 
 .intro-panel p,
@@ -145,45 +417,250 @@
 .quick-grid {
   display: grid;
   gap: 14px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  margin: 20px 0 24px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0 0 28px;
+}
+
+.surface-card {
+  border: 1px solid var(--easy-card-border);
+  border-radius: 22px;
+  background: var(--easy-card-bg);
+  box-shadow: var(--easy-card-shadow);
 }
 
 .quick-card {
-  border: 1px solid rgba(156, 244, 211, 0.1);
-  border-radius: 18px;
-  background: rgba(14, 33, 51, 0.52);
-  padding: 16px 18px;
-}
-
-.VPFeature {
-  border: 1px solid rgba(156, 244, 211, 0.12);
-  background: rgba(14, 33, 51, 0.66);
-  border-radius: 18px;
-}
-
-.VPFeature .title {
-  font-family: "Fraunces", serif;
-  font-size: 1.28rem;
-  letter-spacing: -0.02em;
-}
-
-.VPFeature .details {
-  color: var(--vp-c-text-2);
+  padding: 18px 20px;
 }
 
 .subtle-note {
-  margin: 0 0 24px;
+  margin: 4px 0 28px;
   color: var(--vp-c-text-2);
   font-size: 0.98rem;
 }
 
+/* ── Code blocks ──────────────────────────────────────────────── */
+
+.vp-doc div[class*="language-"] {
+  border-radius: 12px;
+  border: 1px solid var(--easy-card-border);
+}
+
+.vp-doc div[class*="language-"] pre {
+  padding: 18px 22px;
+}
+
+.vp-doc div[class*="language-"] .lang {
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  opacity: 0.5;
+}
+
+/* ── Inline code ──────────────────────────────────────────────── */
+
+.vp-doc :not(pre) > code {
+  font-size: 0.87em;
+  padding: 2px 6px;
+  border-radius: 5px;
+  background: var(--vp-c-brand-soft);
+  color: var(--vp-c-brand-1);
+}
+
+/* ── Cards — hover ────────────────────────────────────────────── */
+
+.surface-card {
+  transition: box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.surface-card:hover {
+  border-color: rgba(92, 157, 255, 0.32);
+  box-shadow: var(--easy-card-shadow);
+}
+
+/* ── Headings ─────────────────────────────────────────────────── */
+
+.vp-doc h2 {
+  border-top: 1px solid var(--vp-c-divider);
+  padding-top: 1.5rem;
+  margin-top: 2rem;
+}
+
+.vp-doc h3 {
+  color: var(--vp-c-text-1);
+  font-size: 1rem;
+}
+
+/* ── Tables ───────────────────────────────────────────────────── */
+
+.vp-doc table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.9rem;
+}
+
+.vp-doc th {
+  background: var(--vp-c-bg-soft);
+  font-weight: 600;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--vp-c-text-2);
+  padding: 8px 12px;
+}
+
+.vp-doc td {
+  padding: 8px 12px;
+  border-color: var(--vp-c-divider);
+}
+
+/* ── Tip / warning / danger callouts ─────────────────────────── */
+
+.vp-doc .tip,
+.vp-doc .warning,
+.vp-doc .danger {
+  border-radius: 10px;
+  border-width: 1px;
+}
+
+/* ── Mobile ───────────────────────────────────────────────────── */
+
+/* ── Hero gradient blobs ──────────────────────────────────────── */
+
+.VPHomeHero {
+  position: relative;
+  overflow: hidden;
+}
+
+/* keep text stack above blobs */
+.VPHomeHero .container {
+  position: relative;
+  z-index: 2;
+}
+
+.VPHomeHero .main {
+  will-change: transform;
+  transition: transform 0.1s linear;
+}
+
+.vp-hero-gradient-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.vp-hero-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(72px);
+  will-change: translate;
+}
+
+/* Light mode blob colors */
+.vp-hero-blob-0 {
+  width: 560px; height: 560px;
+  background: radial-gradient(circle at 40% 40%, rgba(45,140,255,0.40), transparent 70%);
+  top: -160px; left: -80px;
+  translate: calc(var(--mx, 0) * 38px) calc(var(--my, 0) * 26px);
+  animation: blob-a 9s ease-in-out infinite;
+}
+
+.vp-hero-blob-1 {
+  width: 440px; height: 440px;
+  background: radial-gradient(circle at 60% 40%, rgba(26,79,214,0.32), transparent 70%);
+  top: -100px; right: -60px;
+  translate: calc(var(--mx, 0) * -28px) calc(var(--my, 0) * -18px);
+  animation: blob-b 12s ease-in-out infinite;
+}
+
+.vp-hero-blob-2 {
+  width: 380px; height: 380px;
+  background: radial-gradient(circle at 50% 50%, rgba(100,171,255,0.30), transparent 70%);
+  bottom: -80px; left: 38%;
+  translate: calc(var(--mx, 0) * 18px) calc(var(--my, 0) * 14px);
+  animation: blob-c 14s ease-in-out infinite;
+}
+
+.vp-hero-blob-3 {
+  width: 320px; height: 320px;
+  background: radial-gradient(circle at 50% 50%, rgba(13,42,94,0.22), transparent 70%);
+  bottom: 10px; right: 8%;
+  translate: calc(var(--mx, 0) * -22px) calc(var(--my, 0) * -16px);
+  animation: blob-d 10s ease-in-out infinite;
+}
+
+/* Dark mode — same positions, more vivid */
+.dark .vp-hero-blob-0 {
+  background: radial-gradient(circle at 40% 40%, rgba(45,140,255,0.55), transparent 70%);
+}
+.dark .vp-hero-blob-1 {
+  background: radial-gradient(circle at 60% 40%, rgba(30,95,230,0.45), transparent 70%);
+}
+.dark .vp-hero-blob-2 {
+  background: radial-gradient(circle at 50% 50%, rgba(100,171,255,0.38), transparent 70%);
+}
+.dark .vp-hero-blob-3 {
+  background: radial-gradient(circle at 50% 50%, rgba(10,27,70,0.50), transparent 70%);
+}
+
+@keyframes blob-a {
+  0%, 100% { transform: scale(1)     translate(0, 0); }
+  35%       { transform: scale(1.10) translate(30px, -28px); }
+  70%       { transform: scale(0.94) translate(-18px, 22px); }
+}
+
+@keyframes blob-b {
+  0%, 100% { transform: scale(1)     translate(0, 0); }
+  40%       { transform: scale(1.08) translate(-26px, 36px); }
+  75%       { transform: scale(0.96) translate(18px, -14px); }
+}
+
+@keyframes blob-c {
+  0%, 100% { transform: scale(1)     translate(0, 0); }
+  30%       { transform: scale(1.07) translate(22px, 28px); }
+  65%       { transform: scale(0.92) translate(-24px, -18px); }
+}
+
+@keyframes blob-d {
+  0%, 100% { transform: scale(1)     translate(0, 0); }
+  45%       { transform: scale(1.12) translate(-18px, -32px); }
+  80%       { transform: scale(0.95) translate(26px, 16px); }
+}
+
+/* ── Mobile ───────────────────────────────────────────────────── */
+
 @media (max-width: 960px) {
+  .VPHomeHero .container {
+    padding-top: 24px;
+  }
+
+  .VPHomeHero .main {
+    padding-bottom: 14px;
+  }
+
+  .client-band {
+    margin: 0 0 22px;
+    padding: 18px;
+  }
+
+  .intro-panel {
+    margin-bottom: 24px;
+  }
+
   .quick-grid {
     grid-template-columns: 1fr;
+    margin-bottom: 22px;
   }
 
   .VPHero .text {
     max-width: none;
+  }
+
+  .VPHero .actions {
+    gap: 10px;
+  }
+
+  .quick-card {
+    padding: 16px 18px;
   }
 }
