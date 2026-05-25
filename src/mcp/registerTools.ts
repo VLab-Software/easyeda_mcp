@@ -125,6 +125,7 @@ export function registerEasyEdaTools(server: McpServer, bridge: EasyEdaBridge): 
     },
     async () => {
       const status = bridge.getStatus();
+      const hasDocumentContext = Boolean(status.documentName || status.projectName || status.documentInfo);
       const nextSteps = doctorNextSteps(status);
       const summary = status.connected
         ? status.compatibility?.compatible === false
@@ -154,7 +155,7 @@ export function registerEasyEdaTools(server: McpServer, bridge: EasyEdaBridge): 
             }
           },
           activeDocument: {
-            available: Boolean(status.documentName || status.projectName),
+            available: hasDocumentContext,
             type: status.activeDocumentType ?? "unknown",
             projectName: status.projectName,
             documentName: status.documentName
