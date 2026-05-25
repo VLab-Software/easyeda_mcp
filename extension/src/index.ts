@@ -957,7 +957,23 @@ function stringOrUndefined(value: unknown): string | undefined {
   return typeof value === "string" && value.trim() ? value.trim() : typeof value === "number" ? String(value) : undefined;
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
 function inferDocumentType(documentInfo: unknown): string {
+  const record = isRecord(documentInfo) ? documentInfo : undefined;
+  const numericType = record
+    ? [
+      record.documentType,
+      record.doctype,
+      record.type
+    ].find((value) => typeof value === "number")
+    : undefined;
+
+  if (numericType === 1) return "schematic";
+  if (numericType === 2) return "pcb";
+
   const raw = JSON.stringify(documentInfo ?? {}).toLowerCase();
   if (raw.includes("pcb")) return "pcb";
   if (raw.includes("sch") || raw.includes("schematic")) return "schematic";

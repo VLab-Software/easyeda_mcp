@@ -139,6 +139,26 @@ describe("EasyEDA extension bridge handlers", () => {
     });
   });
 
+  it("infers schematic type from numeric documentType in status", async () => {
+    vi.stubGlobal("eda", {
+      ...(globalThis as { eda: Record<string, unknown> }).eda,
+      dmt_SelectControl: {
+        getCurrentDocumentInfo: vi.fn(async () => ({
+          uuid: "doc-123",
+          documentType: 1
+        }))
+      }
+    });
+
+    const extension = await import("./index.js");
+
+    extension.activate("onStartupFinished");
+    await registration.onOpen?.();
+
+    const helloMessage = JSON.parse(sentMessages.at(0)?.message ?? "{}");
+    expect(helloMessage.status.activeDocumentType).toBe("schematic");
+  });
+
   it("responds to verifyConnections requests with structured results", async () => {
     const extension = await import("./index.js");
 

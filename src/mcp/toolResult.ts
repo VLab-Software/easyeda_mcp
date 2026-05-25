@@ -5,7 +5,7 @@ export type ToolResult = CallToolResult;
 
 export function ok(summary: string, structuredContent: Record<string, unknown>): ToolResult {
   return {
-    content: [{ type: "text", text: summary }],
+    content: [{ type: "text", text: renderText(summary, structuredContent) }],
     structuredContent
   };
 }
@@ -14,9 +14,21 @@ export function fail(error: unknown): ToolResult {
   const payload = normalizeError(error);
   return {
     isError: true,
-    content: [{ type: "text", text: payload.message }],
+    content: [{ type: "text", text: renderText(payload.message, payload) }],
     structuredContent: payload
   };
+}
+
+function renderText(summary: string, payload: Record<string, unknown>): string {
+  return `${summary}\n\n${safeJson(payload)}`;
+}
+
+function safeJson(payload: Record<string, unknown>): string {
+  try {
+    return JSON.stringify(payload, null, 2);
+  } catch {
+    return JSON.stringify({ error: "serialization_failed" }, null, 2);
+  }
 }
 
 function normalizeError(error: unknown): { message: string; [key: string]: unknown } {

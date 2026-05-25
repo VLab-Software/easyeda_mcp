@@ -26,6 +26,7 @@ export type EditorStatus = {
   activeDocumentType?: "pcb" | "schematic" | "symbol" | "footprint" | "unknown";
   projectName?: string;
   documentName?: string;
+  documentInfo?: unknown;
   message?: string;
   updatedAt: string;
 };
