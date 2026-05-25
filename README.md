@@ -4,6 +4,38 @@ Live MCP integration for EasyEDA Pro through an EasyEDA extension.
 
 The MCP server runs locally over `stdio` for MCP clients and also starts a WebSocket bridge at `ws://127.0.0.1:8765`. The EasyEDA Pro extension connects to that local bridge and executes read, navigation, export, and explicitly confirmed actions inside the active editor session.
 
+## Documentation
+
+Project documentation is available in [`docs/README.md`](./docs/README.md).
+
+The repository also includes a VitePress-based docs site and a GitHub Actions workflow for GitHub Pages deployment.
+
+Quick links:
+
+- [Getting Started](./docs/getting-started.md)
+- [Architecture](./docs/architecture.md)
+- [MCP Client Setup](./docs/mcp-client-setup.md)
+- [EasyEDA Pro Extension Setup](./docs/easyeda-extension.md)
+- [Tools Reference](./docs/tools.md)
+- [Safety Model](./docs/safety.md)
+- [Troubleshooting](./docs/troubleshooting.md)
+
+## Docs Site
+
+Run the docs site locally:
+
+```bash
+npm run docs:dev
+```
+
+Build the static docs output:
+
+```bash
+npm run docs:build
+```
+
+GitHub Pages deployment is configured through [`.github/workflows/deploy-docs.yml`](./.github/workflows/deploy-docs.yml). After pushing to `main`, GitHub Actions can build and publish the site.
+
 ## Features
 
 - Live status and editor context from the active EasyEDA Pro instance.
@@ -67,6 +99,7 @@ The extension entry is `extension/dist/index.js`, and the manifest is `extension
 - `easyeda_trace_component`
 - `easyeda_find_unconnected_pins`
 - `easyeda_validate_schematic_area`
+- `easyeda_verify_connections`
 - `easyeda_navigate_component`
 - `easyeda_navigate_region`
 - `easyeda_zoom_board`
