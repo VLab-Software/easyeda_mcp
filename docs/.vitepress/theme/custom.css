@@ -1,0 +1,159 @@
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap");
+
+:root {
+  --vp-font-family-base: "IBM Plex Sans", sans-serif;
+  --vp-font-family-mono: "IBM Plex Mono", "SFMono-Regular", ui-monospace, monospace;
+  --vp-c-brand-1: #0d8b82;
+  --vp-c-brand-2: #0a6a63;
+  --vp-c-brand-3: #064a46;
+  --vp-c-brand-soft: rgba(13, 139, 130, 0.14);
+  --vp-home-hero-name-color: transparent;
+  --vp-home-hero-name-background: linear-gradient(135deg, #f5f0dc 0%, #9cf4d3 38%, #36d7c7 100%);
+  --vp-home-hero-image-background-image:
+    radial-gradient(circle at 30% 20%, rgba(54, 215, 199, 0.48), transparent 35%),
+    radial-gradient(circle at 70% 35%, rgba(255, 206, 92, 0.32), transparent 28%),
+    linear-gradient(135deg, rgba(8, 19, 35, 0.96), rgba(13, 30, 49, 0.92));
+  --vp-home-hero-image-filter: blur(0);
+  --vp-button-brand-bg: #0d8b82;
+  --vp-button-brand-hover-bg: #0a6a63;
+  --vp-button-brand-active-bg: #064a46;
+}
+
+.dark {
+  --vp-c-bg: #07131f;
+  --vp-c-bg-soft: #0e2133;
+  --vp-c-bg-elv: #10283d;
+  --vp-c-text-1: #e8f1f6;
+  --vp-c-text-2: #b7c8d6;
+}
+
+.VPHome {
+  position: relative;
+}
+
+.VPHome::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 720px;
+  background:
+    radial-gradient(circle at top left, rgba(54, 215, 199, 0.18), transparent 34%),
+    radial-gradient(circle at top right, rgba(255, 206, 92, 0.12), transparent 26%),
+    linear-gradient(180deg, rgba(6, 16, 28, 0.98) 0%, rgba(8, 16, 26, 0.82) 42%, transparent 100%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.VPHero .name,
+.VPHero .text {
+  font-family: "Fraunces", serif;
+  letter-spacing: -0.03em;
+}
+
+.VPHero .text {
+  max-width: 10ch;
+  font-size: clamp(2.6rem, 8vw, 5.3rem);
+  line-height: 0.94;
+}
+
+.VPHero .tagline {
+  max-width: 720px;
+  font-size: 1.08rem;
+}
+
+.VPHero .image-container {
+  padding: 18px;
+}
+
+.VPHero .image-bg {
+  border: 1px solid rgba(156, 244, 211, 0.2);
+  box-shadow:
+    0 40px 100px rgba(0, 0, 0, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.VPHero .image {
+  transform: none;
+}
+
+.hero-panel {
+  backdrop-filter: blur(18px);
+  background:
+    linear-gradient(180deg, rgba(11, 29, 44, 0.82), rgba(7, 19, 31, 0.84));
+  border: 1px solid rgba(156, 244, 211, 0.16);
+  border-radius: 24px;
+  padding: 22px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
+}
+
+.hero-grid {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 28px;
+}
+
+.hero-grid strong,
+.hero-panel strong {
+  display: block;
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #9cf4d3;
+  margin-bottom: 8px;
+}
+
+.hero-grid span,
+.hero-panel p {
+  color: var(--vp-c-text-1);
+}
+
+.hero-grid span {
+  display: block;
+  line-height: 1.5;
+}
+
+.hero-note {
+  margin-top: 18px;
+  color: var(--vp-c-text-2);
+  font-size: 0.96rem;
+}
+
+.VPFeature {
+  border: 1px solid rgba(156, 244, 211, 0.12);
+  background:
+    linear-gradient(180deg, rgba(14, 33, 51, 0.88), rgba(8, 22, 34, 0.96));
+  border-radius: 22px;
+}
+
+.VPFeature .title {
+  font-family: "Fraunces", serif;
+  font-size: 1.4rem;
+  letter-spacing: -0.02em;
+}
+
+.VPFeature .details {
+  color: var(--vp-c-text-2);
+}
+
+.doc-callout {
+  margin: 28px 0;
+  padding: 18px 20px;
+  border-left: 4px solid var(--vp-c-brand-1);
+  border-radius: 14px;
+  background: rgba(13, 139, 130, 0.08);
+}
+
+.doc-callout p:last-child {
+  margin-bottom: 0;
+}
+
+@media (max-width: 960px) {
+  .hero-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .VPHero .text {
+    max-width: none;
+  }
+}

@@ -45,6 +45,7 @@ describe("EasyEDA MCP server", () => {
     expect(toolNames).toContain("easyeda_schematic_snapshot");
     expect(toolNames).toContain("easyeda_trace_component");
     expect(toolNames).toContain("easyeda_validate_schematic_area");
+    expect(toolNames).toContain("easyeda_verify_connections");
 
     const result = await client.callTool({
       name: "easyeda_get_context",
