@@ -40,6 +40,7 @@ describe("EasyEDA extension bridge handlers", () => {
   let savedDocumentUuids: string[] = [];
 
   beforeEach(() => {
+    vi.useFakeTimers();
     sentMessages = [];
     registration = {};
     dialogMessages = [];
@@ -115,8 +116,27 @@ describe("EasyEDA extension bridge handlers", () => {
   });
 
   afterEach(() => {
+    vi.clearAllTimers();
+    vi.useRealTimers();
     vi.unstubAllGlobals();
     vi.resetModules();
+  });
+
+  it("auto-connects on activation and sends hello on open", async () => {
+    const extension = await import("./index.js");
+
+    extension.activate("onStartupFinished");
+    expect(registration.onOpen).toBeTypeOf("function");
+
+    await registration.onOpen?.();
+
+    const helloMessage = JSON.parse(sentMessages.at(0)?.message ?? "{}");
+    expect(helloMessage.kind).toBe("hello");
+    expect(helloMessage.protocolVersion).toBe("0.1.0");
+    expect(helloMessage.compatibility).toMatchObject({
+      compatible: true,
+      expectedProtocolVersion: "0.1.0"
+    });
   });
 
   it("responds to verifyConnections requests with structured results", async () => {
@@ -185,5 +205,19 @@ describe("EasyEDA extension bridge handlers", () => {
       saved: true,
       documentUuid: "doc-123"
     });
+  });
+
+  it("shows diagnostics with connection and document details", async () => {
+    const extension = await import("./index.js");
+
+    extension.connect();
+    await extension.runDiagnostics();
+
+    expect(dialogMessages.at(-1)).toMatchObject({
+      title: "EasyEDA MCP Bridge Diagnostics"
+    });
+    expect(dialogMessages.at(-1)?.message).toContain("Bridge URI: ws://127.0.0.1:8765");
+    expect(dialogMessages.at(-1)?.message).toContain("Connection phase:");
+    expect(dialogMessages.at(-1)?.message).toContain("Document: Power Supply.Schematic");
   });
 });

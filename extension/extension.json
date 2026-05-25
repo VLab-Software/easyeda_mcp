@@ -3,7 +3,7 @@
   "uuid": "easyedamcpbridge202605240001abcd",
   "displayName": "EasyEDA MCP Bridge",
   "description": "Local WebSocket bridge that lets an MCP server inspect and assist the active EasyEDA Pro project.",
-  "version": "0.1.2",
+  "version": "0.1.0",
   "publisher": "vlabsoft",
   "engines": {
     "eda": "^2.3.0"
@@ -21,19 +21,24 @@
         "title": "MCP Bridge",
         "menuItems": [
           {
-            "id": "test-dialog",
-            "title": "Test Dialog",
-            "registerFn": "testDialog"
-          },
-          {
             "id": "connect",
-            "title": "Connect to MCP",
+            "title": "Connect",
             "registerFn": "connect"
           },
           {
-            "id": "status",
-            "title": "Send Status",
-            "registerFn": "sendStatus"
+            "id": "reconnect",
+            "title": "Reconnect",
+            "registerFn": "reconnect"
+          },
+          {
+            "id": "show-status",
+            "title": "Show Status",
+            "registerFn": "showStatus"
+          },
+          {
+            "id": "run-diagnostics",
+            "title": "Run Diagnostics",
+            "registerFn": "runDiagnostics"
           }
         ]
       }
@@ -44,19 +49,24 @@
         "title": "MCP Bridge",
         "menuItems": [
           {
-            "id": "test-dialog",
-            "title": "Test Dialog",
-            "registerFn": "testDialog"
-          },
-          {
             "id": "connect",
-            "title": "Connect to MCP",
+            "title": "Connect",
             "registerFn": "connect"
           },
           {
-            "id": "status",
-            "title": "Send Status",
-            "registerFn": "sendStatus"
+            "id": "reconnect",
+            "title": "Reconnect",
+            "registerFn": "reconnect"
+          },
+          {
+            "id": "show-status",
+            "title": "Show Status",
+            "registerFn": "showStatus"
+          },
+          {
+            "id": "run-diagnostics",
+            "title": "Run Diagnostics",
+            "registerFn": "runDiagnostics"
           }
         ]
       }
@@ -67,19 +77,24 @@
         "title": "MCP Bridge",
         "menuItems": [
           {
-            "id": "test-dialog",
-            "title": "Test Dialog",
-            "registerFn": "testDialog"
-          },
-          {
             "id": "connect",
-            "title": "Connect to MCP",
+            "title": "Connect",
             "registerFn": "connect"
           },
           {
-            "id": "status",
-            "title": "Send Status",
-            "registerFn": "sendStatus"
+            "id": "reconnect",
+            "title": "Reconnect",
+            "registerFn": "reconnect"
+          },
+          {
+            "id": "show-status",
+            "title": "Show Status",
+            "registerFn": "showStatus"
+          },
+          {
+            "id": "run-diagnostics",
+            "title": "Run Diagnostics",
+            "registerFn": "runDiagnostics"
           }
         ]
       }

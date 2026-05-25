@@ -167,4 +167,38 @@ describe("mutation confirmation guard", () => {
       }
     });
   });
+
+  it("returns a doctor report without calling the bridge RPC layer", async () => {
+    const bridge = {
+      endpoint: "ws://127.0.0.1:8765",
+      getStatus: () => ({
+        connected: false,
+        connectionState: "disconnected",
+        message: "Extension not connected.",
+        updatedAt: new Date().toISOString()
+      }),
+      call: vi.fn()
+    };
+    const client = await makeClient(bridge);
+
+    const result = await client.callTool({
+      name: "easyeda_doctor",
+      arguments: {}
+    });
+
+    expect(bridge.call).not.toHaveBeenCalled();
+    expect(result.isError).toBeFalsy();
+    expect(result.content[0]?.type).toBe("text");
+    expect(result.content[0]?.text).toContain("diagnostics");
+    expect(result.structuredContent).toMatchObject({
+      doctor: {
+        bridge: {
+          endpoint: "ws://127.0.0.1:8765"
+        },
+        extension: {
+          connected: false
+        }
+      }
+    });
+  });
 });

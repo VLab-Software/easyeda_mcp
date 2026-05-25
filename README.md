@@ -1,116 +1,104 @@
-# EasyEDA Pro MCP Bridge
+# EasyEDA Pro MCP
 
-Live MCP integration for EasyEDA Pro through an EasyEDA extension.
+Connect EasyEDA Pro to MCP clients such as Codex, Claude, Claude Code, and VS Code.
 
-The MCP server runs locally over `stdio` for MCP clients and also starts a WebSocket bridge at `ws://127.0.0.1:8765`. The EasyEDA Pro extension connects to that local bridge and executes read, navigation, export, and explicitly confirmed actions inside the active editor session.
+The bridge runs locally. Your MCP client starts a Node.js server, the EasyEDA Pro extension connects back over WebSocket, and AI tools can inspect the project that is open in the editor.
+
+## Quick Start
+
+```bash
+npm install
+npm run setup:local
+```
+
+Then:
+
+1. configure your MCP client to run `node /absolute/path/to/easyeda_mcp/dist/index.js`
+2. open EasyEDA Pro
+3. load the EasyEDA Pro extension
+4. enable external interaction permission
+5. open a schematic or PCB
+6. ask your MCP client to run `easyeda_doctor`
+
+Healthy output should show the extension connected, protocol compatible, and an active document available.
 
 ## Documentation
 
-Project documentation is available in [`docs/README.md`](./docs/README.md).
+Start here:
 
-The repository also includes a VitePress-based docs site and a GitHub Actions workflow for GitHub Pages deployment.
-
-Quick links:
-
+- [Quick Start](./docs/quick-start.md)
 - [Getting Started](./docs/getting-started.md)
-- [Architecture](./docs/architecture.md)
-- [MCP Client Setup](./docs/mcp-client-setup.md)
+- [AI Client Setup](./docs/ai-client-setup.md)
 - [EasyEDA Pro Extension Setup](./docs/easyeda-extension.md)
-- [Tools Reference](./docs/tools.md)
-- [Safety Model](./docs/safety.md)
 - [Troubleshooting](./docs/troubleshooting.md)
 
-## Docs Site
+Reference:
 
-Run the docs site locally:
+- [Tools Reference](./docs/tools.md)
+- [MCP Client Setup](./docs/mcp-client-setup.md)
+- [Safety Model](./docs/safety.md)
+- [Architecture](./docs/architecture.md)
 
-```bash
-npm run docs:dev
+## What It Can Do
+
+- read live EasyEDA Pro editor status and context
+- inspect components, pins, nets, wires, and labels
+- trace schematic nets and components
+- verify targeted connection assertions
+- navigate to components or regions
+- export BOM, netlist, Gerber, and PDF files
+- run selected mutating actions only after explicit confirmation
+
+## Local Runtime
+
+```text
+MCP client -> Node.js MCP server -> local WebSocket bridge -> EasyEDA Pro extension
 ```
 
-Build the static docs output:
+Defaults:
 
-```bash
-npm run docs:build
-```
-
-GitHub Pages deployment is configured through [`.github/workflows/deploy-docs.yml`](./.github/workflows/deploy-docs.yml). After pushing to `main`, GitHub Actions can build and publish the site.
-
-## Features
-
-- Live status and editor context from the active EasyEDA Pro instance.
-- Component and net lookup using EasyEDA Pro extension APIs.
-- Generic schematic analysis: components, pins, nets, wires, labels, unconnected pins, and validation findings.
-- Navigation helpers for components, coordinates, regions, and board outline zoom.
-- BOM, netlist, Gerber, and PDF export via EasyEDA Pro manufacture APIs.
-- Mutating actions routed through `easyeda_confirmed_action` and blocked unless the confirmation text is explicit.
-- No offline `.epro` parsing in this version.
-
-## Build and Test
-
-```powershell
-npm install
-npm run build
-npm run build:extension
-npm test
-```
-
-## MCP Client Configuration
-
-Build first, then point your MCP client at the compiled server:
-
-```json
-{
-  "mcpServers": {
-    "easyeda-pro": {
-      "command": "node",
-      "args": ["C:\\Users\\vlabsoft\\Documents\\easyeda_mcp\\dist\\index.js"]
-    }
-  }
-}
-```
+- MCP transport: `stdio`
+- WebSocket bridge: `ws://127.0.0.1:8765`
 
 Optional environment variables:
 
-- `EASYEDA_MCP_WS_HOST`: defaults to `127.0.0.1`.
-- `EASYEDA_MCP_WS_PORT`: defaults to `8765`.
+- `EASYEDA_MCP_WS_HOST`
+- `EASYEDA_MCP_WS_PORT`
 
-## EasyEDA Pro Extension Setup
+## Build and Test
 
-1. Run `npm run build:extension`.
-2. Load the `extension` folder as a local EasyEDA Pro extension.
-3. Enable external interaction permission for the extension; EasyEDA Pro requires this for `SYS_WebSocket`.
-4. Keep the MCP server running.
-5. Use the EasyEDA Pro menu `MCP Bridge -> Connect to MCP` if it does not connect automatically.
-6. Call `easyeda_live_status` from your MCP client and check that `connected` is `true`.
+```bash
+npm run setup:local
+npm test
+npm run typecheck
+```
 
-The extension entry is `extension/dist/index.js`, and the manifest is `extension/extension.json`.
+`npm run setup:local` builds the MCP server, builds the extension bundle, and packages the `.eext` artifact.
 
-## Tools
+## GitHub Release Assets
 
-- `easyeda_live_status`
-- `easyeda_get_context`
-- `easyeda_find_component`
-- `easyeda_find_net`
-- `easyeda_schematic_snapshot`
-- `easyeda_list_schematic_components`
-- `easyeda_get_component_pins`
-- `easyeda_trace_net`
-- `easyeda_trace_component`
-- `easyeda_find_unconnected_pins`
-- `easyeda_validate_schematic_area`
-- `easyeda_verify_connections`
-- `easyeda_navigate_component`
-- `easyeda_navigate_region`
-- `easyeda_zoom_board`
-- `easyeda_export_bom`
-- `easyeda_export_netlist`
-- `easyeda_export_gerber`
-- `easyeda_export_pdf`
-- `easyeda_confirmed_action`
+Public beta releases attach:
 
-## Safety
+- `easyeda-mcp-bridge_v0.1.0.eext`: versioned EasyEDA Pro extension package
+- `easyeda_mcp_bridge.eext`: stable filename for the same extension package
+- `SHA256SUMS.txt`: checksums for release verification
 
-Inspection, navigation, and export tools run directly. Project-changing operations are limited to `easyeda_confirmed_action`, and the confirmation field must contain an explicit phrase such as `confirma salvar` or `I confirm`.
+## First Useful Prompts
 
-Commercial/order operations are intentionally not implemented.
+```text
+Run easyeda_doctor and summarize whether the EasyEDA Pro bridge is healthy.
+```
+
+```text
+Run easyeda_get_context and tell me which document is open in EasyEDA Pro.
+```
+
+```text
+Run easyeda_schematic_snapshot and summarize components, nets, warnings, and confidence.
+```
+
+## Scope
+
+This version is live-session based. It does not parse offline `.epro` files.
+
+Commercial/order operations are not implemented.

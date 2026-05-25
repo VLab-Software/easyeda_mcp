@@ -2,8 +2,25 @@
   "name": "easyeda-pro-mcp",
   "version": "0.1.0",
   "description": "MCP server and EasyEDA Pro extension bridge for live project assistance.",
+  "license": "MIT",
   "type": "module",
   "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/VLab-Software/easyeda_mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/VLab-Software/easyeda_mcp/issues"
+  },
+  "homepage": "https://github.com/VLab-Software/easyeda_mcp#readme",
+  "keywords": [
+    "easyeda",
+    "mcp",
+    "model-context-protocol",
+    "pcb",
+    "schematic",
+    "hardware"
+  ],
   "bin": {
     "easyeda-pro-mcp": "dist/index.js"
   },
@@ -14,6 +31,8 @@
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs",
     "package:extension": "node scripts/package-extension.mjs",
+    "package:all": "npm run build && npm run build:extension && npm run package:extension",
+    "setup:local": "npm run package:all",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },

@@ -1,99 +1,101 @@
 # EasyEDA Pro Extension Setup
 
-This guide covers how to build, install, and connect the EasyEDA Pro extension used by the MCP bridge.
+The extension is what gives the MCP server live access to EasyEDA Pro.
 
-## What the Extension Does
+Without it, the MCP server can start, but tools cannot inspect the open editor session.
 
-The extension is the live integration layer inside EasyEDA Pro. It receives bridge requests and translates them into EasyEDA Pro API calls.
-
-Without the extension, the MCP server cannot inspect or control the live editor session.
-
-## Build the Extension
+## Quick Path
 
 From the repository root:
 
 ```bash
-npm run build:extension
+npm run setup:local
 ```
 
-This produces the compiled bundle at:
+Then in EasyEDA Pro:
+
+1. import or load the packaged extension
+2. enable external interaction permission
+3. open a schematic or PCB
+4. use `MCP Bridge -> Reconnect` if it does not connect automatically
+5. run `easyeda_doctor` from your MCP client
+
+## What Gets Built
+
+`npm run setup:local` creates:
 
 ```text
+dist/index.js
 extension/dist/index.js
 ```
 
-The extension manifest is:
+It also packages the EasyEDA extension artifact for import workflows.
+
+The extension manifest lives at:
 
 ```text
 extension/extension.json
 ```
 
-## Package the Extension
+## Permission You Must Enable
 
-EasyEDA Pro expects a packaged `.eext` artifact for normal import workflows.
+EasyEDA Pro may disable external interaction for local extensions.
 
-Build and package it with:
+Enable it for this extension. The bridge needs it because the extension uses `SYS_WebSocket` to connect to:
 
-```bash
-npm run build:extension
-npm run package:extension
+```text
+ws://127.0.0.1:8765
 ```
 
-## Packaging Requirements
+If this permission is off, the MCP client may show tools, but live editor calls will fail.
 
-The current packaging assumptions are important:
+## Verify
+
+After EasyEDA Pro is open and the extension is loaded, ask your MCP client:
+
+```text
+Run easyeda_doctor.
+```
+
+Healthy output should show:
+
+- `connected: true`
+- compatible bridge protocol
+- an active project or document
+
+Then ask:
+
+```text
+Run easyeda_get_context.
+```
+
+## Extension Menu
+
+Use these commands inside EasyEDA Pro when needed:
+
+- `MCP Bridge -> Reconnect`
+- `MCP Bridge -> Run Diagnostics`
+
+`Reconnect` is the fastest fix when the server was restarted after EasyEDA Pro was already open.
+
+## Packaging Rules
+
+These details matter if you change the extension package:
 
 - `extension.json` must be at the package root
-- the extension `name` must use lowercase-hyphen style
-- the `uuid` must be exactly 32 lowercase alphanumeric characters
-- the bundle format must match the EasyEDA SDK expectations
+- extension `name` must use lowercase-hyphen style
+- `uuid` must be exactly 32 lowercase alphanumeric characters
+- the browser bundle must use EasyEDA-compatible output
 
-The bundle is currently built with:
+Current bundle settings:
 
 - `esbuild`
 - `format=iife`
 - `globalName=edaEsbuildExportName`
 
-## Install in EasyEDA Pro
-
-Typical setup flow:
-
-1. Start the MCP server
-2. Build or package the extension
-3. Import/load the extension in EasyEDA Pro
-4. Enable external interaction permission for the extension
-5. Open an EasyEDA Pro project
-6. Use `MCP Bridge -> Connect to MCP` if automatic connection does not happen
-
-## Why External Interaction Permission Matters
-
-The extension uses `SYS_WebSocket` and related runtime capabilities. EasyEDA Pro may disable those permissions by default for local extensions.
-
-If the permission is not enabled, the bridge cannot connect to the MCP server.
-
-## Connection Confirmation
-
-After installation:
-
-1. trigger the connection
-2. call `easyeda_live_status` from the MCP client
-3. confirm that `connected` is `true`
-
-## Extension Responsibilities
-
-The extension currently handles:
-
-- status reporting
-- editor context retrieval
-- component and net lookup
-- schematic snapshot collection
-- normalized schematic analysis helpers
-- navigation requests
-- export requests
-- explicitly confirmed mutating actions
-
 ## Related Files
 
 - `extension/src/index.ts`
+- `extension/src/bridgeConfig.ts`
 - `extension/extension.json`
-- `extension/README.md`
+- `scripts/package-extension.mjs`

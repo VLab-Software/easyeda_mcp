@@ -11,6 +11,12 @@ import {
   type RawSchematicData,
   type SchematicSnapshot
 } from "../../src/schematic/analysis.js";
+import {
+  PROTOCOL_VERSION,
+  evaluateProtocolCompatibility,
+  type ProtocolCompatibility
+} from "../../src/protocol/messages.js";
+import { getBridgeConfig, getBridgeUri } from "./bridgeConfig.js";
 
 type EasyEdaApi = Record<string, any>;
 
@@ -39,9 +45,32 @@ type BridgeErrorMessage = {
 };
 
 const WS_ID = "easyeda-mcp-bridge";
-const WS_URI = "ws://127.0.0.1:8765";
-const EXTENSION_VERSION = "0.1.2";
-const PROTOCOL_VERSION = "0.1.0";
+const EXTENSION_VERSION = "0.1.0";
+const bridgeConfig = getBridgeConfig();
+
+type ConnectionPhase = "idle" | "connecting" | "connected" | "blocked";
+
+type ConnectionState = {
+  phase: ConnectionPhase;
+  attemptIndex: number;
+  lastError?: BridgeErrorMessage["error"];
+  lastOpenAt?: string;
+  lastStatusAt?: string;
+  lastHandshakeAt?: string;
+  lastAttemptAt?: string;
+  connectedOnce: boolean;
+  compatibility: ProtocolCompatibility;
+  reconnectTimer?: ReturnType<typeof setTimeout>;
+  openTimeoutTimer?: ReturnType<typeof setTimeout>;
+  heartbeatTimer?: ReturnType<typeof setInterval>;
+};
+
+const connectionState: ConnectionState = {
+  phase: "idle",
+  attemptIndex: 0,
+  connectedOnce: false,
+  compatibility: evaluateProtocolCompatibility(PROTOCOL_VERSION)
+};
 
 const handlers: Record<string, (params: Record<string, any>) => Promise<unknown> | unknown> = {
   getContext,
@@ -74,56 +103,103 @@ const handlers: Record<string, (params: Record<string, any>) => Promise<unknown>
 
 export function activate(status?: "onStartupFinished", arg?: string): void {
   log("warn", `EasyEDA MCP Bridge activated: ${status ?? "manual"} ${arg ?? ""}`);
-}
-
-export function testDialog(): void {
-  showMessage("EasyEDA MCP Bridge", "Menu callback is working.");
+  void ensureBridgeConnected({ reason: "activation", manual: false });
 }
 
 export function connect(): void {
-  showMessage("EasyEDA MCP Bridge", `Connect clicked. Trying ${WS_URI}.`);
-  void startBridge()
-    .then(() => {
-      showMessage("EasyEDA MCP Bridge", `WebSocket registration requested for ${WS_URI}. Now ask Codex to test easyeda_live_status.`);
-    })
-    .catch((error) => {
-      showMessage("EasyEDA MCP Bridge error", normalizeError(error).message);
-    });
+  void ensureBridgeConnected({ reason: "manual-connect", manual: true, resetAttempts: true });
 }
 
-export async function sendStatus(): Promise<void> {
-  try {
-    send({
-      kind: "status",
-      status: await getStatus()
-    });
-    showMessage("EasyEDA MCP Bridge", "Status sent to MCP server.");
-  } catch (error) {
-    showMessage("EasyEDA MCP Bridge error", normalizeError(error).message);
-    throw error;
+export function reconnect(): void {
+  resetConnectionTimers();
+  connectionState.phase = "idle";
+  connectionState.attemptIndex = 0;
+  void ensureBridgeConnected({ reason: "manual-reconnect", manual: true, resetAttempts: true });
+}
+
+export async function showStatus(): Promise<void> {
+  const diagnostics = await collectDiagnostics();
+  showMessage("EasyEDA MCP Bridge Status", formatStatusSummary(diagnostics));
+}
+
+export async function runDiagnostics(): Promise<void> {
+  const diagnostics = await collectDiagnostics();
+  showMessage("EasyEDA MCP Bridge Diagnostics", formatDiagnostics(diagnostics));
+}
+
+async function ensureBridgeConnected(options: { reason: string; manual: boolean; resetAttempts?: boolean }): Promise<void> {
+  if (options.resetAttempts) {
+    connectionState.attemptIndex = 0;
   }
+
+  if (connectionState.phase === "connecting") {
+    return;
+  }
+
+  if (connectionState.phase === "connected" && !options.manual) {
+    return;
+  }
+
+  await startBridge(options);
 }
 
-async function startBridge(): Promise<void> {
+async function startBridge(options: { reason: string; manual: boolean }): Promise<void> {
   ensureApi("sys_WebSocket", "register");
+  resetConnectionTimers();
+  connectionState.phase = "connecting";
+  connectionState.lastAttemptAt = new Date().toISOString();
 
-  eda.sys_WebSocket.register(
-    WS_ID,
-    WS_URI,
-    async (event: MessageEvent<string>) => {
-      await handleMessage(event.data);
-    },
-    async () => {
-      send({
-        kind: "hello",
-        client: "easyeda-pro-extension",
-        version: EXTENSION_VERSION,
-        protocolVersion: PROTOCOL_VERSION,
-        capabilities: detectCapabilities(),
-        status: await getStatus()
-      });
-    }
-  );
+  const wsUri = getBridgeUri(bridgeConfig);
+  const attemptIndex = connectionState.attemptIndex;
+  const openTimeoutMs = bridgeConfig.openTimeoutMs;
+  connectionState.openTimeoutTimer = setTimeout(() => {
+    const error = apiError("bridge_open_timeout", `Timed out waiting for EasyEDA MCP Bridge to open ${wsUri}.`);
+    handleConnectionFailure(normalizeError(error), {
+      manual: options.manual,
+      shouldRetry: true
+    });
+  }, openTimeoutMs);
+
+  try {
+    eda.sys_WebSocket.register(
+      WS_ID,
+      wsUri,
+      async (event: MessageEvent<string>) => {
+        await handleMessage(event.data);
+      },
+      async () => {
+        connectionState.phase = "connected";
+        connectionState.lastOpenAt = new Date().toISOString();
+        connectionState.lastHandshakeAt = connectionState.lastOpenAt;
+        connectionState.lastError = undefined;
+        connectionState.compatibility = evaluateProtocolCompatibility(PROTOCOL_VERSION);
+        connectionState.attemptIndex = 0;
+        clearOpenTimeout();
+        send({
+          kind: "hello",
+          client: "easyeda-pro-extension",
+          version: EXTENSION_VERSION,
+          protocolVersion: PROTOCOL_VERSION,
+          compatibility: connectionState.compatibility,
+          capabilities: detectCapabilities(),
+          status: await getStatus()
+        });
+        startHeartbeat();
+        if (!connectionState.connectedOnce || options.manual) {
+          connectionState.connectedOnce = true;
+          showMessage("EasyEDA MCP Bridge", `Connected to ${wsUri}.`);
+        }
+      }
+    );
+  } catch (error) {
+    handleConnectionFailure(normalizeError(error), {
+      manual: options.manual,
+      shouldRetry: true
+    });
+    return;
+  }
+
+  log("warn", `Bridge connection attempt ${attemptIndex + 1} started for ${options.reason} -> ${wsUri}`);
 }
 
 async function handleMessage(raw: string): Promise<void> {
@@ -161,22 +237,199 @@ async function handleMessage(raw: string): Promise<void> {
 
 function send(message: Record<string, unknown>): void {
   ensureApi("sys_WebSocket", "send");
-  eda.sys_WebSocket.send(WS_ID, JSON.stringify(message));
+  try {
+    eda.sys_WebSocket.send(WS_ID, JSON.stringify(message));
+  } catch (error) {
+    handleConnectionFailure(normalizeError(error), {
+      manual: false,
+      shouldRetry: true
+    });
+    throw error;
+  }
 }
 
 async function getStatus(): Promise<Record<string, unknown>> {
   const documentInfo = await optionalCall(() => eda.dmt_SelectControl.getCurrentDocumentInfo());
   return {
-    connected: true,
+    connected: connectionState.phase === "connected",
+    connectionState: connectionState.phase,
     extensionVersion: EXTENSION_VERSION,
     protocolVersion: PROTOCOL_VERSION,
+    compatibility: connectionState.compatibility,
     capabilities: detectCapabilities(),
     activeDocumentType: inferDocumentType(documentInfo),
     projectName: pickString(documentInfo, ["projectName", "project", "parentName"]),
     documentName: pickString(documentInfo, ["name", "title", "documentName"]),
+    message: connectionState.lastError?.message,
     documentInfo: sanitize(documentInfo),
     updatedAt: new Date().toISOString()
   };
+}
+
+async function emitStatusUpdate(): Promise<void> {
+  send({
+    kind: "status",
+    compatibility: connectionState.compatibility,
+    status: await getStatus()
+  });
+  connectionState.lastStatusAt = new Date().toISOString();
+}
+
+function startHeartbeat(): void {
+  if (connectionState.heartbeatTimer) {
+    clearInterval(connectionState.heartbeatTimer);
+  }
+  connectionState.heartbeatTimer = setInterval(() => {
+    void emitStatusUpdate().catch((error) => {
+      handleConnectionFailure(normalizeError(error), {
+        manual: false,
+        shouldRetry: true
+      });
+    });
+  }, bridgeConfig.heartbeatIntervalMs);
+}
+
+function clearOpenTimeout(): void {
+  if (connectionState.openTimeoutTimer) {
+    clearTimeout(connectionState.openTimeoutTimer);
+    connectionState.openTimeoutTimer = undefined;
+  }
+}
+
+function resetConnectionTimers(): void {
+  clearOpenTimeout();
+  if (connectionState.reconnectTimer) {
+    clearTimeout(connectionState.reconnectTimer);
+    connectionState.reconnectTimer = undefined;
+  }
+  if (connectionState.heartbeatTimer) {
+    clearInterval(connectionState.heartbeatTimer);
+    connectionState.heartbeatTimer = undefined;
+  }
+}
+
+function handleConnectionFailure(
+  error: BridgeErrorMessage["error"],
+  options: { manual: boolean; shouldRetry: boolean }
+): void {
+  clearOpenTimeout();
+  if (connectionState.heartbeatTimer) {
+    clearInterval(connectionState.heartbeatTimer);
+    connectionState.heartbeatTimer = undefined;
+  }
+
+  connectionState.lastError = error;
+  connectionState.compatibility = evaluateProtocolCompatibility(PROTOCOL_VERSION);
+  connectionState.phase = isPermissionLikeError(error) ? "blocked" : "idle";
+
+  const hasRetryLeft = options.shouldRetry && connectionState.attemptIndex < bridgeConfig.reconnectDelayMs.length - 1;
+  if (hasRetryLeft) {
+    const nextAttempt = connectionState.attemptIndex + 1;
+    const delayMs = bridgeConfig.reconnectDelayMs[nextAttempt];
+    connectionState.attemptIndex = nextAttempt;
+    connectionState.reconnectTimer = setTimeout(() => {
+      connectionState.reconnectTimer = undefined;
+      void ensureBridgeConnected({
+        reason: "retry",
+        manual: false
+      });
+    }, delayMs);
+  }
+
+  if (options.manual || !hasRetryLeft || connectionState.phase === "blocked") {
+    showMessage("EasyEDA MCP Bridge", [
+      error.message,
+      "",
+      ...diagnosticHints(error)
+    ].join("\n"));
+  }
+}
+
+async function collectDiagnostics(): Promise<Record<string, unknown>> {
+  const documentInfo = await optionalCall(() => eda.dmt_SelectControl.getCurrentDocumentInfo());
+  return {
+    bridge: {
+      uri: getBridgeUri(bridgeConfig),
+      config: bridgeConfig
+    },
+    websocket: {
+      registerAvailable: Boolean(eda.sys_WebSocket?.register),
+      sendAvailable: Boolean(eda.sys_WebSocket?.send)
+    },
+    connection: {
+      phase: connectionState.phase,
+      connectedOnce: connectionState.connectedOnce,
+      lastAttemptAt: connectionState.lastAttemptAt,
+      lastOpenAt: connectionState.lastOpenAt,
+      lastHandshakeAt: connectionState.lastHandshakeAt,
+      lastStatusAt: connectionState.lastStatusAt,
+      lastError: connectionState.lastError,
+      compatibility: connectionState.compatibility
+    },
+    activeDocument: {
+      available: Boolean(documentInfo),
+      type: inferDocumentType(documentInfo),
+      projectName: pickString(documentInfo, ["projectName", "project", "parentName"]),
+      documentName: pickString(documentInfo, ["name", "title", "documentName"])
+    },
+    nextSteps: diagnosticHints(connectionState.lastError)
+  };
+}
+
+function formatStatusSummary(diagnostics: Record<string, unknown>): string {
+  const connection = diagnostics.connection as Record<string, unknown>;
+  const document = diagnostics.activeDocument as Record<string, unknown>;
+  return [
+    `Bridge URI: ${getBridgeUri(bridgeConfig)}`,
+    `Connection phase: ${String(connection.phase ?? "unknown")}`,
+    `Last open: ${String(connection.lastOpenAt ?? "never")}`,
+    `Document: ${String(document.documentName ?? document.projectName ?? "none")}`
+  ].join("\n");
+}
+
+function formatDiagnostics(diagnostics: Record<string, unknown>): string {
+  const websocket = diagnostics.websocket as Record<string, unknown>;
+  const connection = diagnostics.connection as Record<string, unknown>;
+  const document = diagnostics.activeDocument as Record<string, unknown>;
+  const nextSteps = Array.isArray(diagnostics.nextSteps) ? diagnostics.nextSteps as string[] : [];
+
+  return [
+    `Bridge URI: ${getBridgeUri(bridgeConfig)}`,
+    `WebSocket register available: ${String(websocket.registerAvailable)}`,
+    `WebSocket send available: ${String(websocket.sendAvailable)}`,
+    `Connection phase: ${String(connection.phase ?? "unknown")}`,
+    `Last open: ${String(connection.lastOpenAt ?? "never")}`,
+    `Last status: ${String(connection.lastStatusAt ?? "never")}`,
+    `Compatibility: ${String((connection.compatibility as Record<string, unknown>)?.compatible ?? false)}`,
+    `Document: ${String(document.documentName ?? document.projectName ?? "none")}`,
+    nextSteps.length > 0 ? `Next steps:\n- ${nextSteps.join("\n- ")}` : "Next steps: none"
+  ].join("\n");
+}
+
+function diagnosticHints(error?: BridgeErrorMessage["error"]): string[] {
+  if (isPermissionLikeError(error)) {
+    return [
+      "Enable external interaction/WebSocket permission for the extension in EasyEDA Pro.",
+      "Reload the extension and let it auto-connect again."
+    ];
+  }
+
+  if (error?.code === "bridge_open_timeout") {
+    return [
+      "Make sure the MCP server is running locally.",
+      `Confirm the bridge endpoint is reachable at ${getBridgeUri(bridgeConfig)}.`
+    ];
+  }
+
+  return [
+    "Keep EasyEDA Pro open while the MCP server is running.",
+    "Use Reconnect or Run Diagnostics from the extension menu if the bridge stays unavailable."
+  ];
+}
+
+function isPermissionLikeError(error?: BridgeErrorMessage["error"]): boolean {
+  const message = `${error?.message ?? ""} ${error?.code ?? ""}`.toLowerCase();
+  return message.includes("permission") || message.includes("external interaction") || message.includes("sys_websocket");
 }
 
 async function getContext(): Promise<Record<string, unknown>> {

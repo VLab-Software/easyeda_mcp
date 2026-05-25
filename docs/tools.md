@@ -1,10 +1,37 @@
 # Tools Reference
 
-This document describes the MCP tools exposed by the EasyEDA Pro MCP Bridge.
+Use this page when you know what you want to do and need the right MCP tool.
+
+## Fast Picker
+
+| Goal | Start with |
+| --- | --- |
+| Check whether the bridge works | `easyeda_doctor` |
+| See what is open in EasyEDA Pro | `easyeda_get_context` |
+| Find a part | `easyeda_find_component` |
+| Find a net | `easyeda_find_net` |
+| Inspect the whole schematic | `easyeda_schematic_snapshot` |
+| List schematic parts | `easyeda_list_schematic_components` |
+| Inspect one part's pins | `easyeda_get_component_pins` |
+| Trace a signal or power rail | `easyeda_trace_net` |
+| Trace everything around one part | `easyeda_trace_component` |
+| Find likely wiring gaps | `easyeda_find_unconnected_pins` |
+| Run generic schematic checks | `easyeda_validate_schematic_area` |
+| Check exact connection rules | `easyeda_verify_connections` |
+| Move the editor to a part | `easyeda_navigate_component` |
+| Export manufacturing files | `easyeda_export_bom`, `easyeda_export_netlist`, `easyeda_export_gerber`, `easyeda_export_pdf` |
+| Save/import/autoroute/autolayout | `easyeda_confirmed_action` |
+
+## Recommended First Flow
+
+Run these in order when starting a session:
+
+1. `easyeda_doctor`
+2. `easyeda_get_context`
+3. `easyeda_schematic_snapshot`
+4. `easyeda_trace_component` or `easyeda_trace_net`
 
 ## Tool Groups
-
-The tools fall into five broad groups:
 
 - status and context
 - search and inspection
@@ -18,21 +45,19 @@ The tools fall into five broad groups:
 
 Checks whether the EasyEDA Pro extension is connected and returns current bridge and editor status information.
 
-Use it to:
+Use this for a quick yes/no connection check.
 
-- confirm that the extension is connected
-- inspect capabilities exposed by the current EasyEDA Pro session
-- verify the active bridge endpoint
+### `easyeda_doctor`
+
+Returns a structured diagnosis of the local MCP bridge, extension connection state, protocol compatibility, active document availability, and recommended next steps.
+
+Use this first when anything feels broken.
 
 ### `easyeda_get_context`
 
 Returns a broader summary of the current editor context, including active document details and some available counts for project data.
 
-Use it to:
-
-- confirm the current document state
-- inspect high-level project context
-- verify that the expected editor session is open
+Use this to confirm the AI is looking at the right EasyEDA Pro document.
 
 ## Search and Inspection
 
@@ -40,19 +65,13 @@ Use it to:
 
 Searches the active project for components matching a designator, name, value, footprint, or property text.
 
-Helpful for:
-
-- locating parts such as `U1`, `USB1`, or a regulator model
-- finding likely matches before navigation or tracing
+Good queries: `U1`, `USB1`, `TPS`, `regulator`, or a footprint name.
 
 ### `easyeda_find_net`
 
 Searches nets by name and returns available net metadata and connections.
 
-Helpful for:
-
-- finding nets such as `GND`, `VCC_5V`, `SDA`, or `VBUS`
-- checking available net-level information before deeper tracing
+Good queries: `GND`, `VCC_5V`, `SDA`, `VBUS`, `D+`, or `CC1`.
 
 ## Schematic Analysis
 
@@ -60,57 +79,37 @@ Helpful for:
 
 Builds a structured, normalized snapshot of the active schematic, including components, pins, wires, labels, nets, counts, warnings, and confidence metadata.
 
-This is one of the most important tools because higher-level schematic reasoning depends on this normalized view.
+This is the best starting point for schematic-level analysis.
 
 ### `easyeda_list_schematic_components`
 
 Lists normalized schematic components with key fields such as designator, value, name, footprint, position, and selected properties.
 
-Use it to:
-
-- inventory the active schematic
-- filter by query
-- inspect what the normalization layer can already see
+Use it to inventory the schematic or filter for a family of parts.
 
 ### `easyeda_get_component_pins`
 
 Returns the pins known for a component, including pin number, pin name, position, and net when available.
 
-Use it to:
-
-- inspect connector or IC pinouts
-- verify power pins
-- check pin naming before writing connection assertions
+Use it before writing exact checks with `easyeda_verify_connections`.
 
 ### `easyeda_trace_net`
 
 Traces a net and returns the pins, components, wires, labels, and related evidence associated with it.
 
-Use it to:
-
-- inspect signal spread
-- analyze power distribution
-- validate whether the expected endpoints appear on a named net
+Use it to inspect a signal, power rail, or named net.
 
 ### `easyeda_trace_component`
 
 Traces a component's connections grouped by pin and net.
 
-Use it to:
-
-- inspect how a device is wired
-- review peripheral connections around a target part
-- quickly summarize a component's connectivity
+Use it to review how one device is wired.
 
 ### `easyeda_find_unconnected_pins`
 
 Finds pins that do not have a confirmed net in the normalized schematic data.
 
-Use it to:
-
-- catch incomplete wiring
-- surface suspicious symbol connectivity
-- quickly identify likely schematic issues
+Use it to find likely missing wires or symbol connectivity issues.
 
 ### `easyeda_validate_schematic_area`
 
@@ -128,7 +127,7 @@ The current validation layer may report findings such as:
 
 Runs structured connection assertions against the active schematic.
 
-This tool is especially useful when you want targeted checks such as:
+Use this when you want targeted checks such as:
 
 - whether a pin is connected at all
 - whether a pin is on a specific net
@@ -174,7 +173,7 @@ Example shape:
 
 Requests navigation to a component in the EasyEDA Pro editor.
 
-Use it after a search or trace when you want to move the editor viewport to a target component.
+Use it after search or trace when you want to inspect the part visually.
 
 ### `easyeda_navigate_region`
 
@@ -245,8 +244,9 @@ Example shape:
 A useful workflow is often:
 
 1. `easyeda_live_status`
-2. `easyeda_get_context`
-3. `easyeda_schematic_snapshot`
-4. `easyeda_trace_component` or `easyeda_trace_net`
-5. `easyeda_verify_connections` for targeted assertions
-6. `easyeda_navigate_component` if you need to inspect the area visually
+2. `easyeda_doctor`
+3. `easyeda_get_context`
+4. `easyeda_schematic_snapshot`
+5. `easyeda_trace_component` or `easyeda_trace_net`
+6. `easyeda_verify_connections` for targeted assertions
+7. `easyeda_navigate_component` if you need to inspect the area visually

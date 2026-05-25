@@ -1,20 +1,19 @@
 import { defineConfig } from "vitepress";
 
 export default defineConfig({
-  title: "EasyEDA Pro MCP Bridge",
+  title: "EasyEDA Pro MCP",
   description: "Live MCP documentation for EasyEDA Pro integration, schematic analysis, and editor workflows.",
   base: "/easyeda_mcp/",
   cleanUrls: true,
   lastUpdated: true,
   themeConfig: {
-    logo: {
-      src: "/mark.svg",
-      alt: "EasyEDA Pro MCP Bridge"
-    },
+    logo: "/landing.svg",
     nav: [
+      { text: "Quick Start", link: "/quick-start" },
       { text: "Guide", link: "/getting-started" },
-      { text: "Architecture", link: "/architecture" },
+      { text: "AI Clients", link: "/ai-client-setup" },
       { text: "Tools", link: "/tools" },
+      { text: "Architecture", link: "/architecture" },
       { text: "Releases", link: "/changelog" },
       { text: "GitHub", link: "https://github.com/VLab-Software/easyeda_mcp" }
     ],
@@ -22,8 +21,10 @@ export default defineConfig({
       {
         text: "Start Here",
         items: [
+          { text: "Quick Start", link: "/quick-start" },
           { text: "Getting Started", link: "/getting-started" },
           { text: "MCP Client Setup", link: "/mcp-client-setup" },
+          { text: "AI Client Setup", link: "/ai-client-setup" },
           { text: "EasyEDA Pro Extension Setup", link: "/easyeda-extension" }
         ]
       },

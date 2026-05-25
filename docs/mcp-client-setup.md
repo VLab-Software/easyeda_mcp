@@ -1,78 +1,110 @@
 # MCP Client Setup
 
-This guide shows how to point an MCP client to the EasyEDA Pro MCP Bridge.
+Use this page when your client supports MCP but is not listed in [AI Client Setup](./ai-client-setup.md).
 
-## Build First
+## What the Client Must Run
 
-Build the server before configuring the client:
+Build first:
 
 ```bash
-npm run build
+npm run setup:local
 ```
 
-The compiled server entrypoint will be:
+Then configure your client to run:
 
-```text
-dist/index.js
+```bash
+node /absolute/path/to/easyeda_mcp/dist/index.js
 ```
 
-## Example Configuration
+The path must point to the compiled `dist/index.js` file.
 
-Use the compiled server in your MCP client configuration.
+## Generic JSON Shape
 
-Example:
+Many MCP clients use a config similar to this:
 
 ```json
 {
   "mcpServers": {
     "easyeda-pro": {
       "command": "node",
-      "args": ["C:\\Users\\vlabsoft\\Documents\\easyeda_mcp\\dist\\index.js"]
+      "args": ["/absolute/path/to/easyeda_mcp/dist/index.js"]
     }
   }
 }
 ```
 
-Adjust the path to match your local environment.
+On Windows, use an absolute path such as:
 
-## Runtime Behavior
+```json
+{
+  "mcpServers": {
+    "easyeda-pro": {
+      "command": "node",
+      "args": ["C:\\Users\\you\\Documents\\easyeda_mcp\\dist\\index.js"]
+    }
+  }
+}
+```
 
-When the client starts the server:
+## Startup Order
 
-- the MCP transport runs over `stdio`
-- the server also starts a local WebSocket bridge for the EasyEDA Pro extension
+Use this order to avoid connection confusion:
 
-## Optional Environment Variables
+1. start the MCP client
+2. let it launch the MCP server
+3. open EasyEDA Pro
+4. open your schematic or PCB
+5. load or reconnect the extension
+6. run `easyeda_doctor`
 
-You can customize the WebSocket bridge endpoint with:
+## What Happens at Runtime
 
-- `EASYEDA_MCP_WS_HOST`
-- `EASYEDA_MCP_WS_PORT`
+The MCP client talks to the server over `stdio`.
 
-If not set, the defaults are:
+The server opens a local WebSocket bridge for the EasyEDA Pro extension:
+
+```text
+ws://127.0.0.1:8765
+```
+
+The extension connects to that bridge and calls EasyEDA Pro APIs on behalf of MCP tools.
+
+## Optional Bridge Endpoint
+
+Defaults:
 
 - host: `127.0.0.1`
 - port: `8765`
 
-## Recommended Startup Order
+Optional environment variables:
 
-For the smoothest setup:
+- `EASYEDA_MCP_WS_HOST`
+- `EASYEDA_MCP_WS_PORT`
 
-1. Build the project
-2. Start the MCP client so it launches the server
-3. Open EasyEDA Pro
-4. Load the extension
-5. Connect the extension to the bridge
-6. Run `easyeda_live_status`
+Only change these if you also update the extension bridge target.
 
-## Important Note About New Tools
+## Verify
 
-If you add new tools to the server, an already-running MCP client session may not expose them immediately.
+Ask your MCP client:
 
-In that case:
+```text
+Run easyeda_live_status.
+```
 
-1. rebuild the project
+Then:
+
+```text
+Run easyeda_doctor.
+```
+
+If the client can see the tools but the extension is disconnected, go to [Troubleshooting](./troubleshooting.md#extension-is-not-connected).
+
+## After Tool Changes
+
+If you add or rename MCP tools:
+
+1. rebuild with `npm run setup:local`
 2. restart the MCP client session
-3. reconnect the EasyEDA Pro extension if needed
+3. reconnect the EasyEDA Pro extension
 
-This is especially important after changes in `src/mcp/registerTools.ts`.
+Most MCP clients cache tool catalogs for the life of a session.

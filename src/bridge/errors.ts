@@ -5,6 +5,18 @@ export class BridgeUnavailableError extends Error {
   }
 }
 
+export class BridgeProtocolCompatibilityError extends Error {
+  readonly expectedProtocolVersion: string;
+  readonly actualProtocolVersion?: string;
+
+  constructor(message: string, expectedProtocolVersion: string, actualProtocolVersion?: string) {
+    super(message);
+    this.name = "BridgeProtocolCompatibilityError";
+    this.expectedProtocolVersion = expectedProtocolVersion;
+    this.actualProtocolVersion = actualProtocolVersion;
+  }
+}
+
 export class BridgeRpcError extends Error {
   readonly code?: string;
   readonly details?: unknown;

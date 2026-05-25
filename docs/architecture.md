@@ -1,124 +1,128 @@
 # Architecture
 
-This document explains how the EasyEDA Pro MCP Bridge is structured and how requests flow through the system.
+You do not need this page for setup. Use it when you want to understand how the bridge works.
 
-## High-Level Design
+## One-Line Version
 
-The integration is built around a live connection to EasyEDA Pro.
+The MCP client talks to a local Node.js server. The server talks to an EasyEDA Pro extension over WebSocket. The extension reads the open EasyEDA Pro project through `eda.*` APIs.
 
 ```mermaid
 flowchart LR
-    A["MCP Client"] --> B["MCP Server (Node.js / TypeScript)"]
+    A["MCP Client"] --> B["MCP Server"]
     B --> C["Local WebSocket Bridge"]
     C --> D["EasyEDA Pro Extension"]
-    D --> E["EasyEDA Pro eda.* APIs"]
+    D --> E["EasyEDA Pro APIs"]
 ```
 
-## Main Components
+## Main Parts
 
-### MCP server
+### MCP Server
 
-The MCP server starts on `stdio` and exposes the project tools to compatible MCP clients.
+Entrypoint:
 
-Key responsibilities:
+```text
+src/index.ts
+```
 
-- register tool definitions
+Responsibilities:
+
+- expose MCP tools over `stdio`
 - validate tool inputs
-- forward tool calls to the bridge
-- return structured results and failures
+- start the local WebSocket bridge
+- return structured tool results
 
-Primary entrypoint:
+### WebSocket Bridge
 
-- `src/index.ts`
+File:
 
-## WebSocket bridge
-
-The bridge is the live transport layer between the MCP server and the EasyEDA Pro extension.
-
-Key responsibilities:
-
-- open a local WebSocket server
-- track extension connection state
-- dispatch request/response messages
-- enforce per-call timeouts
-
-Important file:
-
-- `src/bridge/EasyEdaBridge.ts`
+```text
+src/bridge/EasyEdaBridge.ts
+```
 
 Default endpoint:
 
-- `ws://127.0.0.1:8765`
+```text
+ws://127.0.0.1:8765
+```
 
-## Tool registration layer
+Responsibilities:
 
-Tool definitions are registered in the MCP server and mapped to bridge methods.
+- wait for the EasyEDA Pro extension
+- track connection status
+- send method calls to the extension
+- enforce timeouts
+- report compatibility problems
 
-Key responsibilities:
+### Tool Layer
 
-- define tool names, descriptions, and schemas
-- distinguish read-only operations from confirmed actions
-- convert bridge results into MCP tool results
+File:
 
-Important file:
+```text
+src/mcp/registerTools.ts
+```
 
-- `src/mcp/registerTools.ts`
+Responsibilities:
 
-## EasyEDA Pro extension
+- define MCP tool names
+- define schemas
+- route read-only calls
+- gate mutating calls behind confirmation
 
-The extension runs inside EasyEDA Pro and acts as the runtime adapter between the bridge protocol and the EasyEDA Pro API surface.
+### EasyEDA Pro Extension
 
-Key responsibilities:
+Main file:
 
-- connect to the local bridge with `SYS_WebSocket`
-- receive bridge method calls
+```text
+extension/src/index.ts
+```
+
+Responsibilities:
+
+- connect to the local WebSocket bridge
+- receive bridge calls
 - call EasyEDA Pro `eda.*` APIs
-- return structured results back to the server
+- return editor data to the MCP server
 
-Important file:
+### Schematic Analysis
 
-- `extension/src/index.ts`
+File:
 
-## Schematic analysis layer
+```text
+src/schematic/analysis.ts
+```
 
-The project includes a schematic normalization and reasoning layer for generic read-only analysis.
-
-Key responsibilities:
+Responsibilities:
 
 - normalize components, pins, wires, labels, and nets
-- infer connectivity when raw API data is partial
-- trace components and nets
-- detect unconnected pins
-- validate focused schematic areas
+- trace nets and components
+- find unconnected pins
+- validate schematic areas
 - verify connection assertions
-
-Important file:
-
-- `src/schematic/analysis.ts`
 
 ## Request Flow
 
-When a tool is called:
+When an AI client calls a tool:
 
-1. The MCP client invokes a tool on the local MCP server
-2. The server validates the input schema
-3. The tool handler calls the bridge with a method name and params
-4. The extension receives the message over WebSocket
-5. The extension runs the corresponding `eda.*` operation or schematic analysis step
-6. The result is sent back to the MCP server
-7. The MCP server returns the result to the MCP client
+1. MCP client calls the local server
+2. server validates the tool input
+3. server sends a bridge method over WebSocket
+4. EasyEDA Pro extension receives the method
+5. extension calls EasyEDA Pro APIs
+6. result returns to the server
+7. server returns the result to the MCP client
 
-## Why This Architecture
+## Why It Works This Way
 
-This design keeps the system practical for live engineering workflows:
+This architecture keeps the system local and live:
 
-- it works against the currently open EasyEDA Pro session
-- it avoids reverse-engineering offline project archives in this version
-- it centralizes reasoning in the MCP layer while keeping editor operations in the extension
+- no project export is required for normal inspection
+- the AI sees the project that is actually open
+- EasyEDA-specific API calls stay inside the extension
+- MCP clients get a stable tool interface
 
-## Current Limitations
+## Current Limits
 
-- The system depends on a running EasyEDA Pro session
-- The extension must stay connected
-- Tool availability in an MCP client may require a client restart after new tools are added
-- Offline `.epro` parsing is intentionally out of scope for now
+- EasyEDA Pro must be running
+- the extension must stay connected
+- MCP clients may need a restart after new tools are added
+- offline `.epro` parsing is not part of this version

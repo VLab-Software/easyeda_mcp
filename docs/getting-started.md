@@ -1,108 +1,121 @@
 # Getting Started
 
-This guide helps you get the EasyEDA Pro MCP Bridge running locally for the first time.
+Goal: get one MCP client talking to the EasyEDA Pro project you have open.
 
-## Overview
+If you want the shortest beginner-friendly path, use [Quick Start](./quick-start.md) first.
 
-The project has two main parts:
-
-- A local MCP server written in TypeScript/Node.js
-- An EasyEDA Pro extension that connects back to the server through WebSocket
-
-The MCP server exposes tools to an MCP client. The EasyEDA Pro extension provides the live editor access needed to fulfill those tool calls.
+This is the happy path. If a step fails, jump to [Troubleshooting](./troubleshooting.md).
 
 ## Prerequisites
 
-Before you begin, make sure you have:
+You need:
 
 - Node.js `20` or newer
 - `npm`
 - EasyEDA Pro installed
-- Permission to load a local EasyEDA Pro extension
+- permission to load a local EasyEDA Pro extension
+- an MCP client such as Codex, Claude Desktop, Claude Code, or VS Code
 
-## Install Dependencies
+## 1. Install Dependencies
 
-From the repository root:
+Run from the repository root:
 
 ```bash
 npm install
 ```
 
-## Build the Project
+## 2. Build Everything
 
-Build the MCP server:
+Run:
 
 ```bash
-npm run build
+npm run setup:local
 ```
 
-Build the EasyEDA Pro extension bundle:
+This builds:
+
+- the MCP server at `dist/index.js`
+- the EasyEDA Pro extension bundle at `extension/dist/index.js`
+- the packaged `.eext` extension artifact
+
+## 3. Connect Your MCP Client
+
+Point your MCP client to:
 
 ```bash
-npm run build:extension
+node /absolute/path/to/easyeda_mcp/dist/index.js
 ```
 
-If you want to produce the packaged extension artifact:
+Use [AI Client Setup](./ai-client-setup.md) for Codex, Claude, Claude Code, and VS Code examples.
 
-```bash
-npm run package:extension
+## 4. Install the EasyEDA Pro Extension
+
+In EasyEDA Pro:
+
+1. import or load the packaged extension
+2. enable external interaction permission
+3. open a schematic or PCB project
+4. use `MCP Bridge -> Reconnect` if it does not auto-connect
+
+Use [EasyEDA Pro Extension Setup](./easyeda-extension.md) if you need the full extension flow.
+
+## 5. Verify the Connection
+
+In your MCP client, run:
+
+```text
+Run easyeda_doctor and summarize whether the EasyEDA Pro bridge is healthy.
 ```
 
-## Run Tests
+Healthy output should show:
 
-Run the test suite with:
+- extension connected
+- protocol compatible
+- active document available
+
+Then run:
+
+```text
+Run easyeda_get_context and tell me which EasyEDA Pro document is open.
+```
+
+## 6. Try a Real Read
+
+With a schematic open, run:
+
+```text
+Run easyeda_schematic_snapshot and summarize the component and net counts.
+```
+
+If that works, the setup is ready.
+
+## Daily Startup
+
+After the first setup, the usual flow is:
+
+1. open your MCP client
+2. open EasyEDA Pro
+3. open the target project
+4. let the extension connect
+5. run `easyeda_doctor`
+
+## Useful Commands
 
 ```bash
+npm run setup:local
 npm test
-```
-
-Optional type-checking:
-
-```bash
 npm run typecheck
 ```
 
-## Start the MCP Server
+## Defaults
 
-After building, start the server from the repository root:
+The MCP server uses `stdio` for the MCP client and opens a local WebSocket bridge at:
 
-```bash
-node dist/index.js
+```text
+ws://127.0.0.1:8765
 ```
 
-The server:
-
-- listens for MCP traffic on `stdio`
-- starts a local WebSocket bridge at `ws://127.0.0.1:8765`
-
-You can override the bridge endpoint with environment variables:
+Optional overrides:
 
 - `EASYEDA_MCP_WS_HOST`
 - `EASYEDA_MCP_WS_PORT`
-
-## Connect EasyEDA Pro
-
-Once the server is running:
-
-1. Build or package the extension
-2. Install/load the local extension in EasyEDA Pro
-3. Enable the extension's external interaction permission
-4. Open a project in EasyEDA Pro
-5. Trigger `MCP Bridge -> Connect to MCP` if it does not connect automatically
-6. Call `easyeda_live_status` from your MCP client to confirm the connection
-
-## First Validation
-
-After setup, a good first validation flow is:
-
-1. `easyeda_live_status`
-2. `easyeda_get_context`
-3. `easyeda_schematic_snapshot`
-
-If those work, the bridge is usually in a healthy state.
-
-## Next Steps
-
-- [MCP Client Setup](./mcp-client-setup.md)
-- [EasyEDA Pro Extension Setup](./easyeda-extension.md)
-- [Tools Reference](./tools.md)
