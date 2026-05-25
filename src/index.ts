@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { EasyEdaBridge } from "./bridge/EasyEdaBridge.js";
+import { installLifecycleHandlers } from "./lifecycle.js";
 import { createMcpServer } from "./mcp/server.js";
 
 async function main(): Promise<void> {
@@ -10,13 +11,7 @@ async function main(): Promise<void> {
   const server = createMcpServer(bridge);
   const transport = new StdioServerTransport();
   await server.connect(transport);
-
-  process.on("SIGINT", () => {
-    void bridge.stop().finally(() => process.exit(0));
-  });
-  process.on("SIGTERM", () => {
-    void bridge.stop().finally(() => process.exit(0));
-  });
+  installLifecycleHandlers({ bridge, server, transport });
 }
 
 main().catch((error) => {
