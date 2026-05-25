@@ -1,0 +1,88 @@
+{
+  "name": "easyeda-mcp-bridge",
+  "uuid": "easyedamcpbridge202605240001abcd",
+  "displayName": "EasyEDA MCP Bridge",
+  "description": "Local WebSocket bridge that lets an MCP server inspect and assist the active EasyEDA Pro project.",
+  "version": "0.1.2",
+  "publisher": "vlabsoft",
+  "engines": {
+    "eda": "^2.3.0"
+  },
+  "license": "MIT",
+  "categories": "Other",
+  "keywords": ["MCP", "automation", "assistant"],
+  "activationEvents": {},
+  "entry": "./dist/index",
+  "dependentExtensions": {},
+  "headerMenus": {
+    "home": [
+      {
+        "id": "easyeda-mcp-bridge",
+        "title": "MCP Bridge",
+        "menuItems": [
+          {
+            "id": "test-dialog",
+            "title": "Test Dialog",
+            "registerFn": "testDialog"
+          },
+          {
+            "id": "connect",
+            "title": "Connect to MCP",
+            "registerFn": "connect"
+          },
+          {
+            "id": "status",
+            "title": "Send Status",
+            "registerFn": "sendStatus"
+          }
+        ]
+      }
+    ],
+    "sch": [
+      {
+        "id": "easyeda-mcp-bridge",
+        "title": "MCP Bridge",
+        "menuItems": [
+          {
+            "id": "test-dialog",
+            "title": "Test Dialog",
+            "registerFn": "testDialog"
+          },
+          {
+            "id": "connect",
+            "title": "Connect to MCP",
+            "registerFn": "connect"
+          },
+          {
+            "id": "status",
+            "title": "Send Status",
+            "registerFn": "sendStatus"
+          }
+        ]
+      }
+    ],
+    "pcb": [
+      {
+        "id": "easyeda-mcp-bridge",
+        "title": "MCP Bridge",
+        "menuItems": [
+          {
+            "id": "test-dialog",
+            "title": "Test Dialog",
+            "registerFn": "testDialog"
+          },
+          {
+            "id": "connect",
+            "title": "Connect to MCP",
+            "registerFn": "connect"
+          },
+          {
+            "id": "status",
+            "title": "Send Status",
+            "registerFn": "sendStatus"
+          }
+        ]
+      }
+    ]
+  }
+}

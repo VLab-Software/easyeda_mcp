@@ -1,0 +1,36 @@
+{
+  "name": "easyeda-pro-mcp",
+  "version": "0.1.0",
+  "description": "MCP server and EasyEDA Pro extension bridge for live project assistance.",
+  "type": "module",
+  "private": true,
+  "bin": {
+    "easyeda-pro-mcp": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "build:extension": "esbuild extension/src/index.ts --bundle --platform=browser --format=iife --global-name=edaEsbuildExportName --outfile=extension/dist/index.js",
+    "package:extension": "node scripts/package-extension.mjs",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "ws": "^8.18.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
+    "@types/node": "^22.15.21",
+    "@types/ws": "^8.5.13",
+    "esbuild": "^0.24.2",
+    "fs-extra": "^11.3.5",
+    "ignore": "^7.0.5",
+    "jszip": "^3.10.1",
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.4"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
