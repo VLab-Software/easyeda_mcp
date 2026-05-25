@@ -61,4 +61,5 @@ jobs:
             build/dist/SHA256SUMS.txt \
             --title "$GITHUB_REF_NAME" \
             --notes-file RELEASE_NOTES.md \
+            --prerelease \
             --latest=false
