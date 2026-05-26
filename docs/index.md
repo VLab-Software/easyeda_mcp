@@ -4,7 +4,7 @@ layout: home
 hero:
   name: EasyEDA Pro MCP
   text: Bring AI into your PCB workflow
-  tagline: Let Codex, Claude, VS Code, and other MCP clients understand the EasyEDA Pro project you already have open.
+  tagline: Independent open-source MCP bridge for PCB enthusiasts and professionals using EasyEDA Pro.
   image:
     src: /landing.svg
     alt: EasyEDA Pro MCP logo
@@ -17,23 +17,26 @@ hero:
       link: /ai-client-setup
 ---
 
-<div class="client-band surface-card">
-  <div class="client-band-label">Supported AI Clients</div>
-  <div class="client-band-list">
-    <span>Claude Desktop</span>
-    <span>Claude Code</span>
-    <span>Codex</span>
-    <span>VS Code</span>
+<div class="support-strip">
+  <div class="support-group">
+    <div class="support-label">Supported AI Clients</div>
+    <div class="support-pill-row support-pill-row-primary">
+      <a href="/easyeda_mcp/ai-client-setup#claude-desktop">Claude Desktop</a>
+      <a href="/easyeda_mcp/ai-client-setup#claude-code">Claude Code</a>
+      <a href="/easyeda_mcp/ai-client-setup#codex">Codex</a>
+      <a href="/easyeda_mcp/ai-client-setup#vs-code">VS Code</a>
+    </div>
   </div>
-  <div class="platform-band-list">
-    <span>Windows</span>
-    <span>macOS</span>
-    <span>Linux</span>
-    <span>Node.js local runtime</span>
+
+  <div class="support-group">
+    <div class="support-label">Supported OS</div>
+    <div class="support-pill-row support-pill-row-secondary">
+      <a href="/easyeda_mcp/quick-start#windows-claude-desktop">Windows</a>
+      <a href="/easyeda_mcp/quick-start#macos-claude-desktop">macOS</a>
+      <a href="/easyeda_mcp/quick-start#linux-claude-code">Linux</a>
+      <a href="/easyeda_mcp/mcp-client-setup#what-the-client-must-run">Node.js local runtime</a>
+    </div>
   </div>
-  <p>
-    One local bridge. The AI tools you already use. Real project context from EasyEDA Pro on every major desktop OS.
-  </p>
 </div>
 
 <div class="intro-panel">
@@ -60,6 +63,13 @@ hero:
     <strong>Controlled actions</strong>
     <p>Read-only workflows are easy. Editor-changing actions require explicit confirmation.</p>
   </div>
+</div>
+
+<div class="contact-note surface-card">
+  <strong>Contact</strong>
+  <p>
+    Want to share feedback, send a suggestion, or talk about the project? Reach out at <a href="mailto:victor.freitas@vlabsoft.com">victor.freitas@vlabsoft.com</a>.
+  </p>
 </div>
 
 <div class="subtle-note">

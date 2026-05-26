@@ -2,7 +2,7 @@
   "name": "@vlabsoft/easyeda-pro-mcp",
   "version": "1.0.2",
   "mcpName": "io.github.VLab-Software/easyeda-pro-mcp",
-  "description": "MCP server and EasyEDA Pro extension bridge for live project assistance.",
+  "description": "Independent open-source MCP server and EasyEDA Pro extension bridge for live PCB project assistance.",
   "main": "dist/index.js",
   "license": "MIT",
   "type": "module",

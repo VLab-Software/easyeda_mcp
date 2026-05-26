@@ -9,6 +9,10 @@
 </p>
 
 <p align="center">
+  Community-built open-source MCP bridge for PCB enthusiasts and professionals. This project is independent and is not affiliated with or endorsed by EasyEDA or its company.
+</p>
+
+<p align="center">
   <a href="https://github.com/VLab-Software/easyeda_mcp/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/VLab-Software/easyeda_mcp/ci.yml?branch=master&label=CI"></a>
   <a href="https://github.com/VLab-Software/easyeda_mcp/releases"><img alt="Release" src="https://img.shields.io/github/v/release/VLab-Software/easyeda_mcp?include_prereleases&label=release"></a>
   <a href="./LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-blue"></a>
@@ -37,6 +41,8 @@
 Most AI workflows for PCB design still depend on screenshots, copied text, or manual exports.
 
 EasyEDA Pro MCP gives MCP clients direct structured access to the EasyEDA Pro session already open on your machine, so the AI can inspect real schematic and PCB context instead of guessing.
+
+This repository is maintained as an independent open-source project for people building and reviewing PCB designs. It is not an official EasyEDA product and has no corporate relationship with EasyEDA.
 
 ## What It Is
 
@@ -190,6 +196,10 @@ Reference:
 - [MCP Client Setup](http://vlabsoft.org/easyeda_mcp/mcp-client-setup)
 - [Safety Model](http://vlabsoft.org/easyeda_mcp/safety)
 - [Architecture](http://vlabsoft.org/easyeda_mcp/architecture)
+
+## Contact
+
+If you want to share feedback, send a suggestion, or talk about the project, email [victor.freitas@vlabsoft.com](mailto:victor.freitas@vlabsoft.com).
 
 ## Build and Test
 

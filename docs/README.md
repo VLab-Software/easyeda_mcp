@@ -2,6 +2,8 @@
 
 Use these docs to connect EasyEDA Pro to an MCP client and let an AI assistant inspect the project you already have open.
 
+EasyEDA Pro MCP is an independent open-source project for PCB enthusiasts and professionals. It is not affiliated with, endorsed by, or maintained by EasyEDA or its company.
+
 The shortest path is:
 
 1. Build the project
@@ -23,8 +25,6 @@ The shortest path is:
 - [MCP Client Setup](./mcp-client-setup.md): generic MCP configuration
 - [Safety Model](./safety.md): read-only defaults and confirmed actions
 - [Architecture](./architecture.md): how server, bridge, and extension fit together
-- [Changelog](./changelog.md): user-facing changes
-- [Versioning](./versioning.md): release and compatibility rules
 
 ## What This Project Does
 

@@ -2,7 +2,7 @@ import { defineConfig } from "vitepress";
 
 export default defineConfig({
   title: "EasyEDA Pro MCP",
-  description: "Live MCP documentation for EasyEDA Pro integration, schematic analysis, and editor workflows.",
+  description: "Independent open-source MCP bridge docs for EasyEDA Pro integration, schematic analysis, and editor workflows.",
   base: "/easyeda_mcp/",
   cleanUrls: true,
   lastUpdated: true,
@@ -14,7 +14,6 @@ export default defineConfig({
       { text: "AI Clients", link: "/ai-client-setup" },
       { text: "Tools", link: "/tools" },
       { text: "Architecture", link: "/architecture" },
-      { text: "Releases", link: "/changelog" },
       { text: "GitHub", link: "https://github.com/VLab-Software/easyeda_mcp" }
     ],
     sidebar: [
@@ -43,8 +42,6 @@ export default defineConfig({
         items: [
           { text: "Documentation Home", link: "/" },
           { text: "Repository Docs Index", link: "/README" },
-          { text: "Changelog", link: "/changelog" },
-          { text: "Versioning", link: "/versioning" },
           { text: "GitHub Repository", link: "https://github.com/VLab-Software/easyeda_mcp" }
         ]
       }
@@ -59,7 +56,7 @@ export default defineConfig({
       level: [2, 3]
     },
     footer: {
-      message: "Built for live MCP-assisted workflows in EasyEDA Pro.",
+      message: "Independent open-source MCP bridge for live PCB workflows in EasyEDA Pro.",
       copyright: "Copyright © 2026 VLab Software"
     }
   }
