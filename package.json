@@ -1,9 +1,22 @@
 {
-  "name": "easyeda-pro-mcp",
-  "version": "0.1.0",
+  "name": "@vlabsoft/easyeda-pro-mcp",
+  "version": "1.0.2",
+  "mcpName": "io.github.VLab-Software/easyeda-pro-mcp",
   "description": "MCP server and EasyEDA Pro extension bridge for live project assistance.",
+  "main": "dist/index.js",
+  "license": "MIT",
   "type": "module",
-  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/VLab-Software/easyeda_mcp.git"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "bin": {
     "easyeda-pro-mcp": "dist/index.js"
   },
@@ -11,6 +24,7 @@
     "build": "tsc -p tsconfig.json",
     "build:extension": "esbuild extension/src/index.ts --bundle --platform=browser --format=iife --global-name=edaEsbuildExportName --outfile=extension/dist/index.js",
     "package:extension": "node scripts/package-extension.mjs",
+    "prepublishOnly": "npm run build",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
