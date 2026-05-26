@@ -1,7 +1,7 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.VLab-Software/easyeda-pro-mcp",
-  "description": "MCP server and EasyEDA Pro extension bridge for live project assistance.",
+  "description": "Independent open-source MCP server and EasyEDA Pro extension bridge for live PCB project assistance.",
   "repository": {
     "url": "https://github.com/VLab-Software/easyeda_mcp",
     "source": "github"

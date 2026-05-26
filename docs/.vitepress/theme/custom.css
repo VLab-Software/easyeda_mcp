@@ -253,7 +253,10 @@
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  padding-top: 16px;
+  justify-content: center;
+  width: 100%;
+  margin: 24px auto 8px;
+  padding-top: 0;
 }
 
 .VPHero .action {
@@ -261,9 +264,76 @@
 }
 
 .VPHero .action .VPButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
+  min-height: 54px;
   border-radius: 999px;
-  padding-inline: 18px;
+  padding-inline: 22px;
+  border-width: 1px;
+  font-size: 0.98rem;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+  letter-spacing: 0.01em;
+  box-shadow:
+    0 16px 36px rgba(9, 18, 34, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.24);
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease;
+}
+
+.VPHero .action .VPButton:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 20px 42px rgba(8, 16, 30, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+
+.VPHero .action .VPButton.brand {
+  border-color: rgba(126, 194, 255, 0.34);
+  background:
+    linear-gradient(135deg, #46a2ff 0%, #2d8cff 56%, #1466e0 100%);
+  box-shadow:
+    0 18px 40px rgba(45, 140, 255, 0.34),
+    0 0 0 1px rgba(105, 176, 255, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.30);
+}
+
+.VPHero .action .VPButton.brand:hover {
+  background:
+    linear-gradient(135deg, #59acff 0%, #3490ff 58%, #1a70eb 100%);
+  box-shadow:
+    0 22px 46px rgba(45, 140, 255, 0.42),
+    0 0 0 1px rgba(124, 189, 255, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.34);
+}
+
+.VPHero .action .VPButton.alt {
+  border-color: rgba(118, 164, 233, 0.24);
+  background:
+    linear-gradient(135deg, rgba(24, 43, 72, 0.92), rgba(40, 56, 89, 0.88));
+  color: #f3f8ff;
+  box-shadow:
+    0 18px 38px rgba(5, 11, 24, 0.26),
+    0 0 0 1px rgba(82, 135, 219, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.10);
+}
+
+.VPHero .action .VPButton.alt:hover {
+  border-color: rgba(141, 185, 248, 0.32);
+  background:
+    linear-gradient(135deg, rgba(33, 54, 88, 0.96), rgba(53, 72, 112, 0.92));
+}
+
+.dark .VPHero .action .VPButton.alt {
+  border-color: rgba(137, 186, 255, 0.26);
+  background:
+    linear-gradient(135deg, rgba(19, 37, 63, 0.96), rgba(36, 53, 88, 0.94));
 }
 
 .VPHero .image-container {
@@ -414,6 +484,30 @@
   color: var(--vp-c-text-1);
 }
 
+.project-note {
+  max-width: 820px;
+  margin: -10px 0 24px;
+  padding: 18px 20px;
+  border: 1px solid rgba(38, 115, 219, 0.2);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(236, 245, 255, 0.96)),
+    radial-gradient(circle at top right, rgba(74, 145, 255, 0.12), transparent 42%);
+}
+
+.project-note strong {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--easy-section-kicker);
+}
+
+.project-note p {
+  margin: 0;
+  color: var(--vp-c-text-1);
+}
+
 .quick-grid {
   display: grid;
   gap: 14px;
@@ -474,6 +568,13 @@
 .surface-card:hover {
   border-color: rgba(92, 157, 255, 0.32);
   box-shadow: var(--easy-card-shadow);
+}
+
+.dark .project-note {
+  border-color: rgba(110, 174, 255, 0.18);
+  background:
+    linear-gradient(135deg, rgba(14, 33, 55, 0.9), rgba(10, 24, 42, 0.92)),
+    radial-gradient(circle at top right, rgba(74, 145, 255, 0.18), transparent 42%);
 }
 
 /* ── Headings ─────────────────────────────────────────────────── */
@@ -647,6 +748,11 @@
     margin-bottom: 24px;
   }
 
+  .project-note {
+    margin: -8px 0 20px;
+    padding: 16px 18px;
+  }
+
   .quick-grid {
     grid-template-columns: 1fr;
     margin-bottom: 22px;
@@ -658,6 +764,7 @@
 
   .VPHero .actions {
     gap: 10px;
+    margin-top: 20px;
   }
 
   .quick-card {

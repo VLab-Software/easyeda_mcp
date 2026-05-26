@@ -4,7 +4,7 @@ layout: home
 hero:
   name: EasyEDA Pro MCP
   text: Bring AI into your PCB workflow
-  tagline: Let Codex, Claude, VS Code, and other MCP clients understand the EasyEDA Pro project you already have open.
+  tagline: Independent open-source MCP bridge for PCB enthusiasts and professionals using EasyEDA Pro.
   image:
     src: /landing.svg
     alt: EasyEDA Pro MCP logo
@@ -16,6 +16,13 @@ hero:
       text: Connect AI Client
       link: /ai-client-setup
 ---
+
+<div class="project-note surface-card">
+  <strong>Independent open-source project</strong>
+  <p>
+    EasyEDA Pro MCP is a community-built MCP bridge for PCB enthusiasts and professionals. It is not affiliated with, endorsed by, or maintained by EasyEDA or its company.
+  </p>
+</div>
 
 <div class="client-band surface-card">
   <div class="client-band-label">Supported AI Clients</div>

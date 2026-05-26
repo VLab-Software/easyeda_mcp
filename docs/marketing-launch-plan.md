@@ -22,11 +22,17 @@ EasyEDA Pro MCP connects Claude, Codex, VS Code, and other MCP clients to the li
 
 ### Short description
 
-Local MCP bridge for EasyEDA Pro with live schematic and PCB context, component tracing, net inspection, and confirmation-gated actions.
+Independent open-source local MCP bridge for EasyEDA Pro with live schematic and PCB context, component tracing, net inspection, and confirmation-gated actions.
 
 ### Why it matters
 
 Most AI workflows for electronics still depend on screenshots, copied text, or manual exports. EasyEDA Pro MCP gives AI tools direct structured access to the active EasyEDA Pro session so analysis and review become much more useful.
+
+### Independence note
+
+Include this wherever the audience might assume an official relationship:
+
+EasyEDA Pro MCP is a community-built open-source project for PCB enthusiasts and professionals. It is not affiliated with, endorsed by, or maintained by EasyEDA or its company.
 
 ## Launch Checklist
 

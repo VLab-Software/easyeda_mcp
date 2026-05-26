@@ -8,6 +8,8 @@ ws://127.0.0.1:8765
 
 It is required for live editor access. Without it, the MCP server can start, but tools cannot inspect the open EasyEDA Pro session.
 
+This extension is part of an independent open-source project for PCB enthusiasts and professionals. It is not affiliated with, endorsed by, or maintained by EasyEDA or its company.
+
 ## Build
 
 Run from the repository root:
