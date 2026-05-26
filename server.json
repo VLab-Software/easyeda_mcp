@@ -1,0 +1,36 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.VLab-Software/easyeda-pro-mcp",
+  "description": "MCP server and EasyEDA Pro extension bridge for live project assistance.",
+  "repository": {
+    "url": "https://github.com/VLab-Software/easyeda_mcp",
+    "source": "github"
+  },
+  "version": "1.0.2",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@vlabsoft/easyeda-pro-mcp",
+      "version": "1.0.2",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "EASYEDA_MCP_WS_HOST",
+          "description": "Optional WebSocket host for the local EasyEDA Pro bridge. Defaults to 127.0.0.1.",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": false
+        },
+        {
+          "name": "EASYEDA_MCP_WS_PORT",
+          "description": "Optional WebSocket port for the local EasyEDA Pro bridge. Defaults to 8765.",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": false
+        }
+      ]
+    }
+  ]
+}
