@@ -1,0 +1,65 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate
+        run: |
+          npm run typecheck
+          npm test
+          npm run docs:build
+
+      - name: Package extension
+        run: npm run setup:local
+
+      - name: Generate checksums
+        run: |
+          cd build/dist
+          sha256sum *.eext > SHA256SUMS.txt
+
+      - name: Write release notes
+        run: |
+          cat > RELEASE_NOTES.md <<'EOF'
+          First public beta release of EasyEDA Pro MCP.
+
+          Release assets:
+
+          - `easyeda-mcp-bridge_v0.1.0.eext`: versioned EasyEDA Pro extension package
+          - `easyeda_mcp_bridge.eext`: stable filename for the same extension package
+          - `SHA256SUMS.txt`: checksums for release assets
+
+          Start with the Quick Start guide in the documentation.
+          EOF
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            build/dist/*.eext \
+            build/dist/SHA256SUMS.txt \
+            --title "$GITHUB_REF_NAME" \
+            --notes-file RELEASE_NOTES.md \
+            --prerelease \
+            --latest=false

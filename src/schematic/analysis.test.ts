@@ -5,7 +5,8 @@ import {
   getComponentPins,
   traceComponent,
   traceNet,
-  validateSchematicArea
+  validateSchematicArea,
+  verifyConnections
 } from "./analysis.js";
 
 describe("schematic analysis", () => {
@@ -111,7 +112,7 @@ describe("schematic analysis", () => {
 
     const result = validateSchematicArea(snapshot);
 
-    expect(result.findings.map((finding) => finding.type)).toContain("pin_without_net");
+    expect(result.findings.map((finding) => finding.type)).toContain("pin_without_connection");
     expect(result.findings.map((finding) => finding.type)).toContain("single_pin_net");
     expect(result.findings.map((finding) => finding.type)).toContain("similar_power_net_names");
   });
@@ -283,6 +284,140 @@ describe("schematic analysis", () => {
     expect(usbPins.find((item) => item.pinName === "DP2")?.net).toBe("USB_IN_D+");
     expect(usbPins.find((item) => item.pinName === "DN1")?.net).toBe("USB_IN_D-");
     expect(usbPins.find((item) => item.pinName === "DN2")?.net).toBe("USB_IN_D-");
+  });
+
+  it("assigns node ids for unnamed local connections without flagging them as unconnected", () => {
+    const snapshot = buildSchematicSnapshot({
+      components: [component("U1", "$u1", "IC"), component("R1", "$r1", "10k")],
+      pinsByComponent: {
+        $u1: [pinAt("1", "PROG", undefined, 10, 0)],
+        $r1: [pinAt("1", "1", undefined, 30, 0), pinAt("2", "2", undefined, 30, 20)]
+      },
+      wires: [wirePath(undefined, [[10, 0, 30, 0]])],
+      includeRaw: false
+    });
+
+    const prog = snapshot.pins.find((item) => item.pinName === "PROG");
+    const resistorPin = snapshot.pins.find((item) => item.componentDesignator === "R1" && item.pinNumber === "1");
+
+    expect(prog?.nodeId).toBeDefined();
+    expect(prog?.nodeId).toBe(resistorPin?.nodeId);
+    expect(prog?.connected).toBe(true);
+    expect(findUnconnectedPins(snapshot).pins.map((item) => item.pinName)).toEqual(["2"]);
+  });
+
+  it("verifies pin_on_net and same_node assertions", () => {
+    const snapshot = buildSchematicSnapshot({
+      components: [component("U1", "$u1", "IC"), component("J1", "$j1", "CONN")],
+      pinsByComponent: {
+        $u1: [pinAt("1", "VIN", undefined, 10, 0)],
+        $j1: [pinAt("1", "1", undefined, 30, 0)]
+      },
+      wires: [wirePath("VBUS", [[10, 0, 30, 0]])],
+      includeRaw: false
+    });
+
+    const result = verifyConnections(snapshot, [
+      { id: "vin-vbus", type: "pin_on_net", component: "U1", pinName: "VIN", net: "VBUS" },
+      { id: "vin-j1", type: "same_node", left: { component: "U1", pinName: "VIN" }, right: { component: "J1", pin: "1" } }
+    ]);
+
+    expect(result.summary.passed).toBe(2);
+    expect(result.checks.map((check) => check.status)).toEqual(["pass", "pass"]);
+  });
+
+  it("verifies pull_to_net through a resistor", () => {
+    const snapshot = buildSchematicSnapshot({
+      components: [component("U5", "$u5", "TP4057"), component("R7", "$r7", "2kΩ"), netflagAt("GND", "$gnd", 30, 40)],
+      pinsByComponent: {
+        $u5: [pinAt("6", "PROG", undefined, 10, 0)],
+        $r7: [pinAt("1", "1", undefined, 30, 0), pinAt("2", "2", undefined, 30, 40)]
+      },
+      wires: [
+        wirePath(undefined, [[10, 0, 30, 0]]),
+        wirePath("GND", [[30, 40, 40, 40]])
+      ],
+      includeRaw: false
+    });
+
+    const result = verifyConnections(snapshot, [
+      { type: "pull_to_net", signal: { component: "U5", pinName: "PROG" }, net: "GND", through: { kind: "resistor" } },
+      { type: "pull_to_net", signal: { component: "U5", pinName: "PROG" }, net: "VBUS", through: { kind: "resistor" } }
+    ]);
+
+    expect(result.checks[0]?.status).toBe("pass");
+    expect(result.checks[0]?.evidence.path?.[0]?.viaComponent?.designator).toBe("R7");
+    expect(result.checks[1]?.status).toBe("unknown");
+  });
+
+  it("verifies decoupling capacitors and forbidden paths", () => {
+    const snapshot = buildSchematicSnapshot({
+      components: [
+        component("U1", "$u1", "IC"),
+        component("C1", "$c1", "100nF"),
+        netflagAt("GND", "$gnd", 50, 20)
+      ],
+      pinsByComponent: {
+        $u1: [pinAt("1", "VCC", undefined, 10, 0)],
+        $c1: [pinAt("1", "1", undefined, 30, 0), pinAt("2", "2", undefined, 30, 20)]
+      },
+      wires: [
+        wirePath("3V3", [[10, 0, 30, 0]]),
+        wirePath("GND", [[30, 20, 50, 20]])
+      ],
+      includeRaw: false
+    });
+
+    const result = verifyConnections(snapshot, [
+      { type: "decoupled_to_net", power: { component: "U1", pinName: "VCC" }, referenceNet: "GND" },
+      { type: "path_absent", from: { net: "3V3" }, to: { net: "GND" }, through: { kind: "resistor" } }
+    ]);
+
+    expect(result.checks.map((check) => check.status)).toEqual(["pass", "pass"]);
+    expect(result.checks[0]?.evidence.path?.[0]?.viaComponent?.designator).toBe("C1");
+  });
+
+  it("supports generic checks inspired by the TP4057 charger area", () => {
+    const snapshot = buildSchematicSnapshot({
+      components: [
+        component("U5", "$u5", "TP4057"),
+        component("R7", "$r7", "2kΩ"),
+        component("C4", "$c4", "4.7uF"),
+        component("R5", "$r5", "1kΩ"),
+        component("LED1", "$led1", "RED")
+      ],
+      pinsByComponent: {
+        $u5: [
+          pinAt("4", "VCC", undefined, 0, 0),
+          pinAt("3", "BAT", undefined, 0, 10),
+          pinAt("6", "PROG", undefined, 0, 20),
+          pinAt("1", "CHRG", undefined, 0, 30)
+        ],
+        $r7: [pinAt("1", "1", undefined, 30, 20), pinAt("2", "2", undefined, 30, 40)],
+        $c4: [pinAt("1", "1", undefined, 20, 0), pinAt("2", "2", undefined, 20, 40)],
+        $r5: [pinAt("1", "1", undefined, 30, 30), pinAt("2", "2", undefined, 50, 30)],
+        $led1: [pinAt("1", "K", undefined, 50, 30), pinAt("2", "A", undefined, 50, 0)]
+      },
+      wires: [
+        wirePath("VBUS", [[0, 0, 20, 0], [20, 0, 50, 0]]),
+        wirePath("VBAT_LIPO", [[0, 10, 30, 10]]),
+        wirePath(undefined, [[0, 20, 30, 20]]),
+        wirePath("GND", [[20, 40, 30, 40]]),
+        wirePath(undefined, [[0, 30, 30, 30]]),
+        wirePath(undefined, [[50, 30, 50, 30]])
+      ],
+      includeRaw: false
+    });
+
+    const result = verifyConnections(snapshot, [
+      { type: "pin_on_net", component: "U5", pinName: "VCC", net: "VBUS" },
+      { type: "pin_on_net", component: "U5", pinName: "BAT", net: "VBAT_LIPO" },
+      { type: "pull_to_net", signal: { component: "U5", pinName: "PROG" }, net: "GND", through: { kind: "resistor" } },
+      { type: "path_exists", from: { component: "U5", pinName: "CHRG" }, to: { net: "VBUS" }, through: { kind: "led" }, maxHops: 3 },
+      { type: "decoupled_to_net", power: { component: "U5", pinName: "VCC" }, referenceNet: "GND" }
+    ]);
+
+    expect(result.checks.map((check) => check.status)).toEqual(["pass", "pass", "pass", "pass", "pass"]);
   });
 });
 

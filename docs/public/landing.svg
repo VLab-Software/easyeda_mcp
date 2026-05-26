@@ -1,0 +1,177 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="pcbBg" x1="80" y1="120" x2="620" y2="700" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#27B568"/>
+      <stop offset="1" stop-color="#14643D"/>
+    </linearGradient>
+    <linearGradient id="chipBg" x1="240" y1="280" x2="500" y2="560" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#183C3A"/>
+      <stop offset="1" stop-color="#0E1E1D"/>
+    </linearGradient>
+    <linearGradient id="blueCard" x1="980" y1="130" x2="1460" y2="760" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#4E98FF"/>
+      <stop offset="1" stop-color="#0E57DF"/>
+    </linearGradient>
+    <linearGradient id="blueArrow" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#8AC4FF" stop-opacity="0"/>
+      <stop offset="0.2" stop-color="#56A4FF"/>
+      <stop offset="1" stop-color="#1664F1"/>
+    </linearGradient>
+    <linearGradient id="greenArrow" x1="1" y1="0" x2="0" y2="0">
+      <stop offset="0" stop-color="#98F0B4" stop-opacity="0"/>
+      <stop offset="0.2" stop-color="#2DB36C"/>
+      <stop offset="1" stop-color="#176B3E"/>
+    </linearGradient>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="160%">
+      <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#0D223C" flood-opacity="0.20"/>
+    </filter>
+    <filter id="innerGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="0" stdDeviation="10" flood-color="#ffffff" flood-opacity="0.18"/>
+    </filter>
+    <style>
+      .trace{stroke:#5CE38F;stroke-width:6;stroke-linecap:round;stroke-linejoin:round;opacity:.72}
+      .trace2{stroke:#2D7BFF;stroke-width:6;stroke-linecap:round;stroke-linejoin:round;opacity:.8}
+      .gold{fill:#F4C34F}
+      .smallChip{fill:#142B2A;stroke:#214E49;stroke-width:3}
+      .smallPin{fill:#F4D36C}
+      .label{font-family: Inter, Arial, sans-serif; font-weight: 800; letter-spacing: .5px}
+      .pill{font-family: Inter, Arial, sans-serif; font-weight: 800; letter-spacing: 1px}
+    </style>
+  </defs>
+
+  <!-- Left PCB module -->
+  <g filter="url(#softShadow)">
+    <rect x="70" y="160" width="560" height="560" rx="42" fill="url(#pcbBg)"/>
+    <rect x="82" y="172" width="536" height="536" rx="34" stroke="#59D287" stroke-opacity="0.5" stroke-width="6"/>
+    <circle cx="135" cy="225" r="25" class="gold"/>
+    <circle cx="135" cy="225" r="11" fill="#166A40"/>
+    <circle cx="565" cy="225" r="25" class="gold"/>
+    <circle cx="565" cy="225" r="11" fill="#166A40"/>
+    <circle cx="135" cy="655" r="25" class="gold"/>
+    <circle cx="135" cy="655" r="11" fill="#166A40"/>
+    <circle cx="565" cy="655" r="25" class="gold"/>
+    <circle cx="565" cy="655" r="11" fill="#166A40"/>
+
+    <!-- PCB traces -->
+    <path class="trace" d="M185 240H220V305H255"/>
+    <path class="trace" d="M210 290H245V350H255"/>
+    <path class="trace" d="M170 390H230V390H255"/>
+    <path class="trace" d="M170 500H215V470H255"/>
+    <path class="trace" d="M195 585H230V540H255"/>
+    <path class="trace" d="M510 240H470V305H435"/>
+    <path class="trace" d="M525 320H470V350H435"/>
+    <path class="trace" d="M540 390H470H435"/>
+    <path class="trace" d="M520 500H470V470H435"/>
+    <path class="trace" d="M500 585H460V540H435"/>
+    <path class="trace" d="M318 220V255"/>
+    <path class="trace" d="M382 220V255"/>
+    <path class="trace" d="M318 625V585"/>
+    <path class="trace" d="M382 625V585"/>
+
+    <!-- Side components -->
+    <g>
+      <rect x="178" y="250" width="62" height="30" rx="8" class="smallChip"/>
+      <rect x="147" y="378" width="45" height="45" rx="10" class="smallChip"/>
+      <rect x="166" y="551" width="56" height="32" rx="8" class="smallChip"/>
+      <rect x="458" y="250" width="62" height="30" rx="8" class="smallChip"/>
+      <rect x="483" y="376" width="45" height="45" rx="10" class="smallChip"/>
+      <rect x="452" y="549" width="56" height="32" rx="8" class="smallChip"/>
+      <rect x="275" y="200" width="80" height="26" rx="8" class="smallChip"/>
+      <rect x="410" y="200" width="80" height="26" rx="8" class="smallChip"/>
+      <rect x="275" y="640" width="80" height="26" rx="8" class="smallChip"/>
+      <rect x="410" y="640" width="80" height="26" rx="8" class="smallChip"/>
+    </g>
+
+    <!-- Chip -->
+    <rect x="255" y="300" width="180" height="180" rx="24" fill="url(#chipBg)" stroke="#2F675B" stroke-width="6" filter="url(#innerGlow)"/>
+    <text x="345" y="420" text-anchor="middle" fill="white" font-size="92" class="label">AI</text>
+
+    <!-- Pins -->
+    <g>
+      <rect x="270" y="276" width="12" height="28" rx="4" class="smallPin"/>
+      <rect x="296" y="276" width="12" height="28" rx="4" class="smallPin"/>
+      <rect x="322" y="276" width="12" height="28" rx="4" class="smallPin"/>
+      <rect x="348" y="276" width="12" height="28" rx="4" class="smallPin"/>
+      <rect x="374" y="276" width="12" height="28" rx="4" class="smallPin"/>
+      <rect x="400" y="276" width="12" height="28" rx="4" class="smallPin"/>
+      <rect x="270" y="480" width="12" height="28" rx="4" class="smallPin"/>
+      <rect x="296" y="480" width="12" height="28" rx="4" class="smallPin"/>
+      <rect x="322" y="480" width="12" height="28" rx="4" class="smallPin"/>
+      <rect x="348" y="480" width="12" height="28" rx="4" class="smallPin"/>
+      <rect x="374" y="480" width="12" height="28" rx="4" class="smallPin"/>
+      <rect x="400" y="480" width="12" height="28" rx="4" class="smallPin"/>
+
+      <rect x="231" y="315" width="28" height="12" rx="4" class="smallPin"/>
+      <rect x="231" y="341" width="28" height="12" rx="4" class="smallPin"/>
+      <rect x="231" y="367" width="28" height="12" rx="4" class="smallPin"/>
+      <rect x="231" y="393" width="28" height="12" rx="4" class="smallPin"/>
+      <rect x="231" y="419" width="28" height="12" rx="4" class="smallPin"/>
+      <rect x="231" y="445" width="28" height="12" rx="4" class="smallPin"/>
+
+      <rect x="431" y="315" width="28" height="12" rx="4" class="smallPin"/>
+      <rect x="431" y="341" width="28" height="12" rx="4" class="smallPin"/>
+      <rect x="431" y="367" width="28" height="12" rx="4" class="smallPin"/>
+      <rect x="431" y="393" width="28" height="12" rx="4" class="smallPin"/>
+      <rect x="431" y="419" width="28" height="12" rx="4" class="smallPin"/>
+      <rect x="431" y="445" width="28" height="12" rx="4" class="smallPin"/>
+    </g>
+
+    <!-- Decorative pads -->
+    <g fill="#F4C34F" opacity="0.95">
+      <circle cx="205" cy="230" r="6"/><circle cx="232" cy="230" r="6"/>
+      <circle cx="185" cy="470" r="6"/><circle cx="185" cy="500" r="6"/>
+      <circle cx="505" cy="470" r="6"/><circle cx="505" cy="500" r="6"/>
+      <circle cx="520" cy="280" r="6"/><circle cx="520" cy="305" r="6"/>
+      <circle cx="518" cy="560" r="6"/><circle cx="545" cy="560" r="6"/>
+    </g>
+  </g>
+
+  <!-- Center flows -->
+  <g>
+    <path class="trace2" d="M670 265H735L800 330H930"/>
+    <circle cx="680" cy="265" r="13" fill="#F5FBFF" stroke="#3B95FF" stroke-width="7"/>
+    <circle cx="930" cy="330" r="13" fill="#F5FBFF" stroke="#3B95FF" stroke-width="7"/>
+    <path class="trace2" d="M670 360H760L825 315H910"/>
+    <circle cx="910" cy="315" r="11" fill="#F5FBFF" stroke="#3B95FF" stroke-width="6"/>
+    <path d="M645 402H890" stroke="url(#blueArrow)" stroke-width="26" stroke-linecap="round"/>
+    <path d="M890 402L850 370V434L890 402Z" fill="#1664F1"/>
+    <rect x="703" y="374" width="16" height="16" rx="3" fill="#A9D2FF" opacity="0.7"/>
+    <rect x="730" y="374" width="16" height="16" rx="3" fill="#6CB2FF" opacity="0.85"/>
+    <rect x="757" y="374" width="16" height="16" rx="3" fill="#4A9BFF"/>
+
+    <path d="M885 530H640" stroke="url(#greenArrow)" stroke-width="26" stroke-linecap="round"/>
+    <path d="M640 530L680 498V562L640 530Z" fill="#176B3E"/>
+    <rect x="820" y="504" width="16" height="16" rx="3" fill="#C5F4D2" opacity="0.7"/>
+    <rect x="847" y="504" width="16" height="16" rx="3" fill="#86E0A0" opacity="0.85"/>
+    <rect x="874" y="504" width="16" height="16" rx="3" fill="#2DB36C"/>
+
+    <path class="trace" d="M690 620H760L820 675H925"/>
+    <path class="trace" d="M690 670H745L810 720H925"/>
+    <circle cx="680" cy="620" r="10" fill="#176B3E"/>
+    <circle cx="680" cy="670" r="10" fill="#176B3E"/>
+    <circle cx="925" cy="720" r="10" fill="#F5FFF7" stroke="#2DA25E" stroke-width="5"/>
+  </g>
+
+  <!-- Right cloud card -->
+  <g filter="url(#softShadow)">
+    <rect x="970" y="170" width="500" height="540" rx="46" fill="url(#blueCard)"/>
+    <rect x="985" y="185" width="470" height="510" rx="36" stroke="#8AC4FF" stroke-opacity="0.38" stroke-width="6"/>
+
+    <!-- Cloud icon -->
+    <path d="M1180 290C1198 250 1232 230 1270 230C1320 230 1362 264 1368 313C1401 317 1428 345 1428 379C1428 417 1397 448 1359 448H1190C1138 448 1096 406 1096 354C1096 304 1137 262 1187 262C1185 271 1182 279 1180 290Z" fill="none" stroke="white" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="1188" cy="416" r="24" fill="none" stroke="white" stroke-width="14"/>
+    <path d="M1212 414L1285 375" stroke="white" stroke-width="14" stroke-linecap="round"/>
+    <circle cx="1289" cy="372" r="10" fill="white"/>
+
+    <text x="1220" y="530" text-anchor="middle" fill="white" font-size="92" class="label" style="font-style:italic">EasyEDA</text>
+
+    <rect x="1125" y="570" width="190" height="96" rx="24" fill="white" fill-opacity="0.96"/>
+    <text x="1220" y="634" text-anchor="middle" fill="#1C65F5" font-size="58" class="pill">MCP</text>
+
+    <!-- faint circuitry -->
+    <path d="M1345 628H1395V654H1440" stroke="#8EC1FF" stroke-width="5" opacity="0.25" stroke-linecap="round"/>
+    <path d="M1330 655H1382V685" stroke="#8EC1FF" stroke-width="5" opacity="0.25" stroke-linecap="round"/>
+    <circle cx="1440" cy="654" r="6" fill="#B9D8FF" opacity="0.3"/>
+    <circle cx="1382" cy="685" r="6" fill="#B9D8FF" opacity="0.3"/>
+  </g>
+</svg>

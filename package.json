@@ -10,6 +10,18 @@
     "type": "git",
     "url": "git+https://github.com/VLab-Software/easyeda_mcp.git"
   },
+  "bugs": {
+    "url": "https://github.com/VLab-Software/easyeda_mcp/issues"
+  },
+  "homepage": "http://vlabsoft.org/easyeda_mcp/",
+  "keywords": [
+    "easyeda",
+    "mcp",
+    "model-context-protocol",
+    "pcb",
+    "schematic",
+    "hardware"
+  ],
   "publishConfig": {
     "access": "public"
   },
@@ -23,8 +35,13 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "build:extension": "esbuild extension/src/index.ts --bundle --platform=browser --format=iife --global-name=edaEsbuildExportName --outfile=extension/dist/index.js",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs",
     "package:extension": "node scripts/package-extension.mjs",
     "prepublishOnly": "npm run build",
+    "package:all": "npm run build && npm run build:extension && npm run package:extension",
+    "setup:local": "npm run package:all",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
@@ -42,6 +59,7 @@
     "ignore": "^7.0.5",
     "jszip": "^3.10.1",
     "typescript": "^5.8.3",
+    "vitepress": "^1.6.4",
     "vitest": "^3.1.4"
   },
   "engines": {
