@@ -197,6 +197,10 @@ Reference:
 - [Safety Model](http://vlabsoft.org/easyeda_mcp/safety)
 - [Architecture](http://vlabsoft.org/easyeda_mcp/architecture)
 
+## Contact
+
+If you want to share feedback, send a suggestion, or talk about the project, email [victor.freitas@vlabsoft.com](mailto:victor.freitas@vlabsoft.com).
+
 ## Build and Test
 
 ```bash

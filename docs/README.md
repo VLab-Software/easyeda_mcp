@@ -25,8 +25,6 @@ The shortest path is:
 - [MCP Client Setup](./mcp-client-setup.md): generic MCP configuration
 - [Safety Model](./safety.md): read-only defaults and confirmed actions
 - [Architecture](./architecture.md): how server, bridge, and extension fit together
-- [Changelog](./changelog.md): user-facing changes
-- [Versioning](./versioning.md): release and compatibility rules
 
 ## What This Project Does
 

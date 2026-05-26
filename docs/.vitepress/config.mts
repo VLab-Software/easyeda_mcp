@@ -14,7 +14,6 @@ export default defineConfig({
       { text: "AI Clients", link: "/ai-client-setup" },
       { text: "Tools", link: "/tools" },
       { text: "Architecture", link: "/architecture" },
-      { text: "Releases", link: "/changelog" },
       { text: "GitHub", link: "https://github.com/VLab-Software/easyeda_mcp" }
     ],
     sidebar: [
@@ -43,8 +42,6 @@ export default defineConfig({
         items: [
           { text: "Documentation Home", link: "/" },
           { text: "Repository Docs Index", link: "/README" },
-          { text: "Changelog", link: "/changelog" },
-          { text: "Versioning", link: "/versioning" },
           { text: "GitHub Repository", link: "https://github.com/VLab-Software/easyeda_mcp" }
         ]
       }

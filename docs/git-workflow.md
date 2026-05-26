@@ -183,7 +183,7 @@ Examples:
 After review and merge:
 
 1. tag a patch release if needed
-2. update docs or changelog if user behavior changed
+2. update docs or release notes if user behavior changed
 
 ## Practical Day-To-Day Flow
 

@@ -66,9 +66,10 @@ function initMouseParallax(hero) {
 // ── Scroll reveal for content sections ───────────────────────────
 function initScrollReveal() {
   const selectors = [
-    '.client-band',
+    '.support-strip',
     '.intro-panel',
     '.quick-card',
+    '.contact-note',
     '.subtle-note',
   ]
 
