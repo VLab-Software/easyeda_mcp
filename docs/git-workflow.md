@@ -85,10 +85,43 @@ Pull request guidelines:
 
 Recommended PR title patterns:
 
-- `feat: add schematic navigation helper`
+- `feature: add schematic navigation helper`
 - `fix: handle disconnected bridge state correctly`
 - `docs: improve quick start for first-time users`
 - `chore: simplify extension packaging script`
+
+See [Pull Request Guide](./pull-requests.md) for the detailed PR strategy used by this repository.
+
+## Milestones
+
+Milestones are recommended.
+
+Use them to group related issues and pull requests by:
+
+1. version
+2. release goal
+3. short-term initiative
+
+Suggested examples:
+
+- `v0.1.1`
+- `v0.2.0`
+- `Docs & Distribution`
+- `Beta Stability`
+
+Milestones give visibility without forcing a formal release for every merged change.
+
+## Projects
+
+GitHub Projects are optional.
+
+Prefer starting with:
+
+1. labels
+2. issues
+3. milestones
+
+Move to Projects only when contribution volume grows enough that board-style tracking becomes necessary.
 
 ## Release Strategy
 
