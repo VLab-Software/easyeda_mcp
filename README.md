@@ -5,7 +5,7 @@
 <h1 align="center">EasyEDA Pro MCP</h1>
 
 <p align="center">
-  Connect Claude, Codex, VS Code, and other MCP clients to the live EasyEDA Pro project you already have open.
+  Connect Claude, Codex, VS Code, and other Model Context Protocol (MCP) clients to the live EasyEDA Pro project you already have open.
 </p>
 
 <p align="center">
@@ -21,13 +21,13 @@
 </p>
 
 <p align="center">
-  <a href="http://vlabsoft.org/easyeda_mcp/quick-start">Quick Start</a>
+  <a href="https://vlabsoft.org/easyeda_mcp/quick-start">Quick Start</a>
   ·
-  <a href="http://vlabsoft.org/easyeda_mcp/ai-client-setup">AI Client Setup</a>
+  <a href="https://vlabsoft.org/easyeda_mcp/ai-client-setup">AI Client Setup</a>
   ·
-  <a href="http://vlabsoft.org/easyeda_mcp/tools">Tools</a>
+  <a href="https://vlabsoft.org/easyeda_mcp/tools">Tools</a>
   ·
-  <a href="http://vlabsoft.org/easyeda_mcp/troubleshooting">Troubleshooting</a>
+  <a href="https://vlabsoft.org/easyeda_mcp/troubleshooting">Troubleshooting</a>
   ·
   <a href="https://github.com/VLab-Software/easyeda_mcp/releases">Releases</a>
 </p>
@@ -46,7 +46,7 @@ This repository is maintained as an independent open-source project for people b
 
 ## What It Is
 
-EasyEDA Pro MCP connects your running EasyEDA Pro session to MCP clients such as Claude, Claude Code, Codex, and VS Code.
+EasyEDA Pro MCP is a Model Context Protocol (MCP) server that connects your running EasyEDA Pro session to MCP clients such as Claude, Claude Code, Codex, and VS Code.
 
 It runs locally:
 
@@ -69,6 +69,7 @@ Once connected, your AI client can inspect the schematic or PCB you already have
 ## Who It Is For
 
 - PCB and schematic designers using EasyEDA Pro
+- Engineers preparing boards for fabrication with JLCPCB
 - Engineers exploring AI-assisted design review
 - Developers building MCP-powered hardware workflows
 - Teams who want local-first AI tooling around an existing editor session
@@ -85,7 +86,7 @@ Once connected, your AI client can inspect the schematic or PCB you already have
 
 If this is your first time, use the beginner-friendly guide:
 
-[Start with the cross-platform Quick Start](http://vlabsoft.org/easyeda_mcp/quick-start)
+[Start with the cross-platform Quick Start](https://vlabsoft.org/easyeda_mcp/quick-start)
 
 The shortest path to a healthy setup:
 
@@ -184,18 +185,18 @@ EasyEDA Pro MCP is designed for MCP-compatible clients such as:
 
 Start here:
 
-- [Quick Start](http://vlabsoft.org/easyeda_mcp/quick-start)
-- [Getting Started](http://vlabsoft.org/easyeda_mcp/getting-started)
-- [AI Client Setup](http://vlabsoft.org/easyeda_mcp/ai-client-setup)
-- [EasyEDA Pro Extension Setup](http://vlabsoft.org/easyeda_mcp/easyeda-extension)
-- [Troubleshooting](http://vlabsoft.org/easyeda_mcp/troubleshooting)
+- [Quick Start](https://vlabsoft.org/easyeda_mcp/quick-start)
+- [Getting Started](https://vlabsoft.org/easyeda_mcp/getting-started)
+- [AI Client Setup](https://vlabsoft.org/easyeda_mcp/ai-client-setup)
+- [EasyEDA Pro Extension Setup](https://vlabsoft.org/easyeda_mcp/easyeda-extension)
+- [Troubleshooting](https://vlabsoft.org/easyeda_mcp/troubleshooting)
 
 Reference:
 
-- [Tools Reference](http://vlabsoft.org/easyeda_mcp/tools)
-- [MCP Client Setup](http://vlabsoft.org/easyeda_mcp/mcp-client-setup)
-- [Safety Model](http://vlabsoft.org/easyeda_mcp/safety)
-- [Architecture](http://vlabsoft.org/easyeda_mcp/architecture)
+- [Tools Reference](https://vlabsoft.org/easyeda_mcp/tools)
+- [MCP Client Setup](https://vlabsoft.org/easyeda_mcp/mcp-client-setup)
+- [Safety Model](https://vlabsoft.org/easyeda_mcp/safety)
+- [Architecture](https://vlabsoft.org/easyeda_mcp/architecture)
 
 ## Contact
 
