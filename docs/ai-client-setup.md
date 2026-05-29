@@ -1,10 +1,10 @@
 # AI Client Setup
 
-Use this page when you already built the project and want the exact setup for a specific AI tool.
+Use this page when the project is already built and you want the exact setup for one AI tool.
 
-If this is your first time, start with [Quick Start](./quick-start.md). If you want the full first-time flow, use [Getting Started](./getting-started.md).
+For a first-time flow, start with [Quick Start](./quick-start.md) or [Getting Started](./getting-started.md).
 
-## Build First
+## Shared Setup
 
 From the repository root:
 
@@ -13,25 +13,28 @@ npm install
 npm run setup:local
 ```
 
-The shared server entrypoint is:
-
-```text
-dist/index.js
-```
-
-Every client below points to:
+All clients launch the same local server:
 
 ```bash
 node /absolute/path/to/easyeda_mcp/dist/index.js
 ```
 
+Path examples:
+
+```text
+/Users/you/Documents/easyeda_mcp/dist/index.js
+C:\Users\you\Documents\easyeda_mcp\dist\index.js
+```
+
 ## Choose Your Tool
 
-- [Claude Desktop](#claude-desktop)
-- [Codex CLI](#codex-cli)
-- [Claude Code CLI](#claude-code-cli)
-- [VS Code](#vs-code)
-- [Other MCP Clients and CLIs](#other-mcp-clients-and-clis)
+| Tool | Best for | Setup style |
+| --- | --- | --- |
+| [Claude Desktop](#claude-desktop) | desktop chat on Windows or macOS | JSON config file |
+| [Codex CLI](#codex-cli) | terminal workflow with Codex | `codex mcp add` |
+| [Claude Code CLI](#claude-code-cli) | terminal workflow with Claude | `claude mcp add` or `.mcp.json` |
+| [VS Code](#vs-code) | Copilot Chat Agent mode | `.vscode/mcp.json` |
+| [Other MCP Clients and CLIs](#other-mcp-clients-and-clis) | any local `stdio` MCP client | client-specific config |
 
 ## Claude Desktop
 
@@ -49,20 +52,22 @@ macOS config file:
 ~/Library/Application Support/Claude/claude_desktop_config.json
 ```
 
-If the file does not exist, create it. Then add:
+If the file does not exist, create it. Then add one of these examples and replace the path.
+
+macOS example:
 
 ```json
 {
   "mcpServers": {
     "easyeda-pro": {
       "command": "node",
-      "args": ["/absolute/path/to/easyeda_mcp/dist/index.js"]
+      "args": ["/Users/you/Documents/easyeda_mcp/dist/index.js"]
     }
   }
 }
 ```
 
-On Windows, use a Windows path:
+Windows example:
 
 ```json
 {
@@ -89,15 +94,8 @@ Note: Claude Desktop local MCP setup is separate from Claude.ai remote connector
 
 Use this if you want a terminal workflow in Codex.
 
-Add the server:
-
 ```bash
 codex mcp add easyeda-pro -- node /absolute/path/to/easyeda_mcp/dist/index.js
-```
-
-Check it:
-
-```bash
 codex mcp list
 ```
 
@@ -113,15 +111,8 @@ Then:
 
 Use this if you want a terminal workflow in Claude Code.
 
-Add the server:
-
 ```bash
 claude mcp add easyeda-pro -- node /absolute/path/to/easyeda_mcp/dist/index.js
-```
-
-Check it:
-
-```bash
 claude mcp list
 ```
 
@@ -186,7 +177,30 @@ If your client supports a local `stdio` MCP server, use:
 node /absolute/path/to/easyeda_mcp/dist/index.js
 ```
 
+If the client wants JSON, many MCP clients use this shape:
+
+```json
+{
+  "mcpServers": {
+    "easyeda-pro": {
+      "command": "node",
+      "args": ["/absolute/path/to/easyeda_mcp/dist/index.js"]
+    }
+  }
+}
+```
+
 If the client needs a custom config format, see [MCP Client Setup](./mcp-client-setup.md).
+
+## After Connecting Any Client
+
+Use the same runtime order for every AI tool:
+
+1. start the AI tool and let it launch the MCP server
+2. open EasyEDA Pro
+3. open the target schematic or PCB
+4. load or reconnect the EasyEDA Pro extension
+5. run `easyeda_doctor`
 
 ## First Useful Prompts
 
@@ -220,6 +234,7 @@ Run easyeda_trace_component for USB1 and summarize its connected nets.
 - tools appear but calls fail: run `easyeda_doctor`
 - extension is disconnected: open EasyEDA Pro and use `MCP Bridge -> Reconnect`
 - `dist/index.js` is missing: run `npm run setup:local`
+- Windows paths fail in JSON: escape backslashes, for example `C:\\Users\\you\\Documents\\easyeda_mcp\\dist\\index.js`
 
 ## Official References
 

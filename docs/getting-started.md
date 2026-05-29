@@ -2,9 +2,17 @@
 
 Goal: get one AI tool talking to the EasyEDA Pro project you already have open.
 
-If you want the absolute shortest version, use [Quick Start](./quick-start.md). This page adds a little more guidance without going deep into every edge case.
+For the shortest version, use [Quick Start](./quick-start.md). This page explains the same first setup with a little more context.
 
 If a step fails, jump to [Troubleshooting](./troubleshooting.md).
+
+## How It Fits Together
+
+```text
+AI tool -> local MCP server -> EasyEDA Pro extension -> open schematic or PCB
+```
+
+The AI tool launches the MCP server. The EasyEDA Pro extension connects to that server over a local WebSocket bridge. Both pieces run on your machine.
 
 ## What You Need
 
@@ -12,16 +20,11 @@ If a step fails, jump to [Troubleshooting](./troubleshooting.md).
 - `npm`
 - EasyEDA Pro installed
 - permission to load a local EasyEDA Pro extension
-- one AI tool:
-  - Claude Desktop
-  - Codex CLI
-  - Claude Code CLI
-  - VS Code
-  - another MCP client
+- one AI tool such as Claude Desktop, Codex CLI, Claude Code CLI, VS Code, or another MCP client
 
 ## 1. Build the Local Pieces
 
-From the repository root, run:
+From the repository root:
 
 ```bash
 npm install
@@ -30,69 +33,31 @@ npm run setup:local
 
 This builds:
 
-- the MCP server at `dist/index.js`
-- the browser extension bundle at `extension/dist/index.js`
-- the packaged EasyEDA Pro extension in `build/dist`
+- `dist/index.js`, the MCP server
+- `extension/dist/index.js`, the extension browser bundle
+- `build/dist/easyeda_mcp_bridge.eext`, the packaged EasyEDA Pro extension
 
-## 2. Choose One AI Tool
+## 2. Connect One AI Tool
 
-All clients run the same server:
-
-```bash
-node /absolute/path/to/easyeda_mcp/dist/index.js
-```
-
-Choose one of these setup paths:
-
-### Claude Desktop
-
-Best if you want a desktop chat app on Windows or macOS.
-
-Add the server to `claude_desktop_config.json`, then fully restart Claude Desktop.
-
-Use the exact config examples in [AI Client Setup](./ai-client-setup.md#claude-desktop).
-
-### Codex CLI
-
-Best if you want a terminal workflow.
-
-Run:
-
-```bash
-codex mcp add easyeda-pro -- node /absolute/path/to/easyeda_mcp/dist/index.js
-codex mcp list
-```
-
-### Claude Code CLI
-
-Best if you already use Claude in the terminal.
-
-Run:
-
-```bash
-claude mcp add easyeda-pro -- node /absolute/path/to/easyeda_mcp/dist/index.js
-claude mcp list
-```
-
-### VS Code
-
-Best if you want MCP tools inside Copilot Chat Agent mode.
-
-Create `.vscode/mcp.json` in the repository and point it at `dist/index.js`.
-
-Use the exact example in [AI Client Setup](./ai-client-setup.md#vs-code).
-
-### Other MCP Clients and CLIs
-
-If your tool accepts a local `stdio` MCP server command, use:
+All clients launch the same command:
 
 ```bash
 node /absolute/path/to/easyeda_mcp/dist/index.js
 ```
 
-Use [MCP Client Setup](./mcp-client-setup.md) if your client is not listed here.
+Choose one setup path:
 
-## 3. Install the EasyEDA Pro Extension
+| Tool | Use when | Setup guide |
+| --- | --- | --- |
+| Claude Desktop | you want a desktop chat app | [Claude Desktop setup](./ai-client-setup.md#claude-desktop) |
+| Codex CLI | you work from a terminal with Codex | [Codex CLI setup](./ai-client-setup.md#codex-cli) |
+| Claude Code CLI | you work from a terminal with Claude | [Claude Code CLI setup](./ai-client-setup.md#claude-code-cli) |
+| VS Code | you use Copilot Chat Agent mode | [VS Code setup](./ai-client-setup.md#vs-code) |
+| Other MCP clients | your tool supports local MCP servers | [Generic MCP setup](./mcp-client-setup.md) |
+
+Configure one tool first. Once `easyeda_doctor` works there, repeat the client setup for any other tool you want.
+
+## 3. Load the EasyEDA Pro Extension
 
 In EasyEDA Pro:
 
@@ -123,8 +88,6 @@ Then run:
 Run easyeda_get_context and tell me which EasyEDA Pro document is open.
 ```
 
-## 5. Try a Real Read
-
 With a schematic open, run:
 
 ```text
@@ -133,9 +96,19 @@ Run easyeda_schematic_snapshot and summarize the component and net counts.
 
 If that works, your first setup is done.
 
+## First-Run Checklist
+
+- `dist/index.js` exists after `npm run setup:local`
+- your AI tool launches `node .../dist/index.js`
+- EasyEDA Pro is open
+- a schematic or PCB is open
+- the EasyEDA Pro extension is loaded
+- external interaction permission is enabled
+- `easyeda_doctor` reports a connected extension
+
 ## Daily Startup
 
-After the first setup, the usual flow is:
+After the first setup:
 
 1. open your AI tool
 2. open EasyEDA Pro
