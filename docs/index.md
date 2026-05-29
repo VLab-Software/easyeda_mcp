@@ -65,6 +65,28 @@ hero:
   </div>
 </div>
 
+<div class="about-panel surface-card">
+  <strong>About this project</strong>
+  <div class="about-grid">
+    <div class="about-item">
+      <span class="about-label">How it works</span>
+      <p>An EasyEDA Pro extension connects to a local MCP server over WebSocket. The extension reads the open project through EasyEDA's internal APIs and forwards structured data to any MCP-compatible AI client. Nothing leaves your machine.</p>
+    </div>
+    <div class="about-item">
+      <span class="about-label">EasyEDA Pro version</span>
+      <p>Requires EasyEDA Pro <strong>2.3.0 or later</strong>. The extension uses the <code>eda.*</code> API surface introduced in that release.</p>
+    </div>
+    <div class="about-item">
+      <span class="about-label">License</span>
+      <p>Released under the <a href="https://github.com/VLab-Software/easyeda_mcp/blob/master/LICENSE">MIT License</a>.</p>
+    </div>
+    <div class="about-item">
+      <span class="about-label">Not affiliated</span>
+      <p>This project is not affiliated with, endorsed by, or sponsored by EasyEDA or JLCPCB (Shenzhen Jia Chuang Ban Technology Co., Ltd.). EasyEDA and EasyEDA Pro are trademarks of their respective owners.</p>
+    </div>
+  </div>
+</div>
+
 <div class="contact-note surface-card">
   <strong>Contact</strong>
   <p>
