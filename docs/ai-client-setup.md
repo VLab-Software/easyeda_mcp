@@ -1,33 +1,93 @@
 # AI Client Setup
 
-Use this page to connect EasyEDA Pro MCP Bridge to Codex, Claude, Claude Code, or VS Code.
+Use this page when you already built the project and want the exact setup for a specific AI tool.
 
-If you are setting this up for the first time, start with [Quick Start](./quick-start.md). It gives a shorter Windows, macOS, and Linux path.
+If this is your first time, start with [Quick Start](./quick-start.md). If you want the full first-time flow, use [Getting Started](./getting-started.md).
 
-Before choosing a client, run:
+## Build First
+
+From the repository root:
 
 ```bash
 npm install
 npm run setup:local
 ```
 
-The server entrypoint must exist at:
+The shared server entrypoint is:
 
 ```text
 dist/index.js
 ```
 
-## The Command Every Client Needs
-
-All examples point to the same local server:
+Every client below points to:
 
 ```bash
 node /absolute/path/to/easyeda_mcp/dist/index.js
 ```
 
-Replace the path with your machine's absolute path.
+## Choose Your Tool
 
-## Codex
+- [Claude Desktop](#claude-desktop)
+- [Codex CLI](#codex-cli)
+- [Claude Code CLI](#claude-code-cli)
+- [VS Code](#vs-code)
+- [Other MCP Clients and CLIs](#other-mcp-clients-and-clis)
+
+## Claude Desktop
+
+Use this on Windows or macOS if you want a desktop chat app.
+
+Windows config file:
+
+```text
+%APPDATA%\Claude\claude_desktop_config.json
+```
+
+macOS config file:
+
+```text
+~/Library/Application Support/Claude/claude_desktop_config.json
+```
+
+If the file does not exist, create it. Then add:
+
+```json
+{
+  "mcpServers": {
+    "easyeda-pro": {
+      "command": "node",
+      "args": ["/absolute/path/to/easyeda_mcp/dist/index.js"]
+    }
+  }
+}
+```
+
+On Windows, use a Windows path:
+
+```json
+{
+  "mcpServers": {
+    "easyeda-pro": {
+      "command": "node",
+      "args": ["C:\\Users\\you\\Documents\\easyeda_mcp\\dist\\index.js"]
+    }
+  }
+}
+```
+
+Then:
+
+1. fully restart Claude Desktop
+2. open EasyEDA Pro
+3. open a schematic or PCB
+4. use `MCP Bridge -> Reconnect` if needed
+5. ask Claude to run `easyeda_doctor`
+
+Note: Claude Desktop local MCP setup is separate from Claude.ai remote connectors.
+
+## Codex CLI
+
+Use this if you want a terminal workflow in Codex.
 
 Add the server:
 
@@ -45,42 +105,13 @@ Then:
 
 1. open Codex in this repository
 2. open EasyEDA Pro
-3. open your schematic or PCB
-4. reconnect the EasyEDA extension if needed
+3. open the target schematic or PCB
+4. reconnect the extension if needed
 5. ask Codex to run `easyeda_doctor`
 
-First prompt:
+## Claude Code CLI
 
-```text
-Run easyeda_doctor and tell me if the EasyEDA Pro bridge is healthy.
-```
-
-## Claude Desktop
-
-Add this to `claude_desktop_config.json`:
-
-```json
-{
-  "mcpServers": {
-    "easyeda-pro": {
-      "command": "node",
-      "args": ["/absolute/path/to/easyeda_mcp/dist/index.js"]
-    }
-  }
-}
-```
-
-Then:
-
-1. restart Claude Desktop
-2. open EasyEDA Pro
-3. open your schematic or PCB
-4. reconnect the extension if needed
-5. ask Claude to run `easyeda_doctor`
-
-Note: Claude Desktop local MCP setup is separate from Claude.ai remote connectors.
-
-## Claude Code
+Use this if you want a terminal workflow in Claude Code.
 
 Add the server:
 
@@ -115,6 +146,8 @@ claude mcp add-from-claude-desktop
 
 ## VS Code
 
+Use this if you want MCP tools in Copilot Chat Agent mode.
+
 Create `.vscode/mcp.json`:
 
 ```json
@@ -137,13 +170,23 @@ Then:
 2. open Copilot Chat in Agent mode
 3. trust the MCP server when prompted
 4. confirm the server is enabled in the tools picker
-5. ask for `easyeda_live_status` or `easyeda_doctor`
+5. ask for `easyeda_doctor`
 
 Useful VS Code commands:
 
 - `MCP: Open Workspace Folder Configuration`
 - `MCP: List Servers`
 - `MCP: Reset Trust`
+
+## Other MCP Clients and CLIs
+
+If your client supports a local `stdio` MCP server, use:
+
+```bash
+node /absolute/path/to/easyeda_mcp/dist/index.js
+```
+
+If the client needs a custom config format, see [MCP Client Setup](./mcp-client-setup.md).
 
 ## First Useful Prompts
 
@@ -173,10 +216,10 @@ Run easyeda_trace_component for USB1 and summarize its connected nets.
 
 ## Common Problems
 
-- Tools do not appear: rebuild and restart the MCP client.
-- Tools appear but calls fail: run `easyeda_doctor`.
-- Extension is disconnected: open EasyEDA Pro and use `MCP Bridge -> Reconnect`.
-- `dist/index.js` is missing: run `npm run setup:local`.
+- tools do not appear: rebuild and restart the MCP client
+- tools appear but calls fail: run `easyeda_doctor`
+- extension is disconnected: open EasyEDA Pro and use `MCP Bridge -> Reconnect`
+- `dist/index.js` is missing: run `npm run setup:local`
 
 ## Official References
 

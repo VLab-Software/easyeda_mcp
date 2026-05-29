@@ -1,15 +1,15 @@
 # Quick Start
 
-Use this page if you want the fastest path to a working setup.
+Use this page if you want the shortest path to a working setup.
 
-You do not need to understand MCP internals first. Follow the steps, then verify with `easyeda_doctor`.
+Pick one AI tool, get it working, then add other clients later if you want.
 
 ## What You Will Do
 
-1. Build the local MCP server and EasyEDA Pro extension
-2. Connect an AI client
-3. Load the EasyEDA Pro extension
-4. Run one health check
+1. build the local MCP server and EasyEDA Pro extension
+2. connect one AI tool
+3. load the EasyEDA Pro extension
+4. run `easyeda_doctor`
 
 ## Before You Start
 
@@ -18,12 +18,16 @@ You need:
 - Node.js `20` or newer
 - `npm`
 - EasyEDA Pro
-- Claude Desktop on Windows or macOS
-- Claude Code on Linux
+- one MCP-capable AI tool:
+  - Claude Desktop on Windows or macOS
+  - Codex CLI
+  - Claude Code CLI
+  - VS Code
+  - another local MCP client
 
-Open a terminal in the project folder before running commands.
+Open a terminal in the repository root before running commands.
 
-## 1. Build the Project
+## 1. Build Once
 
 Run:
 
@@ -32,17 +36,21 @@ npm install
 npm run setup:local
 ```
 
-This creates the MCP server here:
+This creates:
+
+- the MCP server at `dist/index.js`
+- the packaged EasyEDA Pro extension in `build/dist`
+
+You should see extension files like:
 
 ```text
-dist/index.js
+build/dist/easyeda-mcp-bridge_v0.1.0.eext
+build/dist/easyeda_mcp_bridge.eext
 ```
 
-It also builds and packages the EasyEDA Pro extension.
+## 2. Copy Your Absolute Path
 
-## 2. Copy Your Project Path
-
-You need the absolute path to this repository.
+Every AI tool needs the absolute path to this repository.
 
 On macOS or Linux:
 
@@ -56,35 +64,50 @@ On Windows PowerShell:
 (Get-Location).Path
 ```
 
-You will use that path in the next step.
-
-Example macOS/Linux server path:
+Use that path to point the client at:
 
 ```text
-/Users/you/Documents/easyeda_mcp/dist/index.js
+/absolute/path/to/easyeda_mcp/dist/index.js
 ```
 
-Example Windows server path:
+Windows example:
 
 ```text
 C:\Users\you\Documents\easyeda_mcp\dist\index.js
 ```
 
-## 3. Connect Your AI Client
+## 3. Connect One AI Tool
 
-Choose the section for your operating system.
+Start with one client only.
 
-### Windows: Claude Desktop
+### Claude Desktop (Windows and macOS)
 
-Open this file:
+Windows config file:
 
 ```text
 %APPDATA%\Claude\claude_desktop_config.json
 ```
 
-If it does not exist, create it.
+macOS config file:
 
-Paste this JSON and replace the path with your real path:
+```text
+~/Library/Application Support/Claude/claude_desktop_config.json
+```
+
+If the file does not exist, create it. Then add:
+
+```json
+{
+  "mcpServers": {
+    "easyeda-pro": {
+      "command": "node",
+      "args": ["/absolute/path/to/easyeda_mcp/dist/index.js"]
+    }
+  }
+}
+```
+
+On Windows, use the same JSON with a Windows path such as:
 
 ```json
 {
@@ -97,75 +120,66 @@ Paste this JSON and replace the path with your real path:
 }
 ```
 
-Save the file, then fully quit and reopen Claude Desktop.
+Fully quit and reopen Claude Desktop.
 
-### macOS: Claude Desktop
+### Codex CLI
 
-Open this file:
+Run:
 
-```text
-~/Library/Application Support/Claude/claude_desktop_config.json
+```bash
+codex mcp add easyeda-pro -- node /absolute/path/to/easyeda_mcp/dist/index.js
+codex mcp list
 ```
 
-If it does not exist, create it.
+### Claude Code CLI
 
-Paste this JSON and replace the path with your real path:
+Run:
+
+```bash
+claude mcp add easyeda-pro -- node /absolute/path/to/easyeda_mcp/dist/index.js
+claude mcp list
+```
+
+### VS Code
+
+Create `.vscode/mcp.json` in the repository:
 
 ```json
 {
-  "mcpServers": {
+  "servers": {
     "easyeda-pro": {
+      "type": "stdio",
       "command": "node",
-      "args": ["/Users/you/Documents/easyeda_mcp/dist/index.js"]
+      "args": ["${workspaceFolder}/dist/index.js"]
     }
   }
 }
 ```
 
-Save the file, then fully quit and reopen Claude Desktop.
+Then open Copilot Chat in Agent mode and trust the server when prompted.
 
-### Linux: Claude Code
+### Other MCP Clients and CLIs
 
-Claude Desktop is not the recommended path for Linux here. Use Claude Code.
-
-Run this command and replace the path with your real path:
+If your tool supports a local `stdio` MCP server, point it to:
 
 ```bash
-claude mcp add easyeda-pro -- node /home/you/Documents/easyeda_mcp/dist/index.js
+node /absolute/path/to/easyeda_mcp/dist/index.js
 ```
 
-Check that it was added:
-
-```bash
-claude mcp list
-```
+If you need a generic setup guide, see [MCP Client Setup](./mcp-client-setup.md).
 
 ## 4. Load the EasyEDA Pro Extension
 
-Open EasyEDA Pro.
+Open EasyEDA Pro, then:
 
-Then:
-
-1. import or load the packaged extension from `build/dist`
+1. import the packaged extension from `build/dist`
 2. enable external interaction permission
 3. open a schematic or PCB project
-4. use `MCP Bridge -> Reconnect` if it does not connect automatically
-
-The packaged extension has a name like:
-
-```text
-easyeda-mcp-bridge_v0.1.0.eext
-```
-
-A compatibility copy is also created:
-
-```text
-easyeda_mcp_bridge.eext
-```
+4. use `MCP Bridge -> Reconnect` if the bridge does not connect automatically
 
 ## 5. Verify It Works
 
-In your AI client, ask:
+In your AI tool, run:
 
 ```text
 Run easyeda_doctor and summarize whether the EasyEDA Pro bridge is healthy.
@@ -177,28 +191,23 @@ Healthy output should show:
 - protocol compatible
 - active document available
 
-Then ask:
+Then run:
 
 ```text
 Run easyeda_get_context and tell me which EasyEDA Pro document is open.
 ```
 
-With a schematic open, try:
+With a schematic open, run:
 
 ```text
 Run easyeda_schematic_snapshot and summarize the component and net counts.
 ```
 
-If all three work, your setup is ready.
+If those three calls work, your setup is ready.
 
-## If Something Fails
-
-Use the symptom-based guide:
-
-- [Troubleshooting](./troubleshooting.md)
-
-For more detail:
+## Need More Detail?
 
 - [Getting Started](./getting-started.md)
 - [AI Client Setup](./ai-client-setup.md)
 - [EasyEDA Pro Extension Setup](./easyeda-extension.md)
+- [Troubleshooting](./troubleshooting.md)
