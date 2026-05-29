@@ -13,9 +13,9 @@ The shortest path is:
 
 ## Start Here
 
-- [Quick Start](./quick-start.md): fastest setup for Windows, macOS, and Linux
+- [Quick Start](./quick-start.md): fastest setup for one AI tool
 - [Getting Started](./getting-started.md): first successful local setup
-- [AI Client Setup](./ai-client-setup.md): Codex, Claude, Claude Code, and VS Code examples
+- [AI Client Setup](./ai-client-setup.md): Claude Desktop, Codex CLI, Claude Code CLI, VS Code, and generic MCP clients
 - [EasyEDA Pro Extension Setup](./easyeda-extension.md): install and connect the editor extension
 - [Troubleshooting](./troubleshooting.md): fixes by symptom
 

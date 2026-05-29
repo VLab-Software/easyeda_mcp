@@ -578,6 +578,54 @@
   font-weight: 600;
 }
 
+/* ── About panel ─────────────────────────────────────────────── */
+
+.about-panel {
+  max-width: 820px;
+  margin: 0 0 28px;
+  padding: 20px 22px;
+}
+
+.about-panel > strong {
+  display: block;
+  margin-bottom: 16px;
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--easy-section-kicker);
+}
+
+.about-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 24px;
+}
+
+.about-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.about-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--vp-c-text-2);
+}
+
+.about-item p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--vp-c-text-1);
+  line-height: 1.55;
+}
+
+.about-item a {
+  font-weight: 600;
+}
+
 /* ── Code blocks ──────────────────────────────────────────────── */
 
 .vp-doc div[class*="language-"] {
@@ -779,6 +827,10 @@
   .client-band {
     margin: 0 0 22px;
     padding: 18px;
+  }
+
+  .about-grid {
+    grid-template-columns: 1fr;
   }
 
   .support-strip {

@@ -5,7 +5,7 @@
 <h1 align="center">EasyEDA Pro MCP</h1>
 
 <p align="center">
-  Connect Claude, Codex, VS Code, and other MCP clients to the EasyEDA Pro project already open on your machine.
+  Connect Claude, Codex, VS Code, and other Model Context Protocol (MCP) clients to the live EasyEDA Pro project already open on your machine.
 </p>
 
 <p align="center">
@@ -25,13 +25,13 @@
 </p>
 
 <p align="center">
-  <a href="http://vlabsoft.org/easyeda_mcp/quick-start">Quick Start</a>
+  <a href="https://vlabsoft.org/easyeda_mcp/quick-start">Quick Start</a>
   ·
-  <a href="http://vlabsoft.org/easyeda_mcp/ai-client-setup">AI Client Setup</a>
+  <a href="https://vlabsoft.org/easyeda_mcp/ai-client-setup">AI Client Setup</a>
   ·
-  <a href="http://vlabsoft.org/easyeda_mcp/tools">Tools</a>
+  <a href="https://vlabsoft.org/easyeda_mcp/tools">Tools</a>
   ·
-  <a href="http://vlabsoft.org/easyeda_mcp/troubleshooting">Troubleshooting</a>
+  <a href="https://vlabsoft.org/easyeda_mcp/troubleshooting">Troubleshooting</a>
   ·
   <a href="https://github.com/VLab-Software/easyeda_mcp/releases">Releases</a>
 </p>
@@ -66,7 +66,7 @@ Then:
 
 Healthy output should show the extension connected, protocol compatible, and an active document available.
 
-Full setup guide: [Quick Start](http://vlabsoft.org/easyeda_mcp/quick-start)
+Full setup guide: [Quick Start](https://vlabsoft.org/easyeda_mcp/quick-start)
 
 ## What You Can Ask
 
@@ -88,12 +88,12 @@ Core capabilities:
 
 ## Documentation
 
-- [Quick Start](http://vlabsoft.org/easyeda_mcp/quick-start): shortest path to a working setup
-- [Getting Started](http://vlabsoft.org/easyeda_mcp/getting-started): first-time setup with more context
-- [AI Client Setup](http://vlabsoft.org/easyeda_mcp/ai-client-setup): Claude Desktop, Codex CLI, Claude Code CLI, VS Code, and generic MCP clients
-- [EasyEDA Pro Extension Setup](http://vlabsoft.org/easyeda_mcp/easyeda-extension): install and reconnect the editor extension
-- [Tools Reference](http://vlabsoft.org/easyeda_mcp/tools): available MCP tools
-- [Troubleshooting](http://vlabsoft.org/easyeda_mcp/troubleshooting): fixes by symptom
+- [Quick Start](https://vlabsoft.org/easyeda_mcp/quick-start): shortest path to a working setup
+- [Getting Started](https://vlabsoft.org/easyeda_mcp/getting-started): first-time setup with more context
+- [AI Client Setup](https://vlabsoft.org/easyeda_mcp/ai-client-setup): Claude Desktop, Codex CLI, Claude Code CLI, VS Code, and generic MCP clients
+- [EasyEDA Pro Extension Setup](https://vlabsoft.org/easyeda_mcp/easyeda-extension): install and reconnect the editor extension
+- [Tools Reference](https://vlabsoft.org/easyeda_mcp/tools): available MCP tools
+- [Troubleshooting](https://vlabsoft.org/easyeda_mcp/troubleshooting): fixes by symptom
 
 ## Releases
 

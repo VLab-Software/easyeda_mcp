@@ -22,19 +22,19 @@ hero:
     <div class="support-label">Supported AI Clients</div>
     <div class="support-pill-row support-pill-row-primary">
       <a href="/easyeda_mcp/ai-client-setup#claude-desktop">Claude Desktop</a>
-      <a href="/easyeda_mcp/ai-client-setup#claude-code">Claude Code</a>
-      <a href="/easyeda_mcp/ai-client-setup#codex">Codex</a>
+      <a href="/easyeda_mcp/ai-client-setup#claude-code-cli">Claude Code</a>
+      <a href="/easyeda_mcp/ai-client-setup#codex-cli">Codex</a>
       <a href="/easyeda_mcp/ai-client-setup#vs-code">VS Code</a>
     </div>
   </div>
 
   <div class="support-group">
-    <div class="support-label">Supported OS</div>
+    <div class="support-label">Setup Guides</div>
     <div class="support-pill-row support-pill-row-secondary">
-      <a href="/easyeda_mcp/quick-start#windows-claude-desktop">Windows</a>
-      <a href="/easyeda_mcp/quick-start#macos-claude-desktop">macOS</a>
-      <a href="/easyeda_mcp/quick-start#linux-claude-code">Linux</a>
-      <a href="/easyeda_mcp/mcp-client-setup#what-the-client-must-run">Node.js local runtime</a>
+      <a href="/easyeda_mcp/quick-start">Quick Start</a>
+      <a href="/easyeda_mcp/getting-started">Getting Started</a>
+      <a href="/easyeda_mcp/ai-client-setup">AI Client Setup</a>
+      <a href="/easyeda_mcp/mcp-client-setup">Generic MCP client</a>
     </div>
   </div>
 </div>
@@ -62,6 +62,28 @@ hero:
   <div class="quick-card surface-card">
     <strong>Controlled actions</strong>
     <p>Read-only workflows are easy. Editor-changing actions require explicit confirmation.</p>
+  </div>
+</div>
+
+<div class="about-panel surface-card">
+  <strong>About this project</strong>
+  <div class="about-grid">
+    <div class="about-item">
+      <span class="about-label">How it works</span>
+      <p>An EasyEDA Pro extension connects to a local MCP server over WebSocket. The extension reads the open project through EasyEDA's internal APIs and forwards structured data to any MCP-compatible AI client. Nothing leaves your machine.</p>
+    </div>
+    <div class="about-item">
+      <span class="about-label">EasyEDA Pro version</span>
+      <p>Requires EasyEDA Pro <strong>2.3.0 or later</strong>. The extension uses the <code>eda.*</code> API surface introduced in that release.</p>
+    </div>
+    <div class="about-item">
+      <span class="about-label">License</span>
+      <p>Released under the <a href="https://github.com/VLab-Software/easyeda_mcp/blob/master/LICENSE">MIT License</a>.</p>
+    </div>
+    <div class="about-item">
+      <span class="about-label">Not affiliated</span>
+      <p>This project is not affiliated with, endorsed by, or sponsored by EasyEDA or JLCPCB (Shenzhen Jia Chuang Ban Technology Co., Ltd.). EasyEDA and EasyEDA Pro are trademarks of their respective owners.</p>
+    </div>
   </div>
 </div>
 
