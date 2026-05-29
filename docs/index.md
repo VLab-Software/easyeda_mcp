@@ -22,19 +22,19 @@ hero:
     <div class="support-label">Supported AI Clients</div>
     <div class="support-pill-row support-pill-row-primary">
       <a href="/easyeda_mcp/ai-client-setup#claude-desktop">Claude Desktop</a>
-      <a href="/easyeda_mcp/ai-client-setup#claude-code">Claude Code</a>
-      <a href="/easyeda_mcp/ai-client-setup#codex">Codex</a>
+      <a href="/easyeda_mcp/ai-client-setup#claude-code-cli">Claude Code</a>
+      <a href="/easyeda_mcp/ai-client-setup#codex-cli">Codex</a>
       <a href="/easyeda_mcp/ai-client-setup#vs-code">VS Code</a>
     </div>
   </div>
 
   <div class="support-group">
-    <div class="support-label">Supported OS</div>
+    <div class="support-label">Setup Guides</div>
     <div class="support-pill-row support-pill-row-secondary">
-      <a href="/easyeda_mcp/quick-start#windows-claude-desktop">Windows</a>
-      <a href="/easyeda_mcp/quick-start#macos-claude-desktop">macOS</a>
-      <a href="/easyeda_mcp/quick-start#linux-claude-code">Linux</a>
-      <a href="/easyeda_mcp/mcp-client-setup#what-the-client-must-run">Node.js local runtime</a>
+      <a href="/easyeda_mcp/quick-start">Quick Start</a>
+      <a href="/easyeda_mcp/getting-started">Getting Started</a>
+      <a href="/easyeda_mcp/ai-client-setup">AI Client Setup</a>
+      <a href="/easyeda_mcp/mcp-client-setup">Generic MCP client</a>
     </div>
   </div>
 </div>
