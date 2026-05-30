@@ -5,11 +5,11 @@
 <h1 align="center">EasyEDA Pro MCP</h1>
 
 <p align="center">
-  Connect Claude, Codex, VS Code, and other Model Context Protocol (MCP) clients to the live EasyEDA Pro project you already have open.
+  Connect Claude, Codex, VS Code, and other Model Context Protocol (MCP) clients to the live EasyEDA Pro project already open on your machine.
 </p>
 
 <p align="center">
-  Community-built open-source MCP bridge for PCB enthusiasts and professionals. This project is independent and is not affiliated with or endorsed by EasyEDA or its company.
+  Independent open-source MCP bridge for live schematic and PCB workflows in EasyEDA Pro.
 </p>
 
 <p align="center">
@@ -36,17 +36,9 @@
   <img src="./docs/public/demo.gif" alt="Demo showing EasyEDA Pro with the MCP Bridge workflow in action" width="760" />
 </p>
 
-## Why This Exists
+## What It Does
 
-Most AI workflows for PCB design still depend on screenshots, copied text, or manual exports.
-
-EasyEDA Pro MCP gives MCP clients direct structured access to the EasyEDA Pro session already open on your machine, so the AI can inspect real schematic and PCB context instead of guessing.
-
-This repository is maintained as an independent open-source project for people building and reviewing PCB designs. It is not an official EasyEDA product and has no corporate relationship with EasyEDA.
-
-## What It Is
-
-EasyEDA Pro MCP is a Model Context Protocol (MCP) server that connects your running EasyEDA Pro session to MCP clients such as Claude, Claude Code, Codex, and VS Code.
+EasyEDA Pro MCP lets an AI assistant inspect the live EasyEDA Pro schematic or PCB you already have open. It gives MCP clients structured project context instead of making them guess from screenshots, copied text, or manual exports.
 
 It runs locally:
 
@@ -54,41 +46,9 @@ It runs locally:
 MCP client -> Node.js MCP server -> local WebSocket bridge -> EasyEDA Pro extension
 ```
 
-Once connected, your AI client can inspect the schematic or PCB you already have open instead of guessing from screenshots or copied text.
-
-## What You Can Do Today
-
-- Inspect the active EasyEDA Pro project from an MCP client
-- Read schematic structure including components, pins, nets, wires, and labels
-- Trace components and connected nets for faster review
-- Validate specific connections with targeted assertions
-- Navigate the editor and use export helpers
-- Keep the workflow local-first on Windows, macOS, and Linux
-- Gate mutating actions behind explicit confirmation
-
-## Who It Is For
-
-- PCB and schematic designers using EasyEDA Pro
-- Engineers preparing boards for fabrication with JLCPCB
-- Engineers exploring AI-assisted design review
-- Developers building MCP-powered hardware workflows
-- Teams who want local-first AI tooling around an existing editor session
-
-## Why Teams Try It
-
-- Better than screenshot-driven AI workflows
-- Faster schematic review and net tracing
-- Works with the MCP clients people already use
-- Local bridge keeps the session on your machine
-- Safer write path with confirmation-gated actions
+Works with Claude Desktop, Claude Code, Codex, VS Code, and other MCP-compatible clients.
 
 ## Quick Start
-
-If this is your first time, use the beginner-friendly guide:
-
-[Start with the cross-platform Quick Start](https://vlabsoft.org/easyeda_mcp/quick-start)
-
-The shortest path to a healthy setup:
 
 ```bash
 npm install
@@ -106,103 +66,40 @@ Then:
 
 Healthy output should show the extension connected, protocol compatible, and an active document available.
 
-## First 5-Minute Demo
+Full setup guide: [Quick Start](https://vlabsoft.org/easyeda_mcp/quick-start)
 
-After setup, try these prompts in your MCP client:
-
-```text
-Run easyeda_doctor and summarize whether the EasyEDA Pro bridge is healthy.
-```
-
-```text
-Run easyeda_get_context and tell me which document is open in EasyEDA Pro.
-```
-
-```text
-Run easyeda_schematic_snapshot and summarize components, nets, warnings, and confidence.
-```
-
-## Release Download
-
-For the first public beta, download the EasyEDA Pro extension from GitHub Releases:
-
-[Download the latest beta release](https://github.com/VLab-Software/easyeda_mcp/releases)
-
-Release assets include:
-
-- `easyeda-mcp-bridge_v0.1.0.eext`: versioned EasyEDA Pro extension package
-- `easyeda_mcp_bridge.eext`: stable filename for the same extension package
-- `SHA256SUMS.txt`: checksums for verification
-
-## Key Capabilities
-
-- Live context from the active EasyEDA Pro project
-- Schematic inspection for components, pins, nets, wires, and labels
-- Net and component tracing for faster design review
-- Connection assertions for targeted checks
-- Editor navigation and export helpers
-- Local-first runtime built on Node.js
-- Works on Windows, macOS, and Linux
-- Mutating actions require explicit confirmation
-
-## Example Prompts
-
-Check the bridge:
+## What You Can Ask
 
 ```text
 Run easyeda_doctor and summarize whether the EasyEDA Pro bridge is healthy.
-```
-
-Confirm the open document:
-
-```text
 Run easyeda_get_context and tell me which document is open in EasyEDA Pro.
-```
-
-Inspect a schematic:
-
-```text
 Run easyeda_schematic_snapshot and summarize components, nets, warnings, and confidence.
-```
-
-Trace a component:
-
-```text
 Run easyeda_trace_component for USB1 and summarize its connected nets.
 ```
 
-## Supported Clients
+Core capabilities:
 
-EasyEDA Pro MCP is designed for MCP-compatible clients such as:
-
-- Claude Desktop
-- Claude Code
-- Codex
-- VS Code
-- other compatible MCP clients
+- live project and document context
+- schematic inspection for components, pins, nets, wires, and labels
+- component and net tracing
+- targeted connection assertions
+- editor navigation and export helpers
+- confirmation-gated editor-changing actions
 
 ## Documentation
 
-Start here:
+- [Quick Start](https://vlabsoft.org/easyeda_mcp/quick-start): shortest path to a working setup
+- [Getting Started](https://vlabsoft.org/easyeda_mcp/getting-started): first-time setup with more context
+- [AI Client Setup](https://vlabsoft.org/easyeda_mcp/ai-client-setup): Claude Desktop, Codex CLI, Claude Code CLI, VS Code, and generic MCP clients
+- [EasyEDA Pro Extension Setup](https://vlabsoft.org/easyeda_mcp/easyeda-extension): install and reconnect the editor extension
+- [Tools Reference](https://vlabsoft.org/easyeda_mcp/tools): available MCP tools
+- [Troubleshooting](https://vlabsoft.org/easyeda_mcp/troubleshooting): fixes by symptom
 
-- [Quick Start](https://vlabsoft.org/easyeda_mcp/quick-start)
-- [Getting Started](https://vlabsoft.org/easyeda_mcp/getting-started)
-- [AI Client Setup](https://vlabsoft.org/easyeda_mcp/ai-client-setup)
-- [EasyEDA Pro Extension Setup](https://vlabsoft.org/easyeda_mcp/easyeda-extension)
-- [Troubleshooting](https://vlabsoft.org/easyeda_mcp/troubleshooting)
+## Releases
 
-Reference:
+Download packaged extension builds from [GitHub Releases](https://github.com/VLab-Software/easyeda_mcp/releases). Local builds also create `build/dist/easyeda_mcp_bridge.eext`.
 
-- [Tools Reference](https://vlabsoft.org/easyeda_mcp/tools)
-- [MCP Client Setup](https://vlabsoft.org/easyeda_mcp/mcp-client-setup)
-- [Safety Model](https://vlabsoft.org/easyeda_mcp/safety)
-- [Architecture](https://vlabsoft.org/easyeda_mcp/architecture)
-
-## Contact
-
-If you want to share feedback, send a suggestion, or talk about the project, email [victor.freitas@vlabsoft.com](mailto:victor.freitas@vlabsoft.com).
-
-## Build and Test
+## Development
 
 ```bash
 npm run setup:local
@@ -213,9 +110,9 @@ npm run docs:build
 
 `npm run setup:local` builds the MCP server, builds the EasyEDA Pro extension bundle, and packages the `.eext` artifact.
 
-## Scope
+## Scope, Safety, and Status
 
-This beta is live-session based. EasyEDA Pro must be open and the extension must be connected.
+This project works against a live EasyEDA Pro session. EasyEDA Pro must be open, the local extension must be installed, and the MCP server must be running.
 
 Not included yet:
 
@@ -223,12 +120,12 @@ Not included yet:
 - commercial/order operations
 - unrestricted editor automation
 
-## Security
+The bridge listens on `127.0.0.1` by default. Do not expose the bridge port to untrusted networks. See [SECURITY.md](./SECURITY.md) for reporting and runtime boundaries.
 
-The bridge listens on `127.0.0.1` by default. Do not expose the bridge port to untrusted networks.
+This is an independent open-source project. It is not affiliated with, endorsed by, or sponsored by EasyEDA, JLCPCB, or Shenzhen Jia Chuang Ban Technology Co., Ltd.
 
-See [SECURITY.md](./SECURITY.md) for reporting and runtime boundaries.
+## Contact and License
 
-## License
+Feedback and suggestions: [victor.freitas@vlabsoft.com](mailto:victor.freitas@vlabsoft.com)
 
 MIT. See [LICENSE](./LICENSE).
