@@ -84,10 +84,17 @@ export class DrcRules {
     } finally { this.busy = false; }
   }
   private public(edit: Edit): Record<string, unknown> {
-    const { generation: _generation, ...data } = edit;
+    const { generation: _generation, before, ...data } = edit;
     const after = edit.operation.type === "createConfiguration" || edit.operation.type === "updateCurrentConfiguration" ? edit.operation.config : edit.operation.rules;
+    const base = edit.operation.type === "updateCurrentConfiguration" && before && typeof before === "object" && "config" in (before as Record<string, unknown>)
+      ? (before as Record<string, unknown>).config
+      : before;
+    const changedKeys = base && after && typeof base === "object" && typeof after === "object" && !Array.isArray(base) && !Array.isArray(after)
+      ? Object.keys({ ...(base as Record<string, unknown>), ...(after as Record<string, unknown>) })
+          .filter(k => !(k in (base as Record<string, unknown>)) || !(k in (after as Record<string, unknown>)) || canonical((base as Record<string, unknown>)[k]) !== canonical((after as Record<string, unknown>)[k]))
+      : undefined;
     return copy({ ...data, status: edit.status === "prepared" && Date.now() > Date.parse(edit.expiresAt) ? "expired" : edit.status,
-      documentSaved: false, preview: { before: edit.before, requestedAfter: after,
+      documentSaved: false, preview: { before, requestedAfter: after, ...(changedKeys ? { changedKeys } : {}),
         scope: edit.operation.type === "createConfiguration" ? "saved_rule_configuration" : "active_pcb",
         impact: edit.operation.type === "createConfiguration" ? "Persists a new named rule profile with allowOverwrite=false; does not save the PCB or set a global default." : "Replaces the entire selected rule configuration/table; omitted entries are removed. PCB is not saved." } });
   }

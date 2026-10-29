@@ -502,7 +502,7 @@ function doctorNextSteps(status: EditorStatus): string[] {
     ];
   }
 
-  if (!status.documentName && !status.projectName) {
+  if (!status.documentName && !status.projectName && !status.activeDocumentType && !status.documentInfo) {
     return [
       "Open a schematic or PCB document in EasyEDA Pro.",
       "Run easyeda_get_context or easyeda_live_status again after the document finishes loading."

@@ -259,7 +259,11 @@ describe("mutation confirmation guard", () => {
         activeDocument: {
           available: true,
           type: "schematic"
-        }
+        },
+        nextSteps: [
+          "The bridge looks healthy.",
+          "Use easyeda_live_status for quick checks and easyeda_get_context for deeper editor state."
+        ]
       }
     });
   });

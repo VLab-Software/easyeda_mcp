@@ -56,6 +56,8 @@ describe("DRC editing", () => {
   });
   it("prepares immutable before/after data and applies only with its exact confirmation", async () => {
     const f = fixture(); const edit = await f.prepare();
+    expect(edit.before).toBeUndefined();
+    expect(edit.preview).toMatchObject({ changedKeys: ["testRule"] });
     expect(f.drc.overwriteCurrentRuleConfiguration).not.toHaveBeenCalled();
     for (const phrase of ["", "confirmo", `não ${edit.confirmation}`, `${edit.confirmation} please`]) await expect(f.apply(edit, phrase)).rejects.toThrow("exact edit confirmation");
     (edit.operation as any).config.testRule = 999;
