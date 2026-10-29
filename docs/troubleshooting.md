@@ -1,156 +1,52 @@
 # Troubleshooting
 
-Start with the symptom you see.
+Quick fixes organized by symptom.
 
-## Extension Is Not Connected
+## `connected: false` in `easyeda_doctor`
 
-You may see:
+1. Confirm EasyEDA Pro is open with a schematic or PCB tab loaded.
+2. Open **Extensions Manager** and verify **EasyEDA MCP Bridge** is imported and **Allow interactive with external** is enabled.
+3. Click **MCP Bridge -> Reconnect** in the EasyEDA Pro top toolbar.
+4. Run `easyeda_doctor` again.
 
-- `easyeda_live_status` returns `connected: false`
-- `easyeda_doctor` says the extension is disconnected
-- tool calls fail even though the MCP server starts
+## No `easyeda_*` Tools Appear in the AI Client
 
-Fix:
+1. Build the server: `npm run setup:local` (verifies `dist/index.js` exists).
+2. Check that your client config uses the **absolute path** to `dist/index.js` (on Windows JSON, escape backslashes: `C:\\Users\\you\\...\\dist\\index.js`).
+3. Restart or refresh your MCP client — most clients load the tool catalog once at session startup.
 
-1. make sure the MCP client is running
-2. make sure EasyEDA Pro is open
-3. open a schematic or PCB
-4. confirm the extension is installed or loaded
-5. enable external interaction permission
-6. run `MCP Bridge -> Reconnect`
-7. run `easyeda_doctor` again
+## WebSocket Bridge Fails to Connect (`ws://127.0.0.1:8765`)
 
-## MCP Client Does Not Show Tools
+- Check that another stale MCP server process is not occupying a mismatched port, and that `EASYEDA_MCP_WS_HOST` / `EASYEDA_MCP_WS_PORT` were not overridden on only one side.
+- Ensure local firewall or endpoint security software allows loopback (`127.0.0.1`) WebSocket connections.
 
-You may see:
+## Old Extension Version Reported After Upgrade
 
-- the server is configured, but no `easyeda_*` tools appear
-- new tools exist in code but not in the client
+Rebuilding the repo does not auto-update an imported extension in EasyEDA Pro:
 
-Fix:
+1. Import the updated `build/dist/easyeda_mcp_bridge.eext` in **Extensions Manager**.
+2. Re-enable **Allow interactive with external** if it was reset.
+3. Restart EasyEDA Pro if old callbacks remain cached, then click **MCP Bridge -> Reconnect**.
 
-1. run `npm run setup:local`
-2. restart the MCP client
-3. reconnect the EasyEDA Pro extension
+## DRC Tool Returns `wrong_document` or `stale_edit`
 
-Why: most MCP clients load the tool catalog when the session starts.
+- **`wrong_document`**: switch the active tab in EasyEDA Pro to the target **PCB** (`documentType: 3`); schematics, symbols, and footprints are rejected.
+- **`stale_edit`**: the PCB tab, connection, or rules changed after `easyeda_prepare_drc_edit`. Run `easyeda_prepare_drc_edit` again to generate a fresh `editId`.
 
-## `dist/index.js` Is Missing
+## Schematic Snapshot Shows `partial` Confidence or Warnings
 
-Fix:
+EasyEDA Pro may omit net names on raw schematic primitives in some sheets. Inspect the `warnings` array in `easyeda_schematic_snapshot`, narrow the query with `easyeda_trace_component`, and visually verify critical nets using `easyeda_navigate_component`.
 
-```bash
-npm run setup:local
-```
+## Error Code Reference
 
-If you only need the server build:
-
-```bash
-npm run build
-```
-
-## WebSocket Bridge Does Not Connect
-
-Default endpoint:
-
-```text
-ws://127.0.0.1:8765
-```
-
-Check:
-
-1. the MCP server is running
-2. the extension is targeting the same host and port
-3. `EASYEDA_MCP_WS_HOST` was not changed unexpectedly
-4. `EASYEDA_MCP_WS_PORT` was not changed unexpectedly
-5. local security tooling is not blocking loopback WebSocket traffic
-
-## EasyEDA Pro Rejects the Extension Package
-
-Check:
-
-1. `extension.json` is at the package root
-2. the extension `name` uses lowercase-hyphen style
-3. the `uuid` is exactly 32 lowercase alphanumeric characters
-4. the bundle was built with `format=iife`
-5. the global name is `edaEsbuildExportName`
-
-Rebuild:
-
-```bash
-npm run setup:local
-```
-
-## Schematic Results Look Incomplete
-
-You may see:
-
-- missing pins
-- sparse net traces
-- low confidence
-- warnings in `easyeda_schematic_snapshot`
-
-What to do:
-
-1. run `easyeda_schematic_snapshot`
-2. inspect `warnings`
-3. inspect `confidence`
-4. run a narrower tool such as `easyeda_trace_component`
-5. cross-check critical findings in EasyEDA Pro
-
-Why: EasyEDA Pro may expose partial raw schematic primitives, so some connectivity is inferred.
-
-## Navigation Goes to the Wrong Place
-
-Fix:
-
-1. search first with `easyeda_find_component`
-2. use a more exact designator, such as `USB1` instead of `USB`
-3. run `easyeda_trace_component` to confirm the target
-4. then call `easyeda_navigate_component`
-
-## Export Tools Fail
-
-Check:
-
-1. the active document type supports that export
-2. the expected schematic or PCB is currently active
-3. the extension is connected
-4. the relevant EasyEDA manufacture API is available
-
-Then run:
-
-```text
-Run easyeda_doctor.
-```
-
-## Confirmed Actions Are Blocked
-
-Mutating actions require explicit confirmation.
-
-Use a confirmation string such as:
-
-- `I confirm`
-- `confirmed`
-- `confirma salvar`
-- `confirmo`
-
-Example:
-
-```json
-{
-  "action": "save",
-  "confirmation": "I confirm"
-}
-```
-
-## Reliable Reset
-
-When the state is confusing:
-
-1. stop the MCP client
-2. reopen EasyEDA Pro
-3. start the MCP client again
-4. open the target project
-5. run `MCP Bridge -> Reconnect`
-6. run `easyeda_doctor`
+| Error Code | Cause | Fix |
+| --- | --- | --- |
+| `api_unavailable` | Required `eda.*` method is missing in your EasyEDA Pro version | Upgrade EasyEDA Pro (`>= 2.3.0`) and check `capabilities` in `easyeda_get_context`. |
+| `wrong_document` | A PCB-only tool (such as DRC rules) was called while a schematic, symbol, or footprint tab was active | Focus the target **PCB** tab (`documentType: 3`) in EasyEDA Pro. |
+| `missing_document_identity` | Active PCB lacks project, document, or tab UUIDs | Save/reopen the project tab inside EasyEDA Pro and retry. |
+| `confirmation_required` | Mutating action lacked the required confirmation phrase or exact `CONFIRM editDrcRules <editId>` | Obtain human approval and pass the exact confirmation string. |
+| `configuration_exists` | `createConfiguration` used a profile name that already exists | Choose a new profile name (`allowOverwrite` is always `false`). |
+| `stale_edit` | Active PCB, WebSocket session, or rule state changed after `easyeda_prepare_drc_edit` | Run `easyeda_prepare_drc_edit` again to generate a fresh preview. |
+| `edit_expired` | Prepared DRC preview is older than 15 minutes | Prepare and review a new DRC edit. |
+| `edit_already_started` | Attempted to execute the same `editId` more than once | Call `easyeda_get_drc_edit_result` to inspect the existing outcome. |
+| `drc_edit_outcome_unknown` | Bridge timed out or disconnected after dispatching a DRC write | **Do not auto-retry.** Query `easyeda_get_drc_edit_result` and reread rules with `easyeda_get_drc_rules`. |

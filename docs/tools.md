@@ -1,163 +1,36 @@
 # Tools Reference
 
-Use this page when you know what you want to do and need the right MCP tool.
+EasyEDA Pro MCP exposes **24 tools** grouped into 5 workflows. All read, trace, navigation, and export tools run without modifying project data.
 
-## Fast Picker
+## Status & Context
 
-| Goal | Start with |
+| Tool | Description |
 | --- | --- |
-| Check whether the bridge works | `easyeda_doctor` |
-| See what is open in EasyEDA Pro | `easyeda_get_context` |
-| Find a part | `easyeda_find_component` |
-| Find a net | `easyeda_find_net` |
-| Inspect the whole schematic | `easyeda_schematic_snapshot` |
-| List schematic parts | `easyeda_list_schematic_components` |
-| Inspect one part's pins | `easyeda_get_component_pins` |
-| Trace a signal or power rail | `easyeda_trace_net` |
-| Trace everything around one part | `easyeda_trace_component` |
-| Find likely wiring gaps | `easyeda_find_unconnected_pins` |
-| Run generic schematic checks | `easyeda_validate_schematic_area` |
-| Check exact connection rules | `easyeda_verify_connections` |
-| Move the editor to a part | `easyeda_navigate_component` |
-| Export manufacturing files | `easyeda_export_bom`, `easyeda_export_netlist`, `easyeda_export_gerber`, `easyeda_export_pdf` |
-| Read or edit PCB design rules | `easyeda_get_drc_rules`, `easyeda_prepare_drc_edit`, `easyeda_get_drc_edit_result` |
-| Save/import/autoroute/autolayout | `easyeda_confirmed_action` |
+| `easyeda_doctor` | Full bridge diagnosis: server/extension versions, protocol compatibility, active document state, and next steps. Run this first. |
+| `easyeda_live_status` | Quick connection and active document status check. |
+| `easyeda_get_context` | Active project/document UUIDs, split-screen open tabs, DRC method capabilities, and component/net counts. |
 
-## Recommended First Flow
+## Search & Schematic Analysis
 
-Run these in order when starting a session:
+| Tool | Key Arguments | Description |
+| --- | --- | --- |
+| `easyeda_find_component` | `query`, `limit?` | Search components by designator (`U1`, `USB1`), value, footprint, or property text. |
+| `easyeda_find_net` | `query`, `limit?` | Search nets by name (`GND`, `VBUS`, `SDA`, `CC1`) and inspect connections. |
+| `easyeda_schematic_snapshot` | `allPages?`, `includeRaw?` | Normalized schematic snapshot: components, pins, wires, labels, nets, warnings, and confidence. |
+| `easyeda_list_schematic_components` | `query?`, `limit?`, `allPages?` | List normalized schematic components with designator, value, footprint, and position. |
+| `easyeda_get_component_pins` | `component`, `allPages?` | List all known pins for a component (pin number, name, coordinates, and net). |
+| `easyeda_trace_net` | `net`, `allPages?` | Trace a signal or power rail across pins, components, wires, and labels. |
+| `easyeda_trace_component` | `component`, `allPages?` | Trace all connections around a component grouped by pin and net. |
+| `easyeda_find_unconnected_pins` | `includePowerPins?`, `limit?` | Identify pins without a confirmed net in normalized schematic data. |
+| `easyeda_validate_schematic_area` | `components?`, `nets?` | Read-only heuristic checks (`pin_without_net`, `single_pin_net`, `similar_power_net_names`, `power_net_without_detected_capacitor`). |
+| `easyeda_verify_connections` | `checks`, `maxHops?` | Verify structured circuit assertions (`pin_connected`, `pin_on_net`, `same_node`, `path_exists`, `path_absent`, `pull_to_net`, `decoupled_to_net`). |
 
-1. `easyeda_doctor`
-2. `easyeda_get_context`
-3. `easyeda_schematic_snapshot`
-4. `easyeda_trace_component` or `easyeda_trace_net`
-
-## Tool Groups
-
-- status and context
-- search and inspection
-- schematic analysis
-- navigation and export
-- explicitly confirmed actions
-
-## Status and Context
-
-### `easyeda_live_status`
-
-Checks whether the EasyEDA Pro extension is connected and returns current bridge and editor status information.
-
-Use this for a quick yes/no connection check.
-
-### `easyeda_doctor`
-
-Returns a structured diagnosis of the local MCP bridge, extension connection state, protocol compatibility, active document availability, and recommended next steps.
-
-Use this first when anything feels broken.
-
-### `easyeda_get_context`
-
-Returns a broader summary of the current editor context, including active document details and some available counts for project data.
-
-Use this to confirm the AI is looking at the right EasyEDA Pro document.
-
-## Search and Inspection
-
-### `easyeda_find_component`
-
-Searches the active project for components matching a designator, name, value, footprint, or property text.
-
-Good queries: `U1`, `USB1`, `TPS`, `regulator`, or a footprint name.
-
-### `easyeda_find_net`
-
-Searches nets by name and returns available net metadata and connections.
-
-Good queries: `GND`, `VCC_5V`, `SDA`, `VBUS`, `D+`, or `CC1`.
-
-## Schematic Analysis
-
-### `easyeda_schematic_snapshot`
-
-Builds a structured, normalized snapshot of the active schematic, including components, pins, wires, labels, nets, counts, warnings, and confidence metadata.
-
-This is the best starting point for schematic-level analysis.
-
-### `easyeda_list_schematic_components`
-
-Lists normalized schematic components with key fields such as designator, value, name, footprint, position, and selected properties.
-
-Use it to inventory the schematic or filter for a family of parts.
-
-### `easyeda_get_component_pins`
-
-Returns the pins known for a component, including pin number, pin name, position, and net when available.
-
-Use it before writing exact checks with `easyeda_verify_connections`.
-
-### `easyeda_trace_net`
-
-Traces a net and returns the pins, components, wires, labels, and related evidence associated with it.
-
-Use it to inspect a signal, power rail, or named net.
-
-### `easyeda_trace_component`
-
-Traces a component's connections grouped by pin and net.
-
-Use it to review how one device is wired.
-
-### `easyeda_find_unconnected_pins`
-
-Finds pins that do not have a confirmed net in the normalized schematic data.
-
-Use it to find likely missing wires or symbol connectivity issues.
-
-### `easyeda_validate_schematic_area`
-
-Runs generic read-only schematic checks against selected components, selected nets, or the whole schematic.
-
-The current validation layer may report findings such as:
-
-- `pin_without_net`
-- `single_pin_net`
-- `single_node_net`
-- `similar_power_net_names`
-- `power_net_without_detected_capacitor`
-
-### `easyeda_verify_connections`
-
-Runs structured connection assertions against the active schematic.
-
-Use this when you want targeted checks such as:
-
-- whether a pin is connected at all
-- whether a pin is on a specific net
-- whether two endpoints resolve to the same node
-- whether a path exists or does not exist
-- whether a signal is pulled to a reference net through a resistor or other passive component
-- whether a power node appears decoupled to a reference net
-
-Supported assertion types include:
-
-- `pin_connected`
-- `pin_on_net`
-- `same_node`
-- `path_exists`
-- `path_absent`
-- `pull_to_net`
-- `decoupled_to_net`
-
-Example shape:
+Example `easyeda_verify_connections` payload:
 
 ```json
 {
   "checks": [
-    {
-      "type": "pin_on_net",
-      "component": "USB1",
-      "pinName": "GND",
-      "net": "GND"
-    },
+    { "type": "pin_on_net", "component": "USB1", "pinName": "GND", "net": "GND" },
     {
       "type": "path_exists",
       "from": { "component": "USB1", "pinName": "CC1" },
@@ -168,95 +41,46 @@ Example shape:
 }
 ```
 
-## Navigation and Export
+## Navigation & Manufacturing Exports
 
-### `easyeda_navigate_component`
+| Tool | Key Arguments | Description |
+| --- | --- | --- |
+| `easyeda_navigate_component` | `query` | Focus and highlight a component in the active EasyEDA Pro editor. |
+| `easyeda_navigate_region` | `x?`, `y?`, `left?`, `top?`, `right?`, `bottom?` | Pan/zoom to coordinates or a bounding box in the active document. |
+| `easyeda_zoom_board` | — | Zoom the active PCB view to fit the board outline. |
+| `easyeda_export_bom` | `format?` (`csv` \| `xlsx` \| `json`), `scope?`, `fileName?` | Export Bill of Materials from the active project. |
+| `easyeda_export_netlist` | `scope?`, `fileName?` | Export netlist from the active schematic or PCB. |
+| `easyeda_export_gerber` | `fileName?` | Export Gerber fabrication files from the active PCB. |
+| `easyeda_export_pdf` | `scope?`, `fileName?` | Export PDF of the active schematic or PCB. |
 
-Requests navigation to a component in the EasyEDA Pro editor.
+## PCB Design Rules (DRC)
 
-Use it after search or trace when you want to inspect the part visually.
+Requires an active PCB document (`documentType: 3`). See [DRC Rule Editing](./drc-rules.md) for operation payloads and safeguards.
 
-### `easyeda_navigate_region`
+| Tool | Key Arguments | Description |
+| --- | --- | --- |
+| `easyeda_get_drc_rules` | `scope` (`current` \| `configurations` \| `netRules` \| `netByNetRules` \| `regionRules`) | Read native PCB design rules and `eda.pcb_Drc` method capabilities without writing. |
+| `easyeda_prepare_drc_edit` | `operation` | Stage a typed DRC change without modifying the PCB; returns `editId`, `preview` (`before`, `requestedAfter`, `changedKeys`), and exact confirmation phrase. |
+| `easyeda_get_drc_edit_result` | `editId` | Query a retained DRC edit status (`prepared`, `running`, `applied`, `failed`, `unknown`, `invalidated`, `expired`). |
 
-Navigates to coordinates or a rectangular region in the active document.
-
-Use it when:
-
-- you already know the coordinate target
-- you want to zoom into a specific area
-
-### `easyeda_zoom_board`
-
-Zooms the active PCB editor to the board outline.
-
-### `easyeda_export_bom`
-
-Exports a BOM from the active project.
-
-Supported formats:
-
-- `csv`
-- `xlsx`
-- `json`
-
-### `easyeda_export_netlist`
-
-Exports a netlist from the active schematic or PCB context.
-
-### `easyeda_export_gerber`
-
-Exports Gerber fabrication data from the active PCB.
-
-### `easyeda_export_pdf`
-
-Exports a PDF from the active schematic or PCB document.
-
-## PCB Design Rules
-
-- `easyeda_get_drc_rules`: read current rules, saved profiles, or rule tables.
-- `easyeda_prepare_drc_edit`: stage a before/after preview without writing.
-- `easyeda_get_drc_edit_result`: query a retained edit after completion or timeout.
-
-Use `easyeda_confirmed_action` with `action: "editDrcRules"` to apply the approved preview. This action requires `CONFIRM editDrcRules <editId>` at both the server and extension boundaries. See [DRC Rule Editing](./drc-rules.md).
-
-## Explicitly Confirmed Actions
+## Confirmation-Gated Actions
 
 ### `easyeda_confirmed_action`
 
-Runs a mutating EasyEDA Pro action only when the confirmation text explicitly confirms the action.
+Executes mutating editor operations only when explicit human confirmation is supplied:
 
-Supported actions:
-
-- `save`
-- `importChanges`
-- `autoroute`
-- `autolayout`
-- `editDrcRules` (exact prepared edit confirmation; see above)
-
-For the legacy actions, the confirmation text must include an explicit confirmation phrase such as:
-
-- `I confirm`
-- `confirmed`
-- `confirma`
-- `confirmo`
-
-Example shape:
+| `action` | Required `confirmation` | `params` |
+| --- | --- | --- |
+| `save` | Phrase containing `I confirm`, `confirmed`, `confirma`, or `confirmo` | — |
+| `importChanges` | Explicit confirmation phrase | — |
+| `autoroute` | Explicit confirmation phrase | — |
+| `autolayout` | Explicit confirmation phrase | — |
+| `editDrcRules` | Exact `CONFIRM editDrcRules <editId>` | `{ "editId": "<UUID>" }` |
 
 ```json
 {
-  "action": "save",
-  "confirmation": "I confirm"
+  "action": "editDrcRules",
+  "params": { "editId": "bd549553-e96d-4c9b-bb1f-f8e8ac28cf89" },
+  "confirmation": "CONFIRM editDrcRules bd549553-e96d-4c9b-bb1f-f8e8ac28cf89"
 }
 ```
-
-## Practical Usage Pattern
-
-A useful workflow is often:
-
-1. `easyeda_live_status`
-2. `easyeda_doctor`
-3. `easyeda_get_context`
-4. `easyeda_schematic_snapshot`
-5. `easyeda_trace_component` or `easyeda_trace_net`
-6. `easyeda_verify_connections` for targeted assertions
-7. `easyeda_navigate_component` if you need to inspect the area visually

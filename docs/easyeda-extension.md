@@ -1,107 +1,50 @@
-# EasyEDA Pro Extension Setup
+# EasyEDA Pro Extension
 
-The extension is what gives the MCP server live access to EasyEDA Pro.
+The browser extension connects your open EasyEDA Pro session to the local MCP server over `ws://127.0.0.1:8765`.
 
-Without it, the MCP server can start, but tools cannot inspect the open editor session.
+## 1. Get the `.eext` Package
 
-## Quick Path
+Either:
 
-From the repository root:
+- **Download** `easyeda_mcp_bridge.eext` from [GitHub Releases](https://github.com/VLab-Software/easyeda_mcp/releases/latest), or
+- **Build locally** with `npm run setup:local`, which outputs `build/dist/easyeda_mcp_bridge.eext` (and the versioned `build/dist/easyeda-mcp-bridge_v0.2.0.eext`).
 
-```bash
-npm run setup:local
-```
+## 2. Install & Enable Permission
 
-Then in EasyEDA Pro:
+1. In EasyEDA Pro (`>= 2.3.0`), open **Extensions Manager** and import the `.eext` file.
+2. Enable **Allow interactive with external** (required so `SYS_WebSocket` can connect to `ws://127.0.0.1:8765`).
+3. Open a schematic or PCB document.
+4. If the server started after EasyEDA Pro, click **MCP Bridge -> Reconnect** in the top menu.
 
-1. import or load the packaged extension
-2. enable external interaction permission
-3. open a schematic or PCB
-4. use `MCP Bridge -> Reconnect` if it does not connect automatically
-5. run `easyeda_doctor` from your MCP client
+## 3. Menu Actions & Verification
 
-## What Gets Built
+The extension adds an **MCP Bridge** menu on the Home, Schematic, and PCB toolbars:
 
-`npm run setup:local` creates:
+- **Connect / Reconnect**: establish or refresh the WebSocket link to the MCP server.
+- **Show Status / Run Diagnostics**: display connection state and active document info inside EasyEDA Pro.
 
-```text
-dist/index.js
-extension/dist/index.js
-```
-
-It also packages the EasyEDA extension artifact for import workflows.
-
-The extension manifest lives at:
-
-```text
-extension/extension.json
-```
-
-## Upgrading for DRC Rule Editing
-
-DRC rule editing requires both the updated MCP server (**1.1.0**) and extension (**0.2.0**). `npm run setup:local` packages the extension as `build/dist/easyeda-mcp-bridge_v0.2.0.eext` and `build/dist/easyeda_mcp_bridge.eext`.
-
-After running `npm run setup:local`, import the updated `.eext` in EasyEDA Pro's Extensions Manager, ensure **Allow interactive with external** is enabled, and reconnect. Restart your MCP client so it reloads the tool catalog, then run `easyeda_doctor` to confirm the server and extension versions. See [DRC Rule Editing](./drc-rules.md).
-
-## Permission You Must Enable
-
-EasyEDA Pro may disable external interaction for local extensions.
-
-Enable it for this extension. The bridge needs it because the extension uses `SYS_WebSocket` to connect to:
-
-```text
-ws://127.0.0.1:8765
-```
-
-If this permission is off, the MCP client may show tools, but live editor calls will fail.
-
-## Verify
-
-After EasyEDA Pro is open and the extension is loaded, ask your MCP client:
+From your AI client, verify end-to-end health with:
 
 ```text
 Run easyeda_doctor.
 ```
 
-Healthy output should show:
+## Upgrading the Extension
 
-- `connected: true`
-- compatible bridge protocol
-- an active project or document
+Rebuilding or updating the MCP server does **not** automatically update an extension already imported into EasyEDA Pro:
 
-Then ask:
+1. Import the new `.eext` in **Extensions Manager**.
+2. Re-enable **Allow interactive with external** if EasyEDA Pro reset it.
+3. Click **MCP Bridge -> Reconnect** (or restart EasyEDA Pro if old callbacks remain cached).
+4. Restart your MCP client session and check `extension.version` via `easyeda_doctor`.
 
-```text
-Run easyeda_get_context.
-```
+## Contributor Packaging Rules
 
-## Extension Menu
+If you modify `extension/`:
 
-Use these commands inside EasyEDA Pro when needed:
-
-- `MCP Bridge -> Reconnect`
-- `MCP Bridge -> Run Diagnostics`
-
-`Reconnect` is the fastest fix when the server was restarted after EasyEDA Pro was already open.
-
-## Packaging Rules
-
-These details matter if you change the extension package:
-
-- `extension.json` must be at the package root
-- extension `name` must use lowercase-hyphen style
-- `uuid` must be exactly 32 lowercase alphanumeric characters
-- the browser bundle must use EasyEDA-compatible output
-
-Current bundle settings:
-
-- `esbuild`
-- `format=iife`
-- `globalName=edaEsbuildExportName`
-
-## Related Files
-
-- `extension/src/index.ts`
-- `extension/src/bridgeConfig.ts`
-- `extension/extension.json`
-- `scripts/package-extension.mjs`
+| Constraint | Requirement |
+| --- | --- |
+| Manifest location | `extension.json` at the `.eext` archive root |
+| `name` | 5–30 lowercase letters, digits, or hyphens (`easyeda-mcp-bridge`) |
+| `uuid` | Exactly 32 lowercase alphanumeric characters |
+| Bundle format | `esbuild` with `--platform=browser --format=iife --global-name=edaEsbuildExportName` |

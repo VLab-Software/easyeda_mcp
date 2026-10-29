@@ -36,102 +36,87 @@
   <img src="./docs/public/demo.gif" alt="Demo showing EasyEDA Pro with the MCP Bridge workflow in action" width="760" />
 </p>
 
-## What It Does
+## Overview
 
-EasyEDA Pro MCP lets an AI assistant inspect the live EasyEDA Pro schematic or PCB you already have open. It gives MCP clients structured project context instead of making them guess from screenshots, copied text, or manual exports.
-
-It runs locally:
+EasyEDA Pro MCP gives AI assistants structured, live access to your open EasyEDA Pro schematic or PCB — no screenshots or manual file exports needed.
 
 ```text
-MCP client -> Node.js MCP server -> local WebSocket bridge -> EasyEDA Pro extension
+AI Client (stdio) ──▶ Local MCP Server ──▶ WebSocket (127.0.0.1:8765) ──▶ EasyEDA Pro Extension
 ```
 
-Works with Claude Desktop, Claude Code, Codex, VS Code, and other MCP-compatible clients.
-
 ## Quick Start
+
+### 1. Build Server & Extension
 
 ```bash
 npm install
 npm run setup:local
 ```
 
-Then:
+This generates `dist/index.js` (MCP server) and `build/dist/easyeda_mcp_bridge.eext` (EasyEDA Pro extension — also available on [GitHub Releases](https://github.com/VLab-Software/easyeda_mcp/releases/latest)).
 
-1. configure your MCP client to run `node /absolute/path/to/easyeda_mcp/dist/index.js`
-2. open EasyEDA Pro
-3. load the packaged extension from `build/dist`
-4. enable external interaction permission
-5. open a schematic or PCB
-6. ask your MCP client to run `easyeda_doctor`
+### 2. Connect Your AI Client
 
-Healthy output should show the extension connected, protocol compatible, and an active document available.
+Point your MCP client to `/absolute/path/to/easyeda_mcp/dist/index.js`:
 
-Full setup guide: [Quick Start](https://vlabsoft.org/easyeda_mcp/quick-start)
+- **Claude Code CLI**: `claude mcp add easyeda-pro -- node /absolute/path/to/easyeda_mcp/dist/index.js`
+- **Codex CLI**: `codex mcp add easyeda-pro -- node /absolute/path/to/easyeda_mcp/dist/index.js`
+- **Claude Desktop / Cursor / Antigravity**:
+  ```json
+  {
+    "mcpServers": {
+      "easyeda-pro": {
+        "command": "node",
+        "args": ["/absolute/path/to/easyeda_mcp/dist/index.js"]
+      }
+    }
+  }
+  ```
+- **VS Code (Copilot)**: see [AI Client Setup](https://vlabsoft.org/easyeda_mcp/ai-client-setup#vs-code)
 
-## What You Can Ask
+### 3. Load Extension & Verify
+
+1. In EasyEDA Pro (`>= 2.3.0`), import `build/dist/easyeda_mcp_bridge.eext` and enable **Allow interactive with external**.
+2. Open a schematic or PCB document (use **MCP Bridge -> Reconnect** if needed).
+3. Ask your AI client: `Run easyeda_doctor` — verify `connected: true`, `compatible: true`, and `activeDocument.available: true`.
+
+## Capabilities & Example Prompts
+
+| Area | What It Supports |
+| --- | --- |
+| **Live Context** | Active project, open tabs, document type, and bridge health (`easyeda_doctor`, `easyeda_get_context`) |
+| **Schematic Review** | Normalized snapshots, component/pin search, net & component tracing, unconnected pin detection, and connection assertions |
+| **PCB Design Rules (DRC)** | Native rule reads (`current`, `configurations`, `netRules`, `netByNetRules`, `regionRules`), immutable previews, and confirmed updates |
+| **Navigation & Exports** | Jump to components/regions, zoom board outline, and export BOM, netlist, Gerber, or PDF |
+| **Confirmed Actions** | Explicit confirmation gate for mutating editor actions (`save`, `importChanges`, `autoroute`, `autolayout`, `editDrcRules`) |
 
 ```text
-Run easyeda_doctor and summarize whether the EasyEDA Pro bridge is healthy.
-Run easyeda_get_context and tell me which document is open in EasyEDA Pro.
-Run easyeda_schematic_snapshot and summarize components, nets, warnings, and confidence.
-Run easyeda_trace_component for USB1 and summarize its connected nets.
-Run easyeda_get_drc_rules for the current PCB configuration and summarize the active rules.
+Run easyeda_doctor and check if the EasyEDA Pro bridge is healthy.
+Run easyeda_schematic_snapshot and summarize components, nets, and warnings.
+Run easyeda_trace_component for USB1 and list its connected nets.
+Run easyeda_get_drc_rules for the current PCB configuration and summarize active clearances.
 ```
-
-Core capabilities:
-
-- live project and document context
-- schematic inspection for components, pins, nets, wires, and labels
-- component and net tracing
-- targeted connection assertions
-- PCB design rule (DRC) inspection, preview, and confirmed rule editing
-- editor navigation and export helpers
-- confirmation-gated editor-changing actions
 
 ## Documentation
 
-- [Quick Start](https://vlabsoft.org/easyeda_mcp/quick-start): shortest path to a working setup
-- [Getting Started](https://vlabsoft.org/easyeda_mcp/getting-started): first-time setup with more context
-- [AI Client Setup](https://vlabsoft.org/easyeda_mcp/ai-client-setup): Claude Desktop, Codex CLI, Claude Code CLI, VS Code, and generic MCP clients
-- [EasyEDA Pro Extension Setup](https://vlabsoft.org/easyeda_mcp/easyeda-extension): install and reconnect the editor extension
-- [Tools Reference](https://vlabsoft.org/easyeda_mcp/tools): available MCP tools
-- [DRC Rule Editing](./docs/drc-rules.md): inspect, preview, and apply PCB design rule changes
-- [Changelog](./docs/changelog.md): release history and new features
-- [Troubleshooting](https://vlabsoft.org/easyeda_mcp/troubleshooting): fixes by symptom
-
-## Releases
-
-Download packaged extension builds from [GitHub Releases](https://github.com/VLab-Software/easyeda_mcp/releases) and see [docs/changelog.md](./docs/changelog.md) for what changed in each version. Local builds also create `build/dist/easyeda_mcp_bridge.eext`.
+- [Quick Start](https://vlabsoft.org/easyeda_mcp/quick-start) · [AI Client Setup](https://vlabsoft.org/easyeda_mcp/ai-client-setup) · [Extension Setup](https://vlabsoft.org/easyeda_mcp/easyeda-extension) · [Upgrading & Compatibility](https://vlabsoft.org/easyeda_mcp/upgrading)
+- [Practical Workflows](https://vlabsoft.org/easyeda_mcp/workflows) · [Tools Reference](https://vlabsoft.org/easyeda_mcp/tools) · [DRC Rule Editing](./docs/drc-rules.md) · [Architecture](https://vlabsoft.org/easyeda_mcp/architecture) · [Safety Model](https://vlabsoft.org/easyeda_mcp/safety)
+- [Troubleshooting](https://vlabsoft.org/easyeda_mcp/troubleshooting) · [Changelog](./docs/changelog.md) · [Releases](https://github.com/VLab-Software/easyeda_mcp/releases)
 
 ## Development
 
 ```bash
-npm run setup:local
-npm test
-npm run typecheck
-npm run typecheck:extension
-npm run test:smoke:drc
-npm run docs:build
+npm run setup:local          # Build server, extension bundle, and .eext package
+npm test                     # Run unit tests
+npm run typecheck            # Typecheck MCP server
+npm run typecheck:extension  # Typecheck EasyEDA extension
+npm run test:smoke:drc       # End-to-end stdio + WebSocket DRC smoke test
+npm run docs:build           # Build VitePress documentation site
 ```
 
-`npm run setup:local` builds the MCP server, builds the EasyEDA Pro extension bundle, and packages the `.eext` artifact.
+## Scope, Security & License
 
-## Scope, Safety, and Status
-
-This project works against a live EasyEDA Pro session. EasyEDA Pro must be open, the local extension must be installed, and the MCP server must be running.
-
-Not included yet:
-
-- offline `.epro` parsing
-- commercial/order operations
-- unrestricted editor automation
-
-The bridge listens on `127.0.0.1` by default. Do not expose the bridge port to untrusted networks. See [SECURITY.md](./SECURITY.md) for reporting and runtime boundaries.
-
-This is an independent open-source project. It is not affiliated with, endorsed by, or sponsored by EasyEDA, JLCPCB, or Shenzhen Jia Chuang Ban Technology Co., Ltd.
-
-## Contact and License
-
-Feedback and suggestions: [victor.freitas@vlabsoft.com](mailto:victor.freitas@vlabsoft.com)
-
-MIT. See [LICENSE](./LICENSE).
+- **Live session required**: operates on the project open in EasyEDA Pro (no offline `.epro` parsing or commercial/order automation).
+- **Localhost only**: WebSocket bridge binds to `127.0.0.1:8765` by default. Do not expose it to untrusted networks. See [SECURITY.md](./SECURITY.md).
+- **Disclaimer**: Independent open-source project. Not affiliated with, endorsed by, or sponsored by EasyEDA, JLCPCB, or Shenzhen Jia Chuang Ban Technology Co., Ltd.
+- **Contact & License**: [victor.freitas@vlabsoft.com](mailto:victor.freitas@vlabsoft.com) · [MIT License](./LICENSE).

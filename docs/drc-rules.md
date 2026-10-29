@@ -2,7 +2,7 @@
 
 Inspect native PCB design rules, create a named rule configuration, and update the active PCB's rules through the local extension and WebSocket bridge.
 
-Requires MCP server **1.1.0** and extension **0.2.0**. See [upgrade instructions](./easyeda-extension.md#upgrading-for-drc-rule-editing).
+Requires MCP server **1.1.0** and extension **0.2.0**. See [upgrading the extension](./easyeda-extension.md#upgrading-the-extension).
 
 ## Read, preview, confirm, verify
 

@@ -1,64 +1,20 @@
 # EasyEDA Pro MCP Docs
 
-Use these docs to connect EasyEDA Pro to an MCP client and let an AI assistant inspect the project you already have open.
+Connect any MCP-compatible AI client to your live EasyEDA Pro session.
 
-EasyEDA Pro MCP is an independent open-source project for PCB enthusiasts and professionals. It is not affiliated with, endorsed by, or maintained by EasyEDA or its company.
+## Setup
 
-The shortest path is:
+- [Quick Start](./quick-start.md): build, connect one AI client, and verify in 2 minutes
+- [AI Client Setup](./ai-client-setup.md): Claude Code, Codex, Claude Desktop, Cursor, VS Code, Antigravity, and generic `stdio` clients
+- [EasyEDA Pro Extension](./easyeda-extension.md): install, permissions, menu actions, and upgrades
+- [Upgrading & Compatibility](./upgrading.md): version matrix and 3-step server + extension upgrade checklist
 
-1. Build the project
-2. Connect an MCP client
-3. Install the EasyEDA Pro extension
-4. Run `easyeda_doctor`
+## Guides & Reference
 
-## Start Here
-
-- [Quick Start](./quick-start.md): fastest setup for one AI tool
-- [Getting Started](./getting-started.md): first successful local setup
-- [AI Client Setup](./ai-client-setup.md): Claude Desktop, Codex CLI, Claude Code CLI, VS Code, and generic MCP clients
-- [EasyEDA Pro Extension Setup](./easyeda-extension.md): install and connect the editor extension
-- [Troubleshooting](./troubleshooting.md): fixes by symptom
-
-## Reference
-
-- [Tools Reference](./tools.md): what each MCP tool does
-- [DRC Rule Editing](./drc-rules.md): native PCB design rule inspection, previews, and confirmed changes
-- [MCP Client Setup](./mcp-client-setup.md): generic MCP configuration
-- [Safety Model](./safety.md): read-only defaults and confirmed actions
-- [Architecture](./architecture.md): how server, bridge, and extension fit together
-- [Changelog](./changelog.md): release history and feature updates
-
-## What This Project Does
-
-EasyEDA Pro MCP Bridge runs locally and connects:
-
-```text
-MCP client -> Node.js MCP server -> local WebSocket bridge -> EasyEDA Pro extension
-```
-
-Once connected, an AI client can:
-
-- read live editor status and document context
-- inspect components, pins, nets, wires, and labels
-- trace schematic nets and components
-- verify targeted connection assertions
-- navigate to components or regions
-- export BOM, netlist, Gerber, and PDF files
-- run a small set of editor-changing actions only after explicit confirmation
-
-## Current Scope
-
-This project works against a live EasyEDA Pro session.
-
-Required:
-
-- EasyEDA Pro is open
-- the local extension is installed and connected
-- the MCP server is running
-- your MCP client is configured to launch `dist/index.js`
-
-Not included in this version:
-
-- offline `.epro` parsing
-- commercial/order operations
-- unrestricted editor automation
+- [Practical Workflows](./workflows.md): copy-pasteable prompts for schematic review, circuit assertions, DRC rules, and manufacturing exports
+- [Tools Reference](./tools.md): all 24 MCP tools grouped by workflow
+- [DRC Rule Editing](./drc-rules.md): inspect, preview, and update native PCB design rules
+- [Architecture](./architecture.md): server, WebSocket bridge, and extension internals
+- [Safety Model](./safety.md): read-only defaults, confirmation gates, and confidence levels
+- [Troubleshooting](./troubleshooting.md): quick fixes by symptom
+- [Changelog](./changelog.md): release history
