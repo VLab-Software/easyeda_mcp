@@ -1,46 +1,93 @@
-# PCB Design Rule Editing
+# PCB Design Rule Editing (DRC)
 
-Inspect native PCB design rules, create a named rule configuration, and update the active PCB's rules through the local extension and WebSocket bridge.
+Inspect native PCB design rules, create named rule profiles, and update active board rules through a two-phase **Prepare → Approve → Confirm → Readback** workflow.
 
-Requires MCP server **1.1.0** and extension **0.2.0**. See [upgrading the extension](./easyeda-extension.md#upgrading-the-extension).
+::: info Version Requirement
+Requires MCP server **`>= 1.1.0`**, extension **`>= 0.2.0`**, and an active **PCB** tab (`documentType: 3`) in EasyEDA Pro. See [Upgrading & Compatibility](./upgrading.md).
+:::
 
-## Read, preview, confirm, verify
+## Two-Phase Edit Workflow
 
-1. Open the target PCB in EasyEDA Pro. The extension requires its project, document, and tab IDs. Symbols, footprints, and schematics are rejected.
-2. Call `easyeda_get_drc_rules` with `scope`: `current`, `configurations`, `netRules`, `netByNetRules`, or `regionRules`. Inspect the raw editor data and the per-method capabilities. Missing methods return `api_unavailable`.
-3. Copy the editor's JSON structure and modify the intended fields using the editor's units. Call `easyeda_prepare_drc_edit` with one operation from the table below. Preparation reads and retains the original state without writing.
-4. Review the preview, target identity, and impact, then obtain human approval for the prepared `editId`.
-5. Call `easyeda_confirmed_action` with `action: "editDrcRules"`, `params: {"editId": "<prepared UUID>"}`, and `confirmation: "CONFIRM editDrcRules <prepared UUID>"`.
-6. Inspect the result and reread the affected rules. Saving the PCB document requires a separate explicit `save` action.
+```mermaid
+sequenceDiagram
+    participant U as Human
+    participant A as AI Client
+    participant S as MCP Server
+    participant E as EasyEDA Extension (eda.pcb_Drc)
 
-| Operation type | Payload | Effect |
+    A->>S: 1. easyeda_get_drc_rules({ scope: "current" })
+    S->>E: getDrcRules
+    E-->>A: Raw rule JSON + target identity + capabilities
+    A->>S: 2. easyeda_prepare_drc_edit({ operation })
+    S->>E: prepareDrcEdit (no write)
+    E-->>A: editId + preview (before, requestedAfter, changedKeys)
+    A->>U: 3. Show preview & ask approval for editId
+    U-->>A: Approve editId
+    A->>S: 4. easyeda_confirmed_action({ action: "editDrcRules", params: { editId }, confirmation })
+    S->>E: Verify target/rules unchanged -> write -> native readback
+    E-->>A: status: "applied" (documentSaved: false)
+```
+
+## Supported Operations
+
+Pass one operation to `easyeda_prepare_drc_edit`:
+
+| `operation.type` | Payload Fields | Scope & Effect |
 | --- | --- | --- |
-| `createConfiguration` | `configurationName`, `config` object | Persists a new named rule profile with `allowOverwrite=false`; existing/system profiles cannot be overwritten |
-| `updateCurrentConfiguration` | `config` object | Replaces the current PCB rule configuration |
-| `replaceNetRules` | `rules` array of objects | Replaces the entire per-net rule table |
-| `replaceNetByNetRules` | `rules` object | Replaces the net-by-net rules, keyed by rule category |
-| `replaceRegionRules` | `rules` array of objects | Replaces the entire region rule table |
+| `createConfiguration` | `configurationName: string`, `config: object` | `saved_rule_configuration` — Creates a new named rule profile with `allowOverwrite: false` (never overwrites existing/system profiles). |
+| `updateCurrentConfiguration` | `config: object` | `active_pcb` — Replaces the active PCB's rule configuration (`{ name, config }.config`). |
+| `replaceNetRules` | `rules: object[]` | `active_pcb` — Replaces the entire per-net rule table (`[]` clears the table). |
+| `replaceNetByNetRules` | `rules: object` | `active_pcb` — Replaces the net-by-net rule object keyed by category (`{}` clears categories). |
+| `replaceRegionRules` | `rules: object[]` | `active_pcb` — Replaces the entire region rule table (`[]` clears the table). |
 
-For example, to create a new profile, use `operation.type = "createConfiguration"`, choose a new exact `configurationName`, and provide the `config` object from the `current` read (with your changes). The read result is `{name, config}`: pass the inner `config`, not the wrapper.
+::: tip Preserving Editor Units & Structure
+`easyeda_get_drc_rules` with `scope: "current"` returns `{ name, config }` using the editor's native structure and units (`mm` or `mil`). When calling `createConfiguration` or `updateCurrentConfiguration`, copy the inner `config` object, modify the desired fields, and pass `config` (not the `{ name, config }` wrapper).
+:::
 
-A whole-table replacement removes omitted entries. An empty array/object explicitly clears that table. Named profile creation persists a profile (`saved_rule_configuration`), while other operations target `active_pcb`.
+### Example Payloads
 
-## Failure and session behavior
+::: code-group
 
-Both the MCP server and extension enforce the exact confirmation. Before dispatch, the extension compares the PCB identity, connection generation, and complete selected rule state with the preview. Any change blocks dispatch. Concurrent edits, expired previews (15 minutes TTL), and repeated execution are rejected.
+```json [1. Prepare Profile Creation]
+{
+  "operation": {
+    "type": "createConfiguration",
+    "configurationName": "JLCPCB-2Layer-0.15mm",
+    "config": {
+      "Safe Spacing": {},
+      "Track": {},
+      "Via Size": {}
+    }
+  }
+}
+```
 
-The API must return `true` and the readback must match the requested JSON to report `applied`. A false/undefined result, exception during dispatch, changed target, or mismatching readback produces `unknown`.
+```json [2. Confirm Prepared Edit]
+{
+  "action": "editDrcRules",
+  "params": {
+    "editId": "bd549553-e96d-4c9b-bb1f-f8e8ac28cf89"
+  },
+  "confirmation": "CONFIRM editDrcRules bd549553-e96d-4c9b-bb1f-f8e8ac28cf89"
+}
+```
 
-A transport timeout or disconnection after dispatch returns `drc_edit_outcome_unknown` (`retryable: false`). Query `easyeda_get_drc_edit_result` with the same `editId` instead of reapplying it.
+:::
 
-Rule JSON must be finite plain JSON, bounded to 200,000 characters per request/source, with depth at most 40.
+## Safety Guarantees & Error Recovery
+
+- **Dual confirmation gate**: Both the MCP server and the browser extension verify `CONFIRM editDrcRules <editId>` before touching `eda.pcb_Drc`.
+- **Stale-state protection**: Before writing, the extension re-verifies the PCB `documentId`, `projectId`, `tabId`, WebSocket session generation, and current rule state. Any change returns `stale_edit` without writing.
+- **Expiration & single execution**: Previews expire after **15 minutes** (`edit_expired`) and can only be executed **once** (`edit_already_started`).
+- **Full readback verification**: An edit is marked `applied` only if `eda.pcb_Drc` returns `true` **and** a subsequent native readback matches the requested JSON.
+- **Explicit PCB save**: Applying DRC rules sets `documentSaved: false`. Saving the PCB requires a separate `easyeda_confirmed_action` (`action: "save"`).
+
+::: warning Handling Timeouts (`drc_edit_outcome_unknown`)
+If the WebSocket times out or disconnects after a DRC write was dispatched, the server returns `error: "drc_edit_outcome_unknown"` with `retryable: false`. **Never automatically replay the mutation.** Call `easyeda_get_drc_edit_result` with the same `editId` to check whether the write completed.
+:::
 
 ## Official EasyEDA Pro API References
 
-- [PCB_Drc](https://prodocs.easyeda.com/en/api/reference/pro-api.pcb_drc.html)
-- [Save a named configuration](https://prodocs.easyeda.com/en/api/reference/pro-api.pcb_drc.saveruleconfiguration.html)
-- [Overwrite current configuration](https://prodocs.easyeda.com/en/api/reference/pro-api.pcb_drc.overwritecurrentruleconfiguration.html)
-- [Per-net rules](https://prodocs.easyeda.com/en/api/reference/pro-api.pcb_drc.overwritenetrules.html)
-- [Net-by-net rules](https://prodocs.easyeda.com/en/api/reference/pro-api.pcb_drc.overwritenetbynetrules.html)
-- [Region rules](https://prodocs.easyeda.com/en/api/reference/pro-api.pcb_drc.overwriteregionrules.html)
-- [Document types](https://prodocs.easyeda.com/en/api/reference/pro-api.edmt_editordocumenttype.html): PCB = 3, symbol = 2, footprint = 4
+- [`PCB_Drc`](https://prodocs.easyeda.com/en/api/reference/pro-api.pcb_drc.html) · [`saveRuleConfiguration`](https://prodocs.easyeda.com/en/api/reference/pro-api.pcb_drc.saveruleconfiguration.html) · [`overwriteCurrentRuleConfiguration`](https://prodocs.easyeda.com/en/api/reference/pro-api.pcb_drc.overwritecurrentruleconfiguration.html)
+- [`overwriteNetRules`](https://prodocs.easyeda.com/en/api/reference/pro-api.pcb_drc.overwritenetrules.html) · [`overwriteNetByNetRules`](https://prodocs.easyeda.com/en/api/reference/pro-api.pcb_drc.overwritenetbynetrules.html) · [`overwriteRegionRules`](https://prodocs.easyeda.com/en/api/reference/pro-api.pcb_drc.overwriteregionrules.html)
+- [`EDMT_EditorDocumentType`](https://prodocs.easyeda.com/en/api/reference/pro-api.edmt_editordocumenttype.html) (`PCB = 3`, `SCHEMATIC_PAGE = 1`, `SYMBOL = 2`, `FOOTPRINT = 4`)

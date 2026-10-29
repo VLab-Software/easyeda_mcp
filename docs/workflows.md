@@ -1,8 +1,10 @@
 # Practical Workflows
 
-Copy-pasteable prompts and workflows for common schematic and PCB tasks in EasyEDA Pro.
+Copy-pasteable prompts for common schematic and PCB workflows in EasyEDA Pro.
 
-> Before running any workflow, open your target schematic or PCB in EasyEDA Pro and confirm `easyeda_doctor` reports `connected: true`.
+::: tip Before you start
+Open your target schematic or PCB tab in EasyEDA Pro and confirm [`easyeda_doctor`](./tools.md#easyeda_doctor) reports `extension.connected: true`.
+:::
 
 ---
 
@@ -18,7 +20,7 @@ Summarize:
 3. Power rails with similar names (possible typos) or missing decoupling capacitors
 ```
 
-To inspect a suspicious part visually in EasyEDA Pro:
+To inspect a suspicious component visually inside EasyEDA Pro:
 
 ```text
 Trace U1 with easyeda_trace_component, then focus on it in the editor with easyeda_navigate_component.
@@ -28,7 +30,7 @@ Trace U1 with easyeda_trace_component, then focus on it in the editor with easye
 
 ## 2. Targeted Circuit Assertions (USB-C, Power, Buses)
 
-Verify critical hardware rules programmatically with `easyeda_verify_connections` instead of scanning wires by eye.
+Verify hardware design rules programmatically with [`easyeda_verify_connections`](./tools.md#easyeda_verify_connections) instead of tracing wires by eye.
 
 ```text
 Verify the USB-C connector (USB1) and 3.3V regulator (U2) using easyeda_verify_connections:
@@ -42,22 +44,22 @@ Verify the USB-C connector (USB1) and 3.3V regulator (U2) using easyeda_verify_c
 
 ## 3. PCB Design Rules (DRC) Review & Profile Setup
 
-Switch to your **PCB tab** in EasyEDA Pro to inspect active rules, create a reusable fabrication profile, or update clearances safely.
+Switch to your **PCB tab** (`documentType: 3`) in EasyEDA Pro to inspect active rules, create a reusable fabrication profile, or update clearances safely.
 
-### Inspect current rules & saved profiles
+### Inspect active rules & saved profiles
 
 ```text
 Run easyeda_get_drc_rules for "current", "configurations", and "netRules".
 Summarize the active track width, clearance, via size, and any custom per-net rules.
 ```
 
-### Create a new named rule profile (with preview)
+### Stage and confirm a DRC rule change
 
 ```text
 Read the current PCB DRC configuration, prepare a new named configuration called "Fab-2Layer-0.15mm" with minimum track width and safe spacing adjusted to 0.15 mm using easyeda_prepare_drc_edit, and show me the preview and confirmation string before applying anything.
 ```
 
-After reviewing the preview (`changedKeys`, `before`, `requestedAfter`), approve the exact `editId` so the AI can call `easyeda_confirmed_action` (`CONFIRM editDrcRules <editId>`).
+After reviewing `changedKeys`, `before`, and `requestedAfter`, approve the exact `editId` so the AI client can execute [`easyeda_confirmed_action`](./tools.md#easyeda_confirmed_action) with `CONFIRM editDrcRules <editId>`.
 
 ---
 
