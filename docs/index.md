@@ -78,7 +78,7 @@ hero:
     </div>
     <div class="about-item">
       <span class="about-label">License</span>
-      <p>Released under the <a href="https://github.com/VLab-Software/easyeda_mcp/blob/master/LICENSE">MIT License</a>.</p>
+      <p>Released under the <a href="https://github.com/VLab-Software/easyeda_mcp/blob/main/LICENSE">MIT License</a>.</p>
     </div>
     <div class="about-item">
       <span class="about-label">Not affiliated</span>

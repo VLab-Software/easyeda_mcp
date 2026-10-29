@@ -1,6 +1,6 @@
 # Pre-PR validation — issue #14
 
-Checked 2026-10-29 on `codex/issue-14-drc-rules`, based on public `master` (`dcf6704`). This record describes this branch, not earlier experimental branches.
+Checked 2026-10-29 on `feature/issue-14-drc-rules`, based on public `main` (`dcf6704`). This record describes this branch, not earlier experimental branches.
 
 ## Decision and scope
 
@@ -22,7 +22,7 @@ Development identities: MCP server **1.1.0-rc.1**, extension **0.2.0-rc.1**, bri
 | Version consistency | Package, lockfile, registry metadata, server handshake/doctor and extension manifest/bundle agree |
 | Package contents | All 14 npm files equal current files; `.eext` has only README, manifest and browser bundle; alias bytes match |
 | Documentation | VitePress build passed; local HTTP smoke returned 200 and expected rendered content for home, roadmap, DRC guide, extension setup and tools |
-| Workflow files | YAML parsed; Pages push trigger targets `master`; generated release notes use the actual manifest filename |
+| Workflow files | YAML parsed; Pages push trigger targets `main`; generated release notes use the actual manifest filename |
 | Git whitespace | `git diff --check` passed |
 
 The DRC smoke checks native JSON reads, preparation without writes, exact confirmation, timeout reported as uncertain, result queries while running/after completion, duplicate rejection and diagnostics on stderr. Unit tests additionally cover stale rules/identity/session, method availability, supported document types, opaque JSON validation, oversized/deep data, whole-table replacements and readback failure. These are simulated/editor-independent proofs.
@@ -39,7 +39,7 @@ The inherited lockfile initially reported 9 production and 20 total advisories. 
 
 The README now summarizes the [single detailed roadmap](./evolution-plan.md), distinguishing available, in-development and proposed work. Pages navigation links the roadmap and [DRC guide](./drc-rules.md). The landing page no longer promises that all MCP/AI processing stays on the machine or that every beta method works on every editor version.
 
-The default branch was checked as `master`; Pages now builds on pushes to that branch after merge. CI checks extension types and the simulated smoke. Release notes derive the `.eext` filename from its manifest instead of hard-coding 0.1.0. Syntax/local builds do not establish remote GitHub configuration or prove a deployment succeeded.
+The default branch is `main`; Pages now builds on pushes to that branch after merge. CI checks extension types and the simulated smoke. Release notes derive the `.eext` filename from its manifest instead of hard-coding 0.1.0. Syntax/local builds do not establish remote GitHub configuration or prove a deployment succeeded.
 
 ## Final artifacts
 

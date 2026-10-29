@@ -102,7 +102,7 @@ Do not create a formal release for every merged PR.
 
 Most PRs should:
 
-1. merge into `master`
+1. merge into `main`
 2. accumulate toward a milestone
 3. ship in a later tagged release
 
@@ -167,7 +167,7 @@ Recommended starting labels:
 The normal pull request flow should be:
 
 1. open or identify the issue or motivation
-2. create a short-lived branch from `master`
+2. create a short-lived branch from `main`
 3. implement one focused change
 4. open a PR with a clear title and test steps
 5. assign a milestone when relevant

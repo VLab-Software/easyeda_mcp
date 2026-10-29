@@ -13,7 +13,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/VLab-Software/easyeda_mcp/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/VLab-Software/easyeda_mcp/ci.yml?branch=master&label=CI"></a>
+  <a href="https://github.com/VLab-Software/easyeda_mcp/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/VLab-Software/easyeda_mcp/ci.yml?branch=main&label=CI"></a>
   <a href="https://github.com/VLab-Software/easyeda_mcp/releases"><img alt="Release" src="https://img.shields.io/github/v/release/VLab-Software/easyeda_mcp?include_prereleases&label=release"></a>
   <a href="./LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-blue"></a>
   <img alt="Node" src="https://img.shields.io/badge/node-%3E%3D20-339933">
@@ -75,6 +75,7 @@ Run easyeda_doctor and summarize whether the EasyEDA Pro bridge is healthy.
 Run easyeda_get_context and tell me which document is open in EasyEDA Pro.
 Run easyeda_schematic_snapshot and summarize components, nets, warnings, and confidence.
 Run easyeda_trace_component for USB1 and summarize its connected nets.
+Run easyeda_get_drc_rules for the current PCB configuration and summarize the active rules.
 ```
 
 Core capabilities:
@@ -83,6 +84,7 @@ Core capabilities:
 - schematic inspection for components, pins, nets, wires, and labels
 - component and net tracing
 - targeted connection assertions
+- PCB design rule (DRC) inspection, preview, and confirmed rule editing
 - editor navigation and export helpers
 - confirmation-gated editor-changing actions
 
@@ -115,6 +117,25 @@ This branch builds server **1.1.0-rc.1** and extension **0.2.0-rc.1** as develop
 ## Releases
 
 Download packaged extension builds from [GitHub Releases](https://github.com/VLab-Software/easyeda_mcp/releases). Local builds also create `build/dist/easyeda_mcp_bridge.eext`.
+
+## Changelog
+
+### `1.1.0-rc.1` (Extension `0.2.0-rc.1`) — Experimental PCB DRC Rule Editing ([#14](https://github.com/VLab-Software/easyeda_mcp/issues/14))
+
+- **Native PCB DRC rule reads (`easyeda_get_drc_rules`)**: inspect `current` PCB rules, saved `configurations`, `netRules`, `netByNetRules`, and `regionRules`, along with per-method runtime capability detection on `eda.pcb_Drc`.
+- **Immutable DRC edit previews (`easyeda_prepare_drc_edit`)**: stage changes without modifying the PCB and receive an `editId`, target PCB identity (`projectUuid`, `documentUuid`, `tabId`), before/after snapshot, and exact confirmation phrase.
+- **Confirmed DRC rule updates (`easyeda_confirmed_action` with `action: "editDrcRules"`)**:
+  - `createConfiguration`: create a new named rule profile (`allowOverwrite=false`).
+  - `updateCurrentConfiguration`: update the active PCB rule configuration.
+  - `replaceNetRules`, `replaceNetByNetRules`, `replaceRegionRules`: replace rule tables on the active PCB.
+- **Stale-state & transport safety (`easyeda_get_drc_edit_result`)**: enforce exact confirmation (`CONFIRM editDrcRules <editId>`) at both the MCP server and extension boundaries, block execution if the PCB target, session, or underlying rules changed since preview, verify changes via full native readback, and query inconclusive/timed-out edits without replaying mutations.
+- **Release & CI hardening**: unified runtime/package/manifest version checks (`src/version.ts`), end-to-end stdio + WebSocket DRC smoke test (`npm run test:smoke:drc`), and updated documentation ([DRC Rule Editing](./docs/drc-rules.md), [Validation Record](./docs/local-validation.md), [Roadmap](./docs/evolution-plan.md)).
+
+### `0.1.0` — Initial Public Baseline
+
+- Local MCP server over `stdio` paired with the EasyEDA Pro WebSocket bridge extension.
+- Live project and active document context (`easyeda_doctor`, `easyeda_get_context`).
+- Schematic snapshot, component/net tracing, connection assertions, navigation, exports, and confirmation-gated editor actions.
 
 ## Development
 
