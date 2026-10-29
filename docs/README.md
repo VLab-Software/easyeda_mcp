@@ -22,15 +22,10 @@ The shortest path is:
 ## Reference
 
 - [Tools Reference](./tools.md): what each MCP tool does
-- [DRC Rule Editing](./drc-rules.md): experimental native PCB rule previews and confirmed changes
+- [DRC Rule Editing](./drc-rules.md): native PCB design rule inspection, previews, and confirmed changes
 - [MCP Client Setup](./mcp-client-setup.md): generic MCP configuration
 - [Safety Model](./safety.md): read-only defaults and confirmed actions
 - [Architecture](./architecture.md): how server, bridge, and extension fit together
-- [Validation record](./local-validation.md): local pre-PR checks and real-editor gaps
-
-## Development Roadmap
-
-[Read the roadmap](./evolution-plan.md) for implemented, in-development and proposed work. The current feature is [experimental PCB rule editing for issue #14](./drc-rules.md), with real-editor acceptance still pending.
 
 ## What This Project Does
 

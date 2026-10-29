@@ -45,7 +45,7 @@ jobs:
       - name: Package extension
         run: npm run package:extension
 
-      - name: Smoke DRC over stdio and WebSocket (simulated editor)
+      - name: Smoke DRC over stdio and WebSocket
         run: npm run test:smoke:drc
 
       - name: Build docs

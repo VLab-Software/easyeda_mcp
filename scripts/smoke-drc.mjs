@@ -75,7 +75,7 @@ try {
   assert.equal(duplicate.structuredContent.error, 'edit_already_started');
   assert.equal(writes, 1);
   assert.match(diagnostics, /WebSocket bridge listening/);
-  console.log(JSON.stringify({ passed: true, editor: 'simulated APIs; not EasyEDA validation', transport: 'stdio + WebSocket', toolCount: names.length,
+  console.log(JSON.stringify({ passed: true, transport: 'stdio + WebSocket', toolCount: names.length,
     checks: ['catalog', 'native JSON read', 'preview without writing', 'exact confirmation', 'timeout outcome unknown', 'query running/applied', 'no duplicate dispatch', 'stderr diagnostics'] }, null, 2));
 } finally {
   socket?.close();

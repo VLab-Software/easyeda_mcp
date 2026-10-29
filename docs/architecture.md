@@ -99,11 +99,11 @@ Responsibilities:
 - validate schematic areas
 - verify connection assertions
 
-## Experimental PCB Rule Editing
+## PCB Design Rule Editing
 
-`src/drc/contracts.ts` contains browser-compatible typed operations and JSON validation shared by the server and extension. `extension/src/drcRules.ts` owns the native API calls, PCB identity, immutable before/after previews and in-memory edit results. `src/version.ts` supplies runtime identities; tests compare them with the package, registry and extension manifest.
+`src/drc/contracts.ts` contains browser-compatible typed operations and JSON validation shared by the server and extension. `extension/src/drcRules.ts` handles the native `eda.pcb_Drc` API calls, PCB identity checks, immutable before/after previews, and in-memory edit results. `src/version.ts` defines the server and extension release versions.
 
-The DRC write path is read → prepare → human approval → `easyeda_confirmed_action` → native write → readback. Both boundaries require the exact prepared confirmation. Page/rule/session changes block stale previews. Timeouts and uncertain readbacks must be queried without automatic replay; records are limited to that extension instance. Named-profile creation persists a profile explicitly, while saving a PCB is a separate action. See [DRC editing](./drc-rules.md).
+The DRC write flow is read → prepare → human approval → `easyeda_confirmed_action` → native write → readback. Both boundaries require the exact prepared confirmation (`CONFIRM editDrcRules <editId>`). See [DRC Rule Editing](./drc-rules.md).
 
 ## Request Flow
 

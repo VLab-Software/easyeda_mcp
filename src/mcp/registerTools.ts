@@ -417,13 +417,13 @@ export function registerEasyEdaTools(server: McpServer, bridge: EasyEdaBridge): 
 
   registerReadTool(server, bridge, {
     name: "easyeda_get_drc_rules", title: "Read native PCB design rules",
-    description: "EXPERIMENTAL. Read the active PCB's current configuration, named profiles, or net/net-by-net/region rule tables. Returns raw editor JSON and method availability; fields retain editor units. Does not run DRC or write rules.",
+    description: "Reads the active PCB's current configuration, named profiles, or net/net-by-net/region rule tables. Returns raw editor JSON and method availability; fields retain editor units. Does not run DRC or write rules.",
     method: "getDrcRules", inputSchema: { scope: DrcScopeSchema.default("current"), timeoutMs: DefaultTimeoutSchema },
     summary: "Read native PCB design rules."
   });
   registerReadTool(server, bridge, {
     name: "easyeda_prepare_drc_edit", title: "Prepare a PCB design rule edit",
-    description: "EXPERIMENTAL. Prepare one typed DRC operation without writing. Create a new named rule profile, replace the current configuration, or replace an entire net/net-by-net/region table. Show all before/after data and obtain human approval for its editId. No implicit PCB save. Profiles persist when explicitly created.",
+    description: "Prepares one typed DRC operation without writing. Creates a new named rule profile, replaces the current configuration, or replaces an entire net/net-by-net/region table. Show all before/after data and obtain human approval for its editId. No implicit PCB save. Profiles persist when explicitly created.",
     method: "prepareDrcEdit", inputSchema: { operation: DrcOperationSchema, timeoutMs: DefaultTimeoutSchema },
     summary: "Prepared a PCB design rule edit without writing."
   });

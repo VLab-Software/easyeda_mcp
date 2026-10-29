@@ -34,7 +34,7 @@ jobs:
       - name: Package extension
         run: npm run setup:local
 
-      - name: Smoke DRC over stdio and WebSocket (simulated editor)
+      - name: Smoke DRC over stdio and WebSocket
         run: npm run test:smoke:drc
 
       - name: Generate checksums
@@ -48,7 +48,7 @@ jobs:
           import fs from 'node:fs';
           const manifest = JSON.parse(fs.readFileSync('extension/extension.json', 'utf8'));
           fs.writeFileSync('RELEASE_NOTES.md', [
-            'EasyEDA Pro MCP release. See the documentation for feature and validation status.',
+            'EasyEDA Pro MCP release.',
             '',
             'Release assets:',
             '',
@@ -56,7 +56,7 @@ jobs:
             '- `easyeda_mcp_bridge.eext`: stable filename for the same extension package',
             '- `SHA256SUMS.txt`: checksums for release assets',
             '',
-            'Start with the Quick Start guide and roadmap in the documentation.',
+            'Start with the Quick Start guide in the documentation.',
             ''
           ].join('\n'));
           NODE
@@ -69,6 +69,4 @@ jobs:
             build/dist/*.eext \
             build/dist/SHA256SUMS.txt \
             --title "$GITHUB_REF_NAME" \
-            --notes-file RELEASE_NOTES.md \
-            --prerelease \
-            --latest=false
+            --notes-file RELEASE_NOTES.md

@@ -58,8 +58,8 @@ export class DrcRules {
   async read(input: Record<string, unknown>): Promise<Record<string, unknown>> {
     const selected = DrcScopeSchema.parse(input.scope ?? "current");
     const state = await this.state(selected);
-    return { ...state, scope: selected, experimental: true, source: "editor_api", completeness: "api_returned",
-      capturedAt: new Date().toISOString(), capabilities: this.capabilities(), warning: "API beta; opaque rule fields retain editor units and version-specific structure. Not electrical validation." };
+    return { ...state, scope: selected, source: "editor_api", completeness: "api_returned",
+      capturedAt: new Date().toISOString(), capabilities: this.capabilities() };
   }
   async prepare(input: Record<string, unknown>): Promise<Record<string, unknown>> {
     if (this.busy) fail("edit_busy", "A DRC edit is in progress");
@@ -87,10 +87,9 @@ export class DrcRules {
     const { generation: _generation, ...data } = edit;
     const after = edit.operation.type === "createConfiguration" || edit.operation.type === "updateCurrentConfiguration" ? edit.operation.config : edit.operation.rules;
     return copy({ ...data, status: edit.status === "prepared" && Date.now() > Date.parse(edit.expiresAt) ? "expired" : edit.status,
-      experimental: true, documentSaved: false, preview: { before: edit.before, requestedAfter: after,
+      documentSaved: false, preview: { before: edit.before, requestedAfter: after,
         scope: edit.operation.type === "createConfiguration" ? "saved_rule_configuration" : "active_pcb",
-        impact: edit.operation.type === "createConfiguration" ? "Persists a new named rule profile with allowOverwrite=false; does not save the PCB or set a global default." : "Replaces the entire selected rule configuration/table; omitted entries are removed. PCB is not saved." },
-      warning: "No automatic retry or rollback. Results survive only in this extension instance. Show preview and obtain human approval." });
+        impact: edit.operation.type === "createConfiguration" ? "Persists a new named rule profile with allowOverwrite=false; does not save the PCB or set a global default." : "Replaces the entire selected rule configuration/table; omitted entries are removed. PCB is not saved." } });
   }
   private edit(input: unknown): Edit {
     const { editId } = DrcEditQuerySchema.parse(input);

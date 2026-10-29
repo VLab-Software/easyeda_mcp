@@ -13,7 +13,6 @@ export default defineConfig({
       { text: "Guide", link: "/getting-started" },
       { text: "AI Clients", link: "/ai-client-setup" },
       { text: "Tools", link: "/tools" },
-      { text: "Roadmap", link: "/evolution-plan" },
       { text: "Architecture", link: "/architecture" },
       { text: "GitHub", link: "https://github.com/VLab-Software/easyeda_mcp" }
     ],
@@ -35,7 +34,6 @@ export default defineConfig({
           { text: "DRC Rule Editing", link: "/drc-rules" },
           { text: "Architecture", link: "/architecture" },
           { text: "Safety Model", link: "/safety" },
-          { text: "Validation Record", link: "/local-validation" },
           { text: "Troubleshooting", link: "/troubleshooting" }
         ]
       },
@@ -44,7 +42,6 @@ export default defineConfig({
         collapsed: true,
         items: [
           { text: "Documentation Home", link: "/" },
-          { text: "Roadmap", link: "/evolution-plan" },
           { text: "Repository Docs Index", link: "/README" },
           { text: "GitHub Repository", link: "https://github.com/VLab-Software/easyeda_mcp" }
         ]

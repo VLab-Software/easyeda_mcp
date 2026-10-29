@@ -1,7 +1,5 @@
 # EasyEDA MCP Bridge Extension
 
-Development candidate **0.2.0-rc.1**, paired with MCP server **1.1.0-rc.1**. Not a published release.
-
 This extension connects EasyEDA Pro to the local MCP bridge at:
 
 ```text
@@ -56,11 +54,9 @@ Healthy output should show:
 - bridge protocol compatible
 - active document available
 
-## Experimental DRC Rules
+## PCB Design Rules (DRC)
 
-This bundle adds native PCB rule reads, edit previews and result queries. Rule changes require the exact prepared confirmation at the MCP and extension boundaries. Creating a named profile persists that profile; saving the PCB remains separate. API availability and real-editor validation are distinct.
-
-Updating the server does not update the installed extension: rebuild, manually import this `.eext`, reconnect, and check the reported extension version. If the editor disabled external interaction or retained old callbacks, restore the permission and fully restart before verifying RPC. See the [DRC guide](https://vlabsoft.org/easyeda_mcp/drc-rules).
+Supports native PCB rule reads, edit previews, and confirmed updates (`CONFIRM editDrcRules <editId>`). See the [DRC Rule Editing guide](https://vlabsoft.org/easyeda_mcp/drc-rules).
 
 ## Notes
 

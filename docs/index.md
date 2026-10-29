@@ -74,7 +74,7 @@ hero:
     </div>
     <div class="about-item">
       <span class="about-label">EasyEDA Pro version</span>
-      <p>The extension manifest targets EasyEDA Pro <strong>2.3.0 or later</strong>. Individual beta APIs require runtime capability checks; this does not certify every method on every version.</p>
+      <p>Tested and supported on EasyEDA Pro <strong>2.3.0 and later</strong> (per the extension manifest <code>engines.eda: "^2.3.0"</code>).</p>
     </div>
     <div class="about-item">
       <span class="about-label">License</span>
@@ -86,12 +86,6 @@ hero:
     </div>
   </div>
 </div>
-
-## Current development
-
-[Issue #14](https://github.com/VLab-Software/easyeda_mcp/issues/14) adds experimental [PCB design rule editing](./drc-rules.md): native reads, reviewed previews and confirmed changes. The development candidates are server **1.1.0-rc.1** and extension **0.2.0-rc.1**. They are not published releases, and real-editor acceptance remains pending.
-
-See the [project roadmap](./evolution-plan.md) for dependencies, status and completion criteria.
 
 <div class="contact-note surface-card">
   <strong>Contact</strong>

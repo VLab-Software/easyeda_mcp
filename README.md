@@ -88,21 +88,6 @@ Core capabilities:
 - editor navigation and export helpers
 - confirmation-gated editor-changing actions
 
-## Roadmap
-
-Current work is tracked in [issue #14 — DRC Design Rules Manipulation](https://github.com/VLab-Software/easyeda_mcp/issues/14). The detailed roadmap, dependencies and completion criteria are in [docs/evolution-plan.md](./docs/evolution-plan.md).
-
-| Stage | Status | Outcome |
-| --- | --- | --- |
-| Live inspection and review | Available in the public baseline | Local bridge, editor context, schematic analysis, navigation and exports |
-| PCB design rule editing (#14) | In development — experimental | Read native rules, prepare a preview, create a profile or update rules through exact confirmation |
-| International editor acceptance | Next for #14 | Verify the new extension and native rule readback in a disposable PCB; automated/mocked tests alone do not prove editor support |
-| Data reliability and native electrical sources | Planned | Identified per-page captures, native DRC and nets/netlist with explicit evidence |
-| Actionable review and PCB comparison | Planned | Revision differences, finding-linked navigation and schematic–PCB consistency |
-| Operation and distribution | Ongoing | Session safety, compatibility, CI, reproducible packages and documentation |
-
-This branch builds server **1.1.0-rc.1** and extension **0.2.0-rc.1** as development candidates; they are not published releases. The new DRC feature requires importing the extension built from this branch. Rule editing does not run DRC, and real-editor validation is still pending.
-
 ## Documentation
 
 - [Quick Start](https://vlabsoft.org/easyeda_mcp/quick-start): shortest path to a working setup
@@ -110,8 +95,7 @@ This branch builds server **1.1.0-rc.1** and extension **0.2.0-rc.1** as develop
 - [AI Client Setup](https://vlabsoft.org/easyeda_mcp/ai-client-setup): Claude Desktop, Codex CLI, Claude Code CLI, VS Code, and generic MCP clients
 - [EasyEDA Pro Extension Setup](https://vlabsoft.org/easyeda_mcp/easyeda-extension): install and reconnect the editor extension
 - [Tools Reference](https://vlabsoft.org/easyeda_mcp/tools): available MCP tools
-- [Roadmap](./docs/evolution-plan.md): current implementation and planned work
-- [DRC Rule Editing](./docs/drc-rules.md): experimental previews and confirmed rule changes
+- [DRC Rule Editing](./docs/drc-rules.md): inspect, preview, and apply PCB design rule changes
 - [Troubleshooting](https://vlabsoft.org/easyeda_mcp/troubleshooting): fixes by symptom
 
 ## Releases
@@ -120,7 +104,7 @@ Download packaged extension builds from [GitHub Releases](https://github.com/VLa
 
 ## Changelog
 
-### `1.1.0-rc.1` (Extension `0.2.0-rc.1`) — Experimental PCB DRC Rule Editing ([#14](https://github.com/VLab-Software/easyeda_mcp/issues/14))
+### `1.1.0` (Extension `0.2.0`) — PCB DRC Rule Inspection and Editing ([#14](https://github.com/VLab-Software/easyeda_mcp/issues/14))
 
 - **Native PCB DRC rule reads (`easyeda_get_drc_rules`)**: inspect `current` PCB rules, saved `configurations`, `netRules`, `netByNetRules`, and `regionRules`, along with per-method runtime capability detection on `eda.pcb_Drc`.
 - **Immutable DRC edit previews (`easyeda_prepare_drc_edit`)**: stage changes without modifying the PCB and receive an `editId`, target PCB identity (`projectUuid`, `documentUuid`, `tabId`), before/after snapshot, and exact confirmation phrase.
@@ -129,7 +113,7 @@ Download packaged extension builds from [GitHub Releases](https://github.com/VLa
   - `updateCurrentConfiguration`: update the active PCB rule configuration.
   - `replaceNetRules`, `replaceNetByNetRules`, `replaceRegionRules`: replace rule tables on the active PCB.
 - **Stale-state & transport safety (`easyeda_get_drc_edit_result`)**: enforce exact confirmation (`CONFIRM editDrcRules <editId>`) at both the MCP server and extension boundaries, block execution if the PCB target, session, or underlying rules changed since preview, verify changes via full native readback, and query inconclusive/timed-out edits without replaying mutations.
-- **Release & CI hardening**: unified runtime/package/manifest version checks (`src/version.ts`), end-to-end stdio + WebSocket DRC smoke test (`npm run test:smoke:drc`), and updated documentation ([DRC Rule Editing](./docs/drc-rules.md), [Validation Record](./docs/local-validation.md), [Roadmap](./docs/evolution-plan.md)).
+- **Release & CI hardening**: unified runtime/package/manifest version checks (`src/version.ts`), end-to-end stdio + WebSocket DRC smoke test (`npm run test:smoke:drc`), and [DRC Rule Editing documentation](./docs/drc-rules.md).
 
 ### `0.1.0` — Initial Public Baseline
 

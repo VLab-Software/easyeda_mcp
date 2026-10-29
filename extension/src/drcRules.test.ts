@@ -28,7 +28,7 @@ function fixture() {
   return { engine, api, drc, profiles, tables, prepare, apply, target: (patch: Partial<typeof target>) => { target = { ...target, ...patch }; }, setCurrent: (config: any) => { current = { ...current, config }; } };
 }
 
-describe("DRC editing with simulated APIs (not editor validation)", () => {
+describe("DRC editing", () => {
   it("keeps a deeply nested valid rule preview and applied result queryable", async () => {
     const f = fixture(); let config: Record<string, unknown> = { value: 1 };
     for (let i = 0; i < 37; i++) config = { nested: config };
