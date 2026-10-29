@@ -10,10 +10,10 @@ hero:
     alt: EasyEDA Pro MCP logo
   actions:
     - theme: brand
-      text: Start Setup
-      link: /getting-started
+      text: Quick Start
+      link: /quick-start
     - theme: alt
-      text: Connect AI Client
+      text: AI Client Setup
       link: /ai-client-setup
 ---
 
@@ -21,20 +21,23 @@ hero:
   <div class="support-group">
     <div class="support-label">Supported AI Clients</div>
     <div class="support-pill-row support-pill-row-primary">
-      <a href="/easyeda_mcp/ai-client-setup#claude-desktop">Claude Desktop</a>
       <a href="/easyeda_mcp/ai-client-setup#claude-code-cli">Claude Code</a>
       <a href="/easyeda_mcp/ai-client-setup#codex-cli">Codex</a>
+      <a href="/easyeda_mcp/ai-client-setup#claude-desktop">Claude Desktop</a>
+      <a href="/easyeda_mcp/ai-client-setup#cursor">Cursor</a>
       <a href="/easyeda_mcp/ai-client-setup#vs-code">VS Code</a>
+      <a href="/easyeda_mcp/ai-client-setup#antigravity">Antigravity</a>
     </div>
   </div>
 
   <div class="support-group">
-    <div class="support-label">Setup Guides</div>
+    <div class="support-label">Guides & Reference</div>
     <div class="support-pill-row support-pill-row-secondary">
       <a href="/easyeda_mcp/quick-start">Quick Start</a>
-      <a href="/easyeda_mcp/getting-started">Getting Started</a>
-      <a href="/easyeda_mcp/ai-client-setup">AI Client Setup</a>
-      <a href="/easyeda_mcp/mcp-client-setup">Generic MCP client</a>
+      <a href="/easyeda_mcp/workflows">Workflows</a>
+      <a href="/easyeda_mcp/tools">Tools Reference</a>
+      <a href="/easyeda_mcp/drc-rules">DRC Rules</a>
+      <a href="/easyeda_mcp/upgrading">Upgrading</a>
     </div>
   </div>
 </div>
@@ -42,26 +45,26 @@ hero:
 <div class="intro-panel">
   <strong>Why it matters</strong>
   <p>
-    AI gets much more useful when it can inspect the actual schematic and board in front of you, not just guess from screenshots or copied text.
+    Give your AI assistant structured access to the live schematic and PCB open in EasyEDA Pro — instead of guessing from screenshots or manual exports.
   </p>
 </div>
 
 <div class="quick-grid">
   <div class="quick-card surface-card">
     <strong>Live context</strong>
-    <p>Read the active project, document, components, nets, and editor state.</p>
+    <p>Inspect the active project, open tabs, schematic components, pins, and nets in real time.</p>
   </div>
   <div class="quick-card surface-card">
-    <strong>Smarter reviews</strong>
-    <p>Trace nets, inspect pins, find parts, and validate schematic areas with structured data.</p>
+    <strong>Schematic & DRC review</strong>
+    <p>Trace nets, verify circuit connections, and inspect or update native PCB DRC rules.</p>
   </div>
   <div class="quick-card surface-card">
     <strong>Local bridge</strong>
-    <p>Runs through a local MCP server and EasyEDA Pro extension. No project export required.</p>
+    <p>Runs locally over stdio and WebSocket (<code>127.0.0.1:8765</code>) with no manual file export.</p>
   </div>
   <div class="quick-card surface-card">
-    <strong>Controlled actions</strong>
-    <p>Read-only workflows are easy. Editor-changing actions require explicit confirmation.</p>
+    <strong>Confirmation-gated</strong>
+    <p>Read-only by default. Editor-changing actions require explicit confirmation.</p>
   </div>
 </div>
 
@@ -70,11 +73,11 @@ hero:
   <div class="about-grid">
     <div class="about-item">
       <span class="about-label">How it works</span>
-      <p>An EasyEDA Pro extension connects to a local MCP server over WebSocket. The extension reads the open project through EasyEDA's documented extension APIs and forwards structured data to any MCP-compatible AI client. The bridge runs locally; your MCP client and AI provider determine where the returned project data is processed.</p>
+      <p>The EasyEDA Pro extension connects to the local MCP server over WebSocket and exposes structured project data to any MCP-compatible AI client.</p>
     </div>
     <div class="about-item">
-      <span class="about-label">EasyEDA Pro version</span>
-      <p>Tested and supported on EasyEDA Pro <strong>2.3.0 and later</strong> (per the extension manifest <code>engines.eda: "^2.3.0"</code>).</p>
+      <span class="about-label">Requirements</span>
+      <p>Node.js <strong>20+</strong> and EasyEDA Pro <strong>2.3.0+</strong>.</p>
     </div>
     <div class="about-item">
       <span class="about-label">License</span>
@@ -82,7 +85,7 @@ hero:
     </div>
     <div class="about-item">
       <span class="about-label">Not affiliated</span>
-      <p>This project is not affiliated with, endorsed by, or sponsored by EasyEDA or JLCPCB (Shenzhen Jia Chuang Ban Technology Co., Ltd.). EasyEDA and EasyEDA Pro are trademarks of their respective owners.</p>
+      <p>Independent project, not affiliated with, endorsed by, or sponsored by EasyEDA or JLCPCB (Shenzhen Jia Chuang Ban Technology Co., Ltd.).</p>
     </div>
   </div>
 </div>
@@ -90,10 +93,10 @@ hero:
 <div class="contact-note surface-card">
   <strong>Contact</strong>
   <p>
-    Want to share feedback, send a suggestion, or talk about the project? Reach out at <a href="mailto:victor.freitas@vlabsoft.com">victor.freitas@vlabsoft.com</a>.
+    Questions, feedback, or suggestions? Reach out at <a href="mailto:victor.freitas@vlabsoft.com">victor.freitas@vlabsoft.com</a>.
   </p>
 </div>
 
 <div class="subtle-note">
-  New here? Start with <a href="/easyeda_mcp/getting-started">Getting Started</a>. Connecting Claude, Codex, or VS Code? Open <a href="/easyeda_mcp/ai-client-setup">AI Client Setup</a>. Want the full tool list? See <a href="/easyeda_mcp/tools">Tools Reference</a>.
+  New here? Start with <a href="/easyeda_mcp/quick-start">Quick Start</a>. Configuring your editor or CLI? Open <a href="/easyeda_mcp/ai-client-setup">AI Client Setup</a>. Exploring capabilities? See <a href="/easyeda_mcp/tools">Tools Reference</a>.
 </div>

@@ -1,78 +1,36 @@
 # Safety Model
 
-The bridge is designed to be useful before it is powerful.
+EasyEDA Pro MCP is **read-first by default**. Inspection, net tracing, schematic validation, editor navigation, and manufacturing exports never mutate your schematic or PCB.
 
-Default behavior is read-first. Anything that changes the EasyEDA Pro project must be explicit.
+## Tool Safety Tiers
 
-## Safe by Default
+| Tier | Tools | Guarantee |
+| --- | --- | --- |
+| **Read-Only Inspection & Exports** | 22 tools (`readOnlyHint: true`, `destructiveHint: false`) | Safe to invoke automatically. Never modifies schematic, PCB, or rule profiles. |
+| **Non-Mutating Preview** | [`easyeda_prepare_drc_edit`](./tools.md#easyeda_prepare_drc_edit) (`readOnlyHint: false`, `destructiveHint: false`) | Stages an in-memory DRC diff (`editId`) with a 15-minute TTL without modifying the PCB or saving profiles. |
+| **Confirmed Legacy Actions** | [`easyeda_confirmed_action`](./tools.md#easyeda_confirmed_action) (`save`, `importChanges`, `autoroute`, `autolayout`) | Blocked unless `confirmation` includes an explicit approval phrase (`I confirm`, `confirmed`, `confirma`, `confirmo`). |
+| **Confirmed DRC Rule Edits** | [`easyeda_confirmed_action`](./tools.md#easyeda_confirmed_action) (`action: "editDrcRules"`) | Requires a valid `editId` and the exact string `CONFIRM editDrcRules <editId>` enforced by both the MCP server and the EasyEDA extension. |
 
-These workflows do not directly change project content:
+## Defense-in-Depth for PCB DRC Edits
 
-- live status
-- editor context
-- component and net search
-- schematic snapshots
-- pin, net, and component tracing
-- connection verification
-- navigation
-- exports
+When updating PCB design rules (`createConfiguration`, `updateCurrentConfiguration`, `replaceNetRules`, `replaceNetByNetRules`, `replaceRegionRules`), five safeguards prevent unintended board modifications:
 
-Use them freely during review and debugging.
+1. **Dual-boundary token check**: Both `src/mcp/registerTools.ts` and `extension/src/drcRules.ts` independently verify `CONFIRM editDrcRules <editId>`.
+2. **Target PCB identity binding**: Each preview locks `projectUuid`, `documentUuid`, `tabId`, and the WebSocket session ID. Switching tabs or projects invalidates the preview with `stale_edit`.
+3. **Canonical baseline hash**: Before writing, the extension re-reads the live DRC surface and verifies its canonical JSON matches the preview baseline.
+4. **Full native readback verification**: A write reports `applied` only if the `eda.pcb_Drc` setter returns `true` **and** an immediate readback matches `requestedAfter`.
+5. **No automatic replay on timeout**: If the WebSocket disconnects or times out after dispatch, the server returns `drc_edit_outcome_unknown` (`retryable: false`). Use [`easyeda_get_drc_edit_result`](./tools.md#easyeda_get_drc_edit_result) to inspect the outcome instead of re-sending.
 
-## Actions That Can Change the Project
+::: info Profile Persistence vs. PCB Document Save
+Creating a named DRC configuration (`createConfiguration`) persists that profile in EasyEDA Pro (`allowOverwrite` is always `false`). Modifying active PCB rules updates the open PCB in memory — saving the `.pcb` file still requires either manual save in EasyEDA Pro or `easyeda_confirmed_action` with `action: "save"`.
+:::
 
-Project-changing actions go through:
+## Schematic Confidence Levels
 
-```text
-easyeda_confirmed_action
-```
+Heuristic schematic analysis tools (`easyeda_schematic_snapshot`, `easyeda_trace_net`, `easyeda_validate_schematic_area`, `easyeda_verify_connections`) report a `confidence` rating alongside any `warnings`:
 
-Supported actions:
-
-- `save`
-- `importChanges`
-- `autoroute`
-- `autolayout`
-- `editDrcRules` (exact prepared-edit confirmation required in server and extension)
-
-The legacy actions block requests without a clear confirmation phrase. DRC rule edits require a prepared preview and the exact phrase `CONFIRM editDrcRules <editId>` after human approval. Profile creation persists a named configuration; PCB saving remains a separate action. See [DRC Rule Editing](./drc-rules.md).
-
-Accepted examples:
-
-- `I confirm`
-- `confirmed`
-- `confirma salvar`
-- `confirmo`
-
-## Why Confirmation Exists
-
-AI-assisted exploration often involves guesses, retries, and partial context.
-
-The confirmation gate keeps those exploratory reads separate from actions that can affect the open project.
-
-## Confidence Levels
-
-Schematic analysis may return a confidence value:
-
-- `high`: data is strong enough for normal review
-- `partial`: useful, but some raw EasyEDA data was missing or inferred
-- `low`: treat as a hint and verify manually
-
-Always read `warnings` when they appear.
-
-## Practical Rule
-
-For important electrical decisions:
-
-1. use the MCP tools to find and explain the issue
-2. check warnings and confidence
-3. verify the critical area in EasyEDA Pro
-4. use confirmed actions only when the intent is clear
-
-## Not Implemented
-
-This project does not implement:
-
-- commercial/order operations
-- unrestricted editor automation
-- offline `.epro` parsing
+| Confidence | Meaning | Recommended Action |
+| --- | --- | --- |
+| **`high`** | Complete primitive, pin, and net metadata available. | Safe to rely on structured results directly. |
+| **`partial`** | Useful context, but some connectivity was inferred from wire/pin geometry. | Review the `warnings` array and spot-check critical nets. |
+| **`low`** | Incomplete schematic metadata on the active sheet. | Treat as a hint and inspect the area visually with `easyeda_navigate_component`. |

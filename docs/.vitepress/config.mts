@@ -10,10 +10,10 @@ export default defineConfig({
     logo: "/landing.svg",
     nav: [
       { text: "Quick Start", link: "/quick-start" },
-      { text: "Guide", link: "/getting-started" },
       { text: "AI Clients", link: "/ai-client-setup" },
+      { text: "Workflows", link: "/workflows" },
       { text: "Tools", link: "/tools" },
-      { text: "Architecture", link: "/architecture" },
+      { text: "Upgrading", link: "/upgrading" },
       { text: "Changelog", link: "/changelog" },
       { text: "GitHub", link: "https://github.com/VLab-Software/easyeda_mcp" }
     ],
@@ -22,15 +22,15 @@ export default defineConfig({
         text: "Start Here",
         items: [
           { text: "Quick Start", link: "/quick-start" },
-          { text: "Getting Started", link: "/getting-started" },
-          { text: "MCP Client Setup", link: "/mcp-client-setup" },
           { text: "AI Client Setup", link: "/ai-client-setup" },
-          { text: "EasyEDA Pro Extension Setup", link: "/easyeda-extension" }
+          { text: "EasyEDA Pro Extension", link: "/easyeda-extension" },
+          { text: "Upgrading & Compatibility", link: "/upgrading" }
         ]
       },
       {
-        text: "Reference",
+        text: "Guides & Reference",
         items: [
+          { text: "Practical Workflows", link: "/workflows" },
           { text: "Tools Reference", link: "/tools" },
           { text: "DRC Rule Editing", link: "/drc-rules" },
           { text: "Architecture", link: "/architecture" },

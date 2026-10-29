@@ -1,225 +1,28 @@
 # Git Workflow
 
-This document defines the recommended Git workflow for `easyeda_mcp`.
+`easyeda_mcp` uses a lightweight **GitHub Flow** with tagged releases.
 
-The goal is to keep the repository easy to contribute to, stable for public discovery, and simple to distribute without creating a formal release for every small change.
+## Branches
 
-## Recommended Model
+- **`master`**: primary branch and public source of truth. Must always stay buildable and passing CI.
+- **Short-lived working branches**: branch from `master` using:
+  - `feature/<short-name>`
+  - `fix/<short-name>`
+  - `docs/<short-name>`
+  - `chore/<short-name>`
 
-This project should follow a lightweight workflow based on:
+## Day-to-Day Flow
 
-1. GitHub Flow
-2. Common-Flow
+1. Create a focused branch from `master`.
+2. Implement changes, tests, and documentation updates.
+3. Validate locally (`npm run setup:local`, `npm test`, `npm run typecheck`, `npm run typecheck:extension`, `npm run docs:build`).
+4. Open a pull request against `master` following [Pull Request Guide](./pull-requests.md).
+5. Merge once review and CI pass (`Deploy Docs` updates GitHub Pages automatically on pushes to `master`).
 
-In practice, that means:
+## Releases
 
-- `master` is the primary branch
-- work happens on short-lived branches
-- all changes go through pull requests
-- releases are created only when there is a meaningful product milestone
-- release branches are optional, not mandatory
+Do not cut a release for every merged PR. When shipping a new user-facing capability, `.eext` extension update, or important fix:
 
-## Why This Model Fits This Project
-
-`easyeda_mcp` is an open-source project with:
-
-- code changes
-- documentation changes
-- onboarding improvements
-- packaging and release artifacts
-- a public GitHub presence used for discovery
-
-A heavy Gitflow model with permanent `develop` and frequent `release/*` branching adds process overhead that is not necessary right now.
-
-This workflow keeps the project simple while still supporting:
-
-- external contributions
-- safe reviews
-- stable distribution
-- occasional prereleases and formal releases
-
-## Branch Roles
-
-### `master`
-
-`master` is the public source of truth.
-
-Rules:
-
-- must stay healthy and reviewable
-- should always be safe to clone and evaluate
-- should contain the latest approved work
-- can include unreleased improvements in docs and setup guidance
-
-`master` is not the same thing as a formal release.
-
-## Working Branches
-
-Create a short-lived branch from `master` for each task.
-
-Suggested naming:
-
-- `feature/<short-name>`
-- `fix/<short-name>`
-- `docs/<short-name>`
-- `chore/<short-name>`
-
-Examples:
-
-- `feature/add-pcb-export-helper`
-- `fix/bridge-timeout-handling`
-- `docs/improve-quick-start`
-- `chore/cleanup-build-script`
-
-## Pull Requests
-
-Every change should land through a pull request.
-
-Pull request guidelines:
-
-1. keep the scope focused
-2. use a clear title
-3. explain user-facing impact
-4. mention setup, compatibility, or release implications when relevant
-5. avoid mixing unrelated code and docs changes unless they belong to the same feature
-
-Recommended PR title patterns:
-
-- `feature: add schematic navigation helper`
-- `fix: handle disconnected bridge state correctly`
-- `docs: improve quick start for first-time users`
-- `chore: simplify extension packaging script`
-
-See [Pull Request Guide](./pull-requests.md) for the detailed PR strategy used by this repository.
-
-## Milestones
-
-Milestones are recommended.
-
-Use them to group related issues and pull requests by:
-
-1. version
-2. release goal
-3. short-term initiative
-
-Suggested examples:
-
-- `v0.1.1`
-- `v0.2.0`
-- `Docs & Distribution`
-- `Beta Stability`
-
-Milestones give visibility without forcing a formal release for every merged change.
-
-## Projects
-
-GitHub Projects are optional.
-
-Prefer starting with:
-
-1. labels
-2. issues
-3. milestones
-
-Move to Projects only when contribution volume grows enough that board-style tracking becomes necessary.
-
-## Release Strategy
-
-Do not create a release for every merge to `master`.
-
-Create a formal GitHub release only when there is a meaningful milestone, such as:
-
-1. a new `.eext` package intended for users
-2. a new MCP capability worth announcing
-3. a compatibility change affecting setup or clients
-4. a bug fix important enough for users to upgrade immediately
-5. a checkpoint version you want directories and communities to reference
-
-## Tags
-
-Use version tags for formal releases.
-
-Examples:
-
-- `v0.1.0`
-- `v0.1.1`
-- `v0.2.0`
-
-## Optional Release Branches
-
-Release branches are optional.
-
-Only create a release branch when:
-
-1. the release needs final verification or polishing
-2. documentation and packaging work must continue while new development also moves forward
-3. you need a temporary freeze before publishing a version
-
-Suggested naming:
-
-- `release/0.2.0`
-
-If a release branch is used:
-
-1. branch from `master`
-2. allow only release-focused fixes and docs adjustments
-3. merge back to `master` when finalized
-4. tag the release on `master`
-5. delete the release branch after completion
-
-## Hotfixes
-
-Critical fixes should branch directly from `master`.
-
-Suggested naming:
-
-- `hotfix/<short-name>`
-
-Examples:
-
-- `hotfix/fix-extension-package`
-- `hotfix/restore-bridge-compatibility`
-
-After review and merge:
-
-1. tag a patch release if needed
-2. update docs or release notes if user behavior changed
-
-## Practical Day-To-Day Flow
-
-The default flow for most work should be:
-
-1. branch from `master`
-2. implement one focused change
-3. open a pull request
-4. review and merge into `master`
-5. release later only if the change is part of a meaningful milestone
-
-## What We Are Avoiding
-
-This project intentionally avoids a heavy permanent Gitflow setup with:
-
-- always-on `develop`
-- mandatory `release/*` branches
-- frequent merge choreography between long-lived branches
-
-That model is useful for larger teams with strict staged release cycles, but it is unnecessary overhead for the current needs of this repository.
-
-## Recommended Team Rules
-
-1. Keep branches short-lived.
-2. Keep PRs small and easy to review.
-3. Keep `master` healthy and presentable.
-4. Tag releases only for meaningful milestones.
-5. Use release branches only when they clearly reduce risk.
-6. Prefer clarity and consistency over ceremony.
-
-## Summary
-
-The recommended pattern for this repository is:
-
-- GitHub Flow for daily work
-- Common-Flow style tagged releases
-- optional release branches when needed
-
-This gives the project a stable public base, supports open-source collaboration, and avoids unnecessary release churn.
+1. Update versions in `src/version.ts`, `package.json`, `package-lock.json`, `server.json`, and `extension/extension.json` (verified by `src/version.test.ts`), plus `docs/changelog.md`.
+2. Merge to `master`.
+3. Tag and push (`git tag v1.x.y && git push origin v1.x.y`) — `.github/workflows/release.yml` automatically validates, packages `.eext` + `SHA256SUMS.txt`, and publishes the GitHub Release.

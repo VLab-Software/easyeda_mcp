@@ -1,134 +1,43 @@
 # Architecture
 
-You do not need this page for setup. Use it when you want to understand how the bridge works.
-
-## One-Line Version
-
-The MCP client talks to a local Node.js server. The server talks to an EasyEDA Pro extension over WebSocket. The extension reads the open EasyEDA Pro project through `eda.*` APIs.
+EasyEDA Pro MCP bridges any `stdio` MCP client to the live `eda.*` runtime inside EasyEDA Pro over a localhost WebSocket link.
 
 ```mermaid
 flowchart LR
-    A["MCP Client"] --> B["MCP Server"]
-    B --> C["Local WebSocket Bridge"]
-    C --> D["EasyEDA Pro Extension"]
-    D --> E["EasyEDA Pro APIs"]
+    A["MCP Client (stdio)"] --> B["MCP Server (Node.js)"]
+    B --> C["WebSocket Bridge (127.0.0.1:8765)"]
+    C --> D["EasyEDA Pro Extension (.eext)"]
+    D --> E["EasyEDA Pro eda.* APIs"]
 ```
 
-## Main Parts
+## Design Principles
 
-### MCP Server
+1. **Live editor source of truth**: queries run against the active schematic or PCB open in EasyEDA Pro rather than fragile offline file exports.
+2. **Read-first by default**: 22 of 24 tools are strictly non-destructive (`readOnlyHint: true`) and never alter editor or project state.
+3. **Two-phase confirmed mutations**: high-impact edits (such as PCB DRC rules) require an immutable preview (`easyeda_prepare_drc_edit`), human approval of an exact confirmation token, target-identity checks, and native readback verification.
+4. **Actionable diagnostics**: every error returns a deterministic `errorCode` (`wrong_document`, `stale_edit`, `api_unavailable`, etc.) and remediation steps.
 
-Entrypoint:
+## Core Modules
 
-```text
-src/index.ts
-```
+| Module | Source Path | Responsibility |
+| --- | --- | --- |
+| **CLI Entrypoint** | `src/index.ts` | Starts the WebSocket server, attaches `StdioServerTransport`, and manages process shutdown. |
+| **WebSocket Bridge** | `src/bridge/EasyEdaBridge.ts` | Listens on `ws://127.0.0.1:8765`, tracks extension handshake and version compatibility, and dispatches timed RPC requests. |
+| **MCP Tool Registry** | `src/mcp/registerTools.ts` | Registers all 24 MCP tools, Zod input schemas, MCP tool annotations, and server-side confirmation guards. |
+| **Schematic Engine** | `src/schematic/analysis.ts` | Normalizes schematic primitives, traces nets and components, and evaluates graph-based circuit assertions. |
+| **DRC Contracts** | `src/drc/contracts.ts` | Shared browser-safe Zod schemas and canonical JSON validation for PCB design rule operations. |
+| **Extension Host** | `extension/src/index.ts` | Connects via `eda.sys_WebSocket`, reports active document metadata, and routes bridge RPC methods to `eda.*` APIs. |
+| **DRC Handler** | `extension/src/drcRules.ts` | Reads `eda.pcb_Drc` surfaces, stages immutable previews with 15-minute TTL, verifies PCB identity, and performs readback checks. |
+| **Release Identity** | `src/version.ts` | Single source of truth for server (`1.1.0`), extension (`0.2.0`), and bridge protocol (`0.1.0`) versions, verified in `src/version.test.ts`. |
 
-Responsibilities:
+## Request Lifecycle
 
-- expose MCP tools over `stdio`
-- validate tool inputs
-- start the local WebSocket bridge
-- return structured tool results
+1. **Tool invocation**: The AI client calls an MCP tool over `stdio` JSON-RPC.
+2. **Schema & guard validation**: The MCP server validates parameters with Zod and rejects unconfirmed mutations before touching the WebSocket bridge.
+3. **Bridge RPC dispatch**: The server sends `{ kind: "call", requestId, method, params }` over `ws://127.0.0.1:8765`.
+4. **Native `eda.*` execution**: The extension executes the requested `eda.*` API calls on the open project and responds with `{ kind: "result", result }` or `{ kind: "error", error }`.
+5. **Structured response**: The server returns both formatted text and `structuredContent` to the AI client.
 
-### WebSocket Bridge
-
-File:
-
-```text
-src/bridge/EasyEdaBridge.ts
-```
-
-Default endpoint:
-
-```text
-ws://127.0.0.1:8765
-```
-
-Responsibilities:
-
-- wait for the EasyEDA Pro extension
-- track connection status
-- send method calls to the extension
-- enforce timeouts
-- report compatibility problems
-
-### Tool Layer
-
-File:
-
-```text
-src/mcp/registerTools.ts
-```
-
-Responsibilities:
-
-- define MCP tool names
-- define schemas
-- route read-only calls
-- gate mutating calls behind confirmation
-
-### EasyEDA Pro Extension
-
-Main file:
-
-```text
-extension/src/index.ts
-```
-
-Responsibilities:
-
-- connect to the local WebSocket bridge
-- receive bridge calls
-- call EasyEDA Pro `eda.*` APIs
-- return editor data to the MCP server
-
-### Schematic Analysis
-
-File:
-
-```text
-src/schematic/analysis.ts
-```
-
-Responsibilities:
-
-- normalize components, pins, wires, labels, and nets
-- trace nets and components
-- find unconnected pins
-- validate schematic areas
-- verify connection assertions
-
-## PCB Design Rule Editing
-
-`src/drc/contracts.ts` contains browser-compatible typed operations and JSON validation shared by the server and extension. `extension/src/drcRules.ts` handles the native `eda.pcb_Drc` API calls, PCB identity checks, immutable before/after previews, and in-memory edit results. `src/version.ts` defines the server and extension release versions.
-
-The DRC write flow is read → prepare → human approval → `easyeda_confirmed_action` → native write → readback. Both boundaries require the exact prepared confirmation (`CONFIRM editDrcRules <editId>`). See [DRC Rule Editing](./drc-rules.md).
-
-## Request Flow
-
-When an AI client calls a tool:
-
-1. MCP client calls the local server
-2. server validates the tool input
-3. server sends a bridge method over WebSocket
-4. EasyEDA Pro extension receives the method
-5. extension calls EasyEDA Pro APIs
-6. result returns to the server
-7. server returns the result to the MCP client
-
-## Why It Works This Way
-
-This architecture keeps the system local and live:
-
-- no project export is required for normal inspection
-- the AI sees the project that is actually open
-- EasyEDA-specific API calls stay inside the extension
-- MCP clients get a stable tool interface
-
-## Current Limits
-
-- EasyEDA Pro must be running
-- the extension must stay connected
-- MCP clients may need a restart after new tools are added
-- offline `.epro` parsing is not part of this version
+::: warning Stdio Transport Integrity
+The MCP server communicates over `stdout` using JSON-RPC. Any diagnostic or debug logging inside `src/` **must** write to `stderr` (`console.error`), never `console.log`.
+:::

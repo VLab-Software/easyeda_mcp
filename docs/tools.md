@@ -1,262 +1,404 @@
 # Tools Reference
 
-Use this page when you know what you want to do and need the right MCP tool.
+EasyEDA Pro MCP exposes **24 tools** across 6 categories. All inspection, tracing, navigation, and export tools are read-only (`readOnlyHint: true`).
 
-## Fast Picker
+## Tool Catalog
 
-| Goal | Start with |
-| --- | --- |
-| Check whether the bridge works | `easyeda_doctor` |
-| See what is open in EasyEDA Pro | `easyeda_get_context` |
-| Find a part | `easyeda_find_component` |
-| Find a net | `easyeda_find_net` |
-| Inspect the whole schematic | `easyeda_schematic_snapshot` |
-| List schematic parts | `easyeda_list_schematic_components` |
-| Inspect one part's pins | `easyeda_get_component_pins` |
-| Trace a signal or power rail | `easyeda_trace_net` |
-| Trace everything around one part | `easyeda_trace_component` |
-| Find likely wiring gaps | `easyeda_find_unconnected_pins` |
-| Run generic schematic checks | `easyeda_validate_schematic_area` |
-| Check exact connection rules | `easyeda_verify_connections` |
-| Move the editor to a part | `easyeda_navigate_component` |
-| Export manufacturing files | `easyeda_export_bom`, `easyeda_export_netlist`, `easyeda_export_gerber`, `easyeda_export_pdf` |
-| Read or edit PCB design rules | `easyeda_get_drc_rules`, `easyeda_prepare_drc_edit`, `easyeda_get_drc_edit_result` |
-| Save/import/autoroute/autolayout | `easyeda_confirmed_action` |
+- **[Status & Context](#status-context)** (3 tools)
+  - [`easyeda_doctor`](#easyeda_doctor) · [`easyeda_live_status`](#easyeda_live_status) · [`easyeda_get_context`](#easyeda_get_context)
+- **[Search & Schematic Inspection](#search-schematic-inspection)** (5 tools)
+  - [`easyeda_schematic_snapshot`](#easyeda_schematic_snapshot) · [`easyeda_list_schematic_components`](#easyeda_list_schematic_components) · [`easyeda_get_component_pins`](#easyeda_get_component_pins) · [`easyeda_find_component`](#easyeda_find_component) · [`easyeda_find_net`](#easyeda_find_net)
+- **[Circuit Tracing & Verification](#circuit-tracing-verification)** (5 tools)
+  - [`easyeda_trace_net`](#easyeda_trace_net) · [`easyeda_trace_component`](#easyeda_trace_component) · [`easyeda_find_unconnected_pins`](#easyeda_find_unconnected_pins) · [`easyeda_validate_schematic_area`](#easyeda_validate_schematic_area) · [`easyeda_verify_connections`](#easyeda_verify_connections)
+- **[PCB Design Rules — DRC](#pcb-design-rules-drc)** (3 tools)
+  - [`easyeda_get_drc_rules`](#easyeda_get_drc_rules) · [`easyeda_prepare_drc_edit`](#easyeda_prepare_drc_edit) · [`easyeda_get_drc_edit_result`](#easyeda_get_drc_edit_result)
+- **[Navigation & Exports](#navigation-exports)** (7 tools)
+  - [`easyeda_navigate_component`](#easyeda_navigate_component) · [`easyeda_navigate_region`](#easyeda_navigate_region) · [`easyeda_zoom_board`](#easyeda_zoom_board) · [`easyeda_export_bom`](#easyeda_export_bom) · [`easyeda_export_netlist`](#easyeda_export_netlist) · [`easyeda_export_gerber`](#easyeda_export_gerber) · [`easyeda_export_pdf`](#easyeda_export_pdf)
+- **[Confirmation-Gated Actions](#confirmation-gated-actions)** (1 tool)
+  - [`easyeda_confirmed_action`](#easyeda_confirmed_action)
 
-## Recommended First Flow
+::: info Common Timeout Parameter
+Every RPC tool accepts an optional **`timeoutMs`** (`integer`, `1`–`120000`). Default is `10000` ms for fast lookups, `30000` ms for schematic analysis/BOM/netlist exports, and `60000` ms for Gerber/PDF exports and confirmed actions.
+:::
 
-Run these in order when starting a session:
+---
 
-1. `easyeda_doctor`
-2. `easyeda_get_context`
-3. `easyeda_schematic_snapshot`
-4. `easyeda_trace_component` or `easyeda_trace_net`
-
-## Tool Groups
-
-- status and context
-- search and inspection
-- schematic analysis
-- navigation and export
-- explicitly confirmed actions
-
-## Status and Context
-
-### `easyeda_live_status`
-
-Checks whether the EasyEDA Pro extension is connected and returns current bridge and editor status information.
-
-Use this for a quick yes/no connection check.
+## Status & Context
 
 ### `easyeda_doctor`
 
-Returns a structured diagnosis of the local MCP bridge, extension connection state, protocol compatibility, active document availability, and recommended next steps.
+**Scope:** Local MCP Server (`readOnlyHint: true`, `idempotentHint: true`)
 
-Use this first when anything feels broken.
+Returns a structured health diagnosis of the MCP server, WebSocket bridge endpoint, extension connection state, protocol compatibility, active document availability, and recommended `nextSteps`.
+
+**Parameters:** None (`{}`)
+
+---
+
+### `easyeda_live_status`
+
+**Scope:** Local MCP Server (`readOnlyHint: true`, `idempotentHint: true`)
+
+Quick connection check returning the cached extension handshake status and `bridgeEndpoint` (`ws://127.0.0.1:8765`).
+
+**Parameters:** None (`{}`)
+
+---
 
 ### `easyeda_get_context`
 
-Returns a broader summary of the current editor context, including active document details and some available counts for project data.
+**Scope:** Editor RPC (`readOnlyHint: true`, default timeout: `10000` ms)
 
-Use this to confirm the AI is looking at the right EasyEDA Pro document.
+Fetches live context from EasyEDA Pro: active project/document UUIDs, `splitScreenTree` (open tabs), `capabilities` (including per-method `drcRules`), and component/net counts.
 
-## Search and Inspection
+**Parameters:**
+- **`timeoutMs`** (`number`, _optional_, default: `10000`): RPC timeout in milliseconds (`<= 120000`).
 
-### `easyeda_find_component`
+---
 
-Searches the active project for components matching a designator, name, value, footprint, or property text.
-
-Good queries: `U1`, `USB1`, `TPS`, `regulator`, or a footprint name.
-
-### `easyeda_find_net`
-
-Searches nets by name and returns available net metadata and connections.
-
-Good queries: `GND`, `VCC_5V`, `SDA`, `VBUS`, `D+`, or `CC1`.
-
-## Schematic Analysis
+## Search & Schematic Inspection
 
 ### `easyeda_schematic_snapshot`
 
-Builds a structured, normalized snapshot of the active schematic, including components, pins, wires, labels, nets, counts, warnings, and confidence metadata.
+**Scope:** Schematic RPC (`readOnlyHint: true`, default timeout: `30000` ms)
 
-This is the best starting point for schematic-level analysis.
+Builds a normalized snapshot of the active schematic: components, pins, wires, labels, nets, counts, `warnings`, and `confidence` (`high` | `partial` | `low`).
+
+**Parameters:**
+- **`includeRaw`** (`boolean`, _optional_, default: `true`): Include compact raw EasyEDA API payloads for fallback reasoning.
+- **`allPages`** (`boolean`, _optional_, default: `true`): Collect across all schematic pages when exposed by EasyEDA Pro.
+- **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
+
+---
 
 ### `easyeda_list_schematic_components`
 
-Lists normalized schematic components with key fields such as designator, value, name, footprint, position, and selected properties.
+**Scope:** Schematic RPC (`readOnlyHint: true`, default timeout: `30000` ms)
 
-Use it to inventory the schematic or filter for a family of parts.
+Lists normalized schematic components with designator, value, name, footprint, coordinates, and key properties.
+
+**Parameters:**
+- **`query`** (`string`, _optional_): Text filter matched against designator, value, name, or footprint.
+- **`limit`** (`number`, _optional_, default: `100`, max: `500`): Maximum components returned.
+- **`includeRaw`** (`boolean`, _optional_, default: `false`): Include raw primitive fields.
+- **`allPages`** (`boolean`, _optional_, default: `true`): Collect across all schematic sheets.
+- **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
+
+---
 
 ### `easyeda_get_component_pins`
 
-Returns the pins known for a component, including pin number, pin name, position, and net when available.
+**Scope:** Schematic RPC (`readOnlyHint: true`, default timeout: `30000` ms)
 
-Use it before writing exact checks with `easyeda_verify_connections`.
+Returns all known pins for a schematic component, including pin number, pin name, coordinates, and connected net.
+
+**Parameters:**
+- **`query`** (`string`, **required**): Component designator or search text (e.g., `"U1"`, `"USB1"`).
+- **`includeRaw`** (`boolean`, _optional_, default: `true`): Include raw pin metadata.
+- **`allPages`** (`boolean`, _optional_, default: `true`): Search all schematic pages.
+- **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
+
+---
+
+### `easyeda_find_component`
+
+**Scope:** Schematic / Project RPC (`readOnlyHint: true`, default timeout: `10000` ms)
+
+Searches the active project for components matching a designator, value, name, footprint, or property string.
+
+**Parameters:**
+- **`query`** (`string`, **required**): Search string (e.g., `"U1"`, `"TPS"`, `"0402"`).
+- **`limit`** (`number`, _optional_, default: `20`, max: `100`): Maximum results returned.
+- **`timeoutMs`** (`number`, _optional_, default: `10000`): RPC timeout in ms.
+
+---
+
+### `easyeda_find_net`
+
+**Scope:** Schematic / PCB RPC (`readOnlyHint: true`, default timeout: `10000` ms)
+
+Searches nets by exact or partial name and returns matching net metadata and pin connections.
+
+**Parameters:**
+- **`query`** (`string`, **required**): Net name or substring (e.g., `"GND"`, `"VBUS"`, `"SDA"`).
+- **`limit`** (`number`, _optional_, default: `20`, max: `100`): Maximum nets returned.
+- **`timeoutMs`** (`number`, _optional_, default: `10000`): RPC timeout in ms.
+
+---
+
+## Circuit Tracing & Verification
 
 ### `easyeda_trace_net`
 
-Traces a net and returns the pins, components, wires, labels, and related evidence associated with it.
+**Scope:** Schematic RPC (`readOnlyHint: true`, default timeout: `30000` ms)
 
-Use it to inspect a signal, power rail, or named net.
+Traces a schematic net and returns every connected pin, component, wire segment, net label, and port with connection evidence.
+
+**Parameters:**
+- **`query`** (`string`, **required**): Net name to trace (e.g., `"GND"`, `"VCC_3V3"`, `"CC1"`).
+- **`includeRaw`** (`boolean`, _optional_, default: `true`): Include raw primitive data.
+- **`allPages`** (`boolean`, _optional_, default: `true`): Trace across all schematic pages.
+- **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
+
+---
 
 ### `easyeda_trace_component`
 
-Traces a component's connections grouped by pin and net.
+**Scope:** Schematic RPC (`readOnlyHint: true`, default timeout: `30000` ms)
 
-Use it to review how one device is wired.
+Traces all nets and peer pins connected to a specific schematic component, grouped by pin.
+
+**Parameters:**
+- **`query`** (`string`, **required**): Component designator or query (e.g., `"USB1"`, `"U5"`).
+- **`includeRaw`** (`boolean`, _optional_, default: `true`): Include raw primitive data.
+- **`allPages`** (`boolean`, _optional_, default: `true`): Trace across all schematic pages.
+- **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
+
+---
 
 ### `easyeda_find_unconnected_pins`
 
-Finds pins that do not have a confirmed net in the normalized schematic data.
+**Scope:** Schematic RPC (`readOnlyHint: true`, default timeout: `30000` ms)
 
-Use it to find likely missing wires or symbol connectivity issues.
+Identifies schematic pins that do not resolve to any confirmed net in the normalized schematic graph.
+
+**Parameters:**
+- **`includePowerPins`** (`boolean`, _optional_, default: `true`): Set to `false` to exclude power-named pins (`VCC`, `GND`, `VDD`).
+- **`limit`** (`number`, _optional_, default: `100`, max: `500`): Maximum pins returned.
+- **`includeRaw`** (`boolean`, _optional_, default: `true`): Include raw pin data.
+- **`allPages`** (`boolean`, _optional_, default: `true`): Check all schematic pages.
+- **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
+
+---
 
 ### `easyeda_validate_schematic_area`
 
-Runs generic read-only schematic checks against selected components, selected nets, or the whole schematic.
+**Scope:** Schematic RPC (`readOnlyHint: true`, default timeout: `30000` ms)
 
-The current validation layer may report findings such as:
+Runs read-only heuristic checks (`pin_without_net`, `single_pin_net`, `single_node_net`, `similar_power_net_names`, `power_net_without_detected_capacitor`) on selected components/nets or the full schematic.
 
-- `pin_without_net`
-- `single_pin_net`
-- `single_node_net`
-- `similar_power_net_names`
-- `power_net_without_detected_capacitor`
+**Parameters:**
+- **`components`** (`string[]`, _optional_): Component designators to scope the check.
+- **`nets`** (`string[]`, _optional_): Net names to scope the check.
+- **`includeGlobalChecks`** (`boolean`, _optional_, default: `true`): Include schematic-wide power rail and net checks.
+- **`includeRaw`** (`boolean`, _optional_, default: `false`): Include raw primitive data.
+- **`allPages`** (`boolean`, _optional_, default: `true`): Check all schematic pages.
+- **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
+
+---
 
 ### `easyeda_verify_connections`
 
-Runs structured connection assertions against the active schematic.
+**Scope:** Schematic RPC (`readOnlyHint: true`, default timeout: `30000` ms)
 
-Use this when you want targeted checks such as:
+Evaluates structured circuit assertions (`pin_connected`, `pin_on_net`, `same_node`, `path_exists`, `path_absent`, `pull_to_net`, `decoupled_to_net`) and returns `pass` | `fail` | `unknown` per check with node/net evidence.
 
-- whether a pin is connected at all
-- whether a pin is on a specific net
-- whether two endpoints resolve to the same node
-- whether a path exists or does not exist
-- whether a signal is pulled to a reference net through a resistor or other passive component
-- whether a power node appears decoupled to a reference net
+**Parameters:**
+- **`checks`** (`object[]`, **required**, `1`–`50` items): Discriminated union on `type`:
+  - `pin_connected`: `{ type: "pin_connected", component, pin?, pinName?, id? }`
+  - `pin_on_net`: `{ type: "pin_on_net", component, pin?, pinName?, net, id? }`
+  - `same_node`: `{ type: "same_node", left: Endpoint, right: Endpoint, id? }`
+  - `path_exists` / `path_absent`: `{ type, from: Endpoint, to: Endpoint, through?: PassiveConstraint, maxHops?, id? }`
+  - `pull_to_net`: `{ type: "pull_to_net", signal: Endpoint, net, through: PassiveConstraint, maxHops?, id? }`
+  - `decoupled_to_net`: `{ type: "decoupled_to_net", power: Endpoint, referenceNet, capacitorValue?, maxHops?, id? }`
+  *(where `Endpoint` is `{ component, pin?, pinName? }` or `{ net }`, and `PassiveConstraint` is `{ kind?: "resistor" | "capacitor" | "inductor" | "diode" | "led" | "passive", component?, value? }`)*
+- **`maxHops`** (`number`, _optional_, default: `4`, max: `20`): Maximum traversal hops for path checks.
+- **`includeRaw`** (`boolean`, _optional_, default: `false`): Include raw primitive data.
+- **`allPages`** (`boolean`, _optional_, default: `true`): Evaluate across all schematic pages.
+- **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
 
-Supported assertion types include:
-
-- `pin_connected`
-- `pin_on_net`
-- `same_node`
-- `path_exists`
-- `path_absent`
-- `pull_to_net`
-- `decoupled_to_net`
-
-Example shape:
+**Example:**
 
 ```json
 {
   "checks": [
+    { "id": "usb-gnd", "type": "pin_on_net", "component": "USB1", "pinName": "GND", "net": "GND" },
     {
-      "type": "pin_on_net",
-      "component": "USB1",
-      "pinName": "GND",
-      "net": "GND"
+      "id": "cc1-pulldown",
+      "type": "pull_to_net",
+      "signal": { "component": "USB1", "pinName": "CC1" },
+      "net": "GND",
+      "through": { "kind": "resistor", "value": "5.1k" }
     },
     {
-      "type": "path_exists",
-      "from": { "component": "USB1", "pinName": "CC1" },
-      "to": { "net": "GND" },
-      "through": { "kind": "resistor", "value": "5.1k" }
+      "id": "vbus-decoupling",
+      "type": "decoupled_to_net",
+      "power": { "net": "VBUS" },
+      "referenceNet": "GND"
     }
   ]
 }
 ```
 
-## Navigation and Export
+---
+
+## PCB Design Rules — DRC
+
+::: tip Active PCB Required
+DRC tools require an active **PCB** document (`documentType: 3`). See [DRC Rule Editing](./drc-rules.md) for the full two-phase preview and confirmation workflow.
+:::
+
+### `easyeda_get_drc_rules`
+
+**Scope:** PCB RPC (`readOnlyHint: true`, default timeout: `10000` ms)
+
+Reads native PCB design rules from `eda.pcb_Drc` along with active PCB target identity (`projectId`, `documentId`, `tabId`) and per-method capabilities.
+
+**Parameters:**
+- **`scope`** (`"current" | "configurations" | "netRules" | "netByNetRules" | "regionRules"`, _optional_, default: `"current"`): Rule table or configuration scope to read.
+- **`timeoutMs`** (`number`, _optional_, default: `10000`): RPC timeout in ms.
+
+---
+
+### `easyeda_prepare_drc_edit`
+
+**Scope:** PCB RPC (`readOnlyHint: true`, default timeout: `10000` ms)
+
+Stages a typed DRC rule operation in extension memory without modifying the PCB. Returns `editId` (UUID), `confirmation` (`CONFIRM editDrcRules <editId>`), `target`, and `preview` (`before`, `requestedAfter`, `changedKeys`, `scope`, `impact`). Previews expire after 15 minutes.
+
+**Parameters:**
+- **`operation`** (`object`, **required**): Discriminated union on `type`:
+  - `{ type: "createConfiguration", configurationName: string, config: object }`
+  - `{ type: "updateCurrentConfiguration", config: object }`
+  - `{ type: "replaceNetRules", rules: object[] }`
+  - `{ type: "replaceNetByNetRules", rules: object }`
+  - `{ type: "replaceRegionRules", rules: object[] }`
+- **`timeoutMs`** (`number`, _optional_, default: `10000`): RPC timeout in ms.
+
+---
+
+### `easyeda_get_drc_edit_result`
+
+**Scope:** PCB RPC (`readOnlyHint: true`, default timeout: `10000` ms)
+
+Queries the in-memory status (`prepared` | `running` | `applied` | `failed` | `unknown` | `invalidated` | `expired`) of a prepared DRC edit. Use this after a timeout or disconnection instead of re-sending the edit.
+
+**Parameters:**
+- **`editId`** (`string`, **required**, UUID): The `editId` returned by `easyeda_prepare_drc_edit`.
+- **`timeoutMs`** (`number`, _optional_, default: `10000`): RPC timeout in ms.
+
+---
+
+## Navigation & Exports
 
 ### `easyeda_navigate_component`
 
-Requests navigation to a component in the EasyEDA Pro editor.
+**Scope:** Editor RPC (`readOnlyHint: true`, default timeout: `10000` ms)
 
-Use it after search or trace when you want to inspect the part visually.
+Focuses and highlights a component in the active EasyEDA Pro schematic or PCB view.
+
+**Parameters:**
+- **`query`** (`string`, **required**): Component designator or search query (e.g., `"USB1"`).
+- **`timeoutMs`** (`number`, _optional_, default: `10000`): RPC timeout in ms.
+
+---
 
 ### `easyeda_navigate_region`
 
-Navigates to coordinates or a rectangular region in the active document.
+**Scope:** Editor RPC (`readOnlyHint: true`, default timeout: `10000` ms)
 
-Use it when:
+Pans or zooms the active EasyEDA Pro editor to a point (`x`, `y`) or bounding box (`left`, `top`, `right`, `bottom`).
 
-- you already know the coordinate target
-- you want to zoom into a specific area
+**Parameters:**
+- **`x`**, **`y`**, **`left`**, **`top`**, **`right`**, **`bottom`** (`number`, _optional_): Target coordinates in editor units.
+- **`timeoutMs`** (`number`, _optional_, default: `10000`): RPC timeout in ms.
+
+---
 
 ### `easyeda_zoom_board`
 
-Zooms the active PCB editor to the board outline.
+**Scope:** PCB RPC (`readOnlyHint: true`, default timeout: `10000` ms)
+
+Zooms the active PCB editor to fit the board outline.
+
+**Parameters:**
+- **`timeoutMs`** (`number`, _optional_, default: `10000`): RPC timeout in ms.
+
+---
 
 ### `easyeda_export_bom`
 
-Exports a BOM from the active project.
+**Scope:** Manufacture RPC (`readOnlyHint: true`, default timeout: `30000` ms)
 
-Supported formats:
+Exports a Bill of Materials (BOM) from the active project.
 
-- `csv`
-- `xlsx`
-- `json`
+**Parameters:**
+- **`format`** (`"csv" | "xlsx" | "json"`, _optional_, default: `"csv"`): Output BOM format.
+- **`scope`** (`"pcb" | "schematic" | "auto"`, _optional_, default: `"auto"`): Source document scope.
+- **`fileName`** (`string`, _optional_): Custom output filename.
+- **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
+
+---
 
 ### `easyeda_export_netlist`
 
-Exports a netlist from the active schematic or PCB context.
+**Scope:** Manufacture RPC (`readOnlyHint: true`, default timeout: `30000` ms)
+
+Exports a netlist from the active schematic or PCB.
+
+**Parameters:**
+- **`scope`** (`"pcb" | "schematic" | "auto"`, _optional_, default: `"auto"`): Source document scope.
+- **`fileName`** (`string`, _optional_): Custom output filename.
+- **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
+
+---
 
 ### `easyeda_export_gerber`
 
-Exports Gerber fabrication data from the active PCB.
+**Scope:** PCB Manufacture RPC (`readOnlyHint: true`, default timeout: `60000` ms)
+
+Exports Gerber fabrication files from the active PCB.
+
+**Parameters:**
+- **`fileName`** (`string`, _optional_): Custom output archive filename.
+- **`timeoutMs`** (`number`, _optional_, default: `60000`): RPC timeout in ms.
+
+---
 
 ### `easyeda_export_pdf`
 
-Exports a PDF from the active schematic or PCB document.
+**Scope:** Manufacture RPC (`readOnlyHint: true`, default timeout: `60000` ms)
 
-## PCB Design Rules
+Exports a PDF of the active schematic or PCB document.
 
-- `easyeda_get_drc_rules`: read current rules, saved profiles, or rule tables.
-- `easyeda_prepare_drc_edit`: stage a before/after preview without writing.
-- `easyeda_get_drc_edit_result`: query a retained edit after completion or timeout.
+**Parameters:**
+- **`scope`** (`"pcb" | "schematic" | "auto"`, _optional_, default: `"auto"`): Source document scope.
+- **`fileName`** (`string`, _optional_): Custom output filename.
+- **`timeoutMs`** (`number`, _optional_, default: `60000`): RPC timeout in ms.
 
-Use `easyeda_confirmed_action` with `action: "editDrcRules"` to apply the approved preview. This action requires `CONFIRM editDrcRules <editId>` at both the server and extension boundaries. See [DRC Rule Editing](./drc-rules.md).
+---
 
-## Explicitly Confirmed Actions
+## Confirmation-Gated Actions
 
 ### `easyeda_confirmed_action`
 
-Runs a mutating EasyEDA Pro action only when the confirmation text explicitly confirms the action.
+**Scope:** Mutating Editor RPC (`readOnlyHint: false`, `destructiveHint: true`, `idempotentHint: false`, default timeout: `60000` ms)
 
-Supported actions:
+Executes a mutating EasyEDA Pro action only after human confirmation is verified.
 
-- `save`
-- `importChanges`
-- `autoroute`
-- `autolayout`
-- `editDrcRules` (exact prepared edit confirmation; see above)
+**Parameters:**
+- **`action`** (`"save" | "importChanges" | "autoroute" | "autolayout" | "editDrcRules"`, **required**): Target mutation to execute.
+- **`confirmation`** (`string`, **required**):
+  - For **`editDrcRules`**: exact string `CONFIRM editDrcRules <editId>` matching the prepared UUID.
+  - For **`save`**, **`importChanges`**, **`autoroute`**, **`autolayout`**: explicit phrase containing `I confirm`, `confirmed`, `confirma`, or `confirmo`.
+- **`params`** (`object`, _optional_): Required for `editDrcRules` (`{ "editId": "<UUID>" }`).
+- **`timeoutMs`** (`number`, _optional_, default: `60000`): RPC timeout in ms.
 
-For the legacy actions, the confirmation text must include an explicit confirmation phrase such as:
+::: code-group
 
-- `I confirm`
-- `confirmed`
-- `confirma`
-- `confirmo`
-
-Example shape:
-
-```json
+```json [Apply Prepared DRC Edit]
 {
-  "action": "save",
-  "confirmation": "I confirm"
+  "action": "editDrcRules",
+  "params": { "editId": "bd549553-e96d-4c9b-bb1f-f8e8ac28cf89" },
+  "confirmation": "CONFIRM editDrcRules bd549553-e96d-4c9b-bb1f-f8e8ac28cf89"
 }
 ```
 
-## Practical Usage Pattern
+```json [Save Active Document]
+{
+  "action": "save",
+  "confirmation": "I confirm saving the document"
+}
+```
 
-A useful workflow is often:
-
-1. `easyeda_live_status`
-2. `easyeda_doctor`
-3. `easyeda_get_context`
-4. `easyeda_schematic_snapshot`
-5. `easyeda_trace_component` or `easyeda_trace_net`
-6. `easyeda_verify_connections` for targeted assertions
-7. `easyeda_navigate_component` if you need to inspect the area visually
+:::
