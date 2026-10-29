@@ -27,7 +27,9 @@
   },
   "files": [
     "dist",
-    "README.md"
+    "build/dist/easyeda_mcp_bridge.eext",
+    "README.md",
+    "LICENSE"
   ],
   "bin": {
     "easyeda-pro-mcp": "dist/index.js"
@@ -39,9 +41,11 @@
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs",
     "package:extension": "node scripts/package-extension.mjs",
-    "prepublishOnly": "npm run build",
-    "package:all": "npm run build && npm run build:extension && npm run package:extension",
+    "package:mcpb": "node scripts/package-mcpb.mjs",
+    "prepublishOnly": "npm run package:all",
+    "package:all": "npm run build && npm run build:extension && npm run package:extension && npm run package:mcpb",
     "setup:local": "npm run package:all",
+    "setup:clients": "node dist/index.js setup --local",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "typecheck:extension": "tsc -p tsconfig.extension.json --noEmit --rootDir . --types node",

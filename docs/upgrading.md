@@ -15,18 +15,24 @@ When upgrading to a new release, always update **both** the MCP server and the E
 
 ## 3-Step Upgrade Checklist
 
-### 1. Pull & Rebuild the Server
+### 1. Update the Server & Export the Matching `.eext`
 
-From your cloned `easyeda_mcp` directory:
+::: code-group
 
-```bash
+```bash [npx (Recommended)]
+npx -y @vlabsoft/easyeda-pro-mcp@latest setup
+```
+
+```bash [Local Repository Clone]
 git pull origin master
 npm install
 npm run setup:local
 ```
 
-::: tip Prebuilt Extension Package
-You can also download [`easyeda_mcp_bridge.eext`](https://github.com/VLab-Software/easyeda_mcp/releases/latest/download/easyeda_mcp_bridge.eext) directly from [GitHub Releases](https://github.com/VLab-Software/easyeda_mcp/releases/latest).
+:::
+
+::: tip Prebuilt Release Packages (.eext & Claude Desktop .mcpb)
+You can also download [`easyeda_mcp_bridge.eext`](https://github.com/VLab-Software/easyeda_mcp/releases/latest/download/easyeda_mcp_bridge.eext) and [`easyeda-pro-mcp.mcpb`](https://github.com/VLab-Software/easyeda_mcp/releases/latest/download/easyeda-pro-mcp.mcpb) directly from [GitHub Releases](https://github.com/VLab-Software/easyeda_mcp/releases/latest).
 :::
 
 ### 2. Re-import the Extension in EasyEDA Pro

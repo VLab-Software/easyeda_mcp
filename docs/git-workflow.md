@@ -25,4 +25,4 @@ Do not cut a release for every merged PR. When shipping a new user-facing capabi
 
 1. Update versions in `src/version.ts`, `package.json`, `package-lock.json`, `server.json`, and `extension/extension.json` (verified by `src/version.test.ts`), plus `docs/changelog.md`.
 2. Merge to `master`.
-3. Tag and push (`git tag v1.x.y && git push origin v1.x.y`) — `.github/workflows/release.yml` automatically validates, packages `.eext` + `SHA256SUMS.txt`, and publishes the GitHub Release.
+3. Tag and push (`git tag v1.x.y && git push origin v1.x.y`) — `.github/workflows/release.yml` automatically validates, packages `.eext` + `.mcpb` + `SHA256SUMS.txt`, creates the GitHub Release, and publishes to npm and the Official MCP Registry.
