@@ -14,6 +14,7 @@ export default defineConfig({
       { text: "AI Clients", link: "/ai-client-setup" },
       { text: "Tools", link: "/tools" },
       { text: "Architecture", link: "/architecture" },
+      { text: "Changelog", link: "/changelog" },
       { text: "GitHub", link: "https://github.com/VLab-Software/easyeda_mcp" }
     ],
     sidebar: [
@@ -34,7 +35,8 @@ export default defineConfig({
           { text: "DRC Rule Editing", link: "/drc-rules" },
           { text: "Architecture", link: "/architecture" },
           { text: "Safety Model", link: "/safety" },
-          { text: "Troubleshooting", link: "/troubleshooting" }
+          { text: "Troubleshooting", link: "/troubleshooting" },
+          { text: "Changelog", link: "/changelog" }
         ]
       },
       {

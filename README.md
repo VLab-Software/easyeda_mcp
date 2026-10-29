@@ -96,30 +96,12 @@ Core capabilities:
 - [EasyEDA Pro Extension Setup](https://vlabsoft.org/easyeda_mcp/easyeda-extension): install and reconnect the editor extension
 - [Tools Reference](https://vlabsoft.org/easyeda_mcp/tools): available MCP tools
 - [DRC Rule Editing](./docs/drc-rules.md): inspect, preview, and apply PCB design rule changes
+- [Changelog](./docs/changelog.md): release history and new features
 - [Troubleshooting](https://vlabsoft.org/easyeda_mcp/troubleshooting): fixes by symptom
 
 ## Releases
 
-Download packaged extension builds from [GitHub Releases](https://github.com/VLab-Software/easyeda_mcp/releases). Local builds also create `build/dist/easyeda_mcp_bridge.eext`.
-
-## Changelog
-
-### `1.1.0` (Extension `0.2.0`) — PCB DRC Rule Inspection and Editing ([#14](https://github.com/VLab-Software/easyeda_mcp/issues/14))
-
-- **Native PCB DRC rule reads (`easyeda_get_drc_rules`)**: inspect `current` PCB rules, saved `configurations`, `netRules`, `netByNetRules`, and `regionRules`, along with per-method runtime capability detection on `eda.pcb_Drc`.
-- **Immutable DRC edit previews (`easyeda_prepare_drc_edit`)**: stage changes without modifying the PCB and receive an `editId`, target PCB identity (`projectUuid`, `documentUuid`, `tabId`), before/after snapshot, and exact confirmation phrase.
-- **Confirmed DRC rule updates (`easyeda_confirmed_action` with `action: "editDrcRules"`)**:
-  - `createConfiguration`: create a new named rule profile (`allowOverwrite=false`).
-  - `updateCurrentConfiguration`: update the active PCB rule configuration.
-  - `replaceNetRules`, `replaceNetByNetRules`, `replaceRegionRules`: replace rule tables on the active PCB.
-- **Stale-state & transport safety (`easyeda_get_drc_edit_result`)**: enforce exact confirmation (`CONFIRM editDrcRules <editId>`) at both the MCP server and extension boundaries, block execution if the PCB target, session, or underlying rules changed since preview, verify changes via full native readback, and query inconclusive/timed-out edits without replaying mutations.
-- **Release & CI hardening**: unified runtime/package/manifest version checks (`src/version.ts`), end-to-end stdio + WebSocket DRC smoke test (`npm run test:smoke:drc`), and [DRC Rule Editing documentation](./docs/drc-rules.md).
-
-### `0.1.0` — Initial Public Baseline
-
-- Local MCP server over `stdio` paired with the EasyEDA Pro WebSocket bridge extension.
-- Live project and active document context (`easyeda_doctor`, `easyeda_get_context`).
-- Schematic snapshot, component/net tracing, connection assertions, navigation, exports, and confirmation-gated editor actions.
+Download packaged extension builds from [GitHub Releases](https://github.com/VLab-Software/easyeda_mcp/releases) and see [docs/changelog.md](./docs/changelog.md) for what changed in each version. Local builds also create `build/dist/easyeda_mcp_bridge.eext`.
 
 ## Development
 
