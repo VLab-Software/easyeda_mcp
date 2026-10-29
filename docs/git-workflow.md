@@ -13,7 +13,7 @@ This project should follow a lightweight workflow based on:
 
 In practice, that means:
 
-- `main` is the primary branch
+- `master` is the primary branch
 - work happens on short-lived branches
 - all changes go through pull requests
 - releases are created only when there is a meaningful product milestone
@@ -40,9 +40,9 @@ This workflow keeps the project simple while still supporting:
 
 ## Branch Roles
 
-### `main`
+### `master`
 
-`main` is the public source of truth.
+`master` is the public source of truth.
 
 Rules:
 
@@ -51,11 +51,11 @@ Rules:
 - should contain the latest approved work
 - can include unreleased improvements in docs and setup guidance
 
-`main` is not the same thing as a formal release.
+`master` is not the same thing as a formal release.
 
 ## Working Branches
 
-Create a short-lived branch from `main` for each task.
+Create a short-lived branch from `master` for each task.
 
 Suggested naming:
 
@@ -125,7 +125,7 @@ Move to Projects only when contribution volume grows enough that board-style tra
 
 ## Release Strategy
 
-Do not create a release for every merge to `main`.
+Do not create a release for every merge to `master`.
 
 Create a formal GitHub release only when there is a meaningful milestone, such as:
 
@@ -161,15 +161,15 @@ Suggested naming:
 
 If a release branch is used:
 
-1. branch from `main`
+1. branch from `master`
 2. allow only release-focused fixes and docs adjustments
-3. merge back to `main` when finalized
-4. tag the release on `main`
+3. merge back to `master` when finalized
+4. tag the release on `master`
 5. delete the release branch after completion
 
 ## Hotfixes
 
-Critical fixes should branch directly from `main`.
+Critical fixes should branch directly from `master`.
 
 Suggested naming:
 
@@ -189,10 +189,10 @@ After review and merge:
 
 The default flow for most work should be:
 
-1. branch from `main`
+1. branch from `master`
 2. implement one focused change
 3. open a pull request
-4. review and merge into `main`
+4. review and merge into `master`
 5. release later only if the change is part of a meaningful milestone
 
 ## What We Are Avoiding
@@ -209,7 +209,7 @@ That model is useful for larger teams with strict staged release cycles, but it 
 
 1. Keep branches short-lived.
 2. Keep PRs small and easy to review.
-3. Keep `main` healthy and presentable.
+3. Keep `master` healthy and presentable.
 4. Tag releases only for meaningful milestones.
 5. Use release branches only when they clearly reduce risk.
 6. Prefer clarity and consistency over ceremony.

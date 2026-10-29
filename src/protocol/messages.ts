@@ -14,6 +14,7 @@ export type BridgeCapabilities = {
   pcbManufactureData: boolean;
   schManufactureData: boolean;
   fileSystem: boolean;
+  drcRules?: Record<string, boolean>;
 };
 
 export type EditorStatus = {

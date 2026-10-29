@@ -37,6 +37,14 @@ The extension manifest lives at:
 extension/extension.json
 ```
 
+## Upgrading for DRC Rule Editing
+
+The #14 implementation changes both the MCP server and the extension. Updating only the server is insufficient. This branch packages extension **0.2.0-rc.1** as `build/dist/easyeda-mcp-bridge_v0.2.0-rc.1.eext` and the alias `easyeda_mcp_bridge.eext`; these are development artifacts, not a published release.
+
+After `npm run setup:local`, manually import the new `.eext` in Extensions Manager. Confirm its version, fully quit/reopen the editor if callbacks still report the old version, restore **Allow interactive with external** if the editor disabled it, and reconnect. Restart the MCP client to reload its tool catalog. Rebuilds do not update an already-installed extension automatically.
+
+Use `easyeda_doctor` and `easyeda_get_context` to verify server `1.1.0-rc.1`, extension `0.2.0-rc.1`, protocol compatibility and the intended PCB. Check `capabilities.drcRules` for each method before using the experimental [DRC tools](./drc-rules.md). A Connected toast alone is not proof that RPC is using the new bundle.
+
 ## Permission You Must Enable
 
 EasyEDA Pro may disable external interaction for local extensions.

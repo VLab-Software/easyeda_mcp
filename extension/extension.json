@@ -3,14 +3,18 @@
   "uuid": "easyedamcpbridge202605240001abcd",
   "displayName": "EasyEDA MCP Bridge",
   "description": "Independent local WebSocket bridge that lets an MCP server inspect and assist the active EasyEDA Pro project.",
-  "version": "0.1.0",
+  "version": "0.2.0-rc.1",
   "publisher": "vlabsoft",
   "engines": {
     "eda": "^2.3.0"
   },
   "license": "MIT",
   "categories": "Other",
-  "keywords": ["MCP", "automation", "assistant"],
+  "keywords": [
+    "MCP",
+    "automation",
+    "assistant"
+  ],
   "activationEvents": {},
   "entry": "./dist/index",
   "dependentExtensions": {},

@@ -3,6 +3,7 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { hasExplicitMutationConfirmation, registerEasyEdaTools } from "./registerTools.js";
+import { BridgeTimeoutError, BridgeUnavailableError } from "../bridge/errors.js";
 
 const clients: Client[] = [];
 
@@ -32,6 +33,34 @@ async function makeClient(bridge: { endpoint: string; getStatus: () => unknown; 
 }
 
 describe("mutation confirmation guard", () => {
+  it("exposes DRC tools and rejects a vague DRC confirmation before dispatch", async () => {
+    const bridge = { endpoint: "ws://127.0.0.1:8765", getStatus: () => ({ connected: true }), call: vi.fn() };
+    const client = await makeClient(bridge);
+    const tools = await client.listTools();
+    expect(tools.tools.map(tool => tool.name)).toEqual(expect.arrayContaining(["easyeda_get_drc_rules", "easyeda_prepare_drc_edit", "easyeda_get_drc_edit_result"]));
+    const result = await client.callTool({ name: "easyeda_confirmed_action", arguments: {
+      action: "editDrcRules", confirmation: "confirmo", params: { editId: "22bd6220-9f2e-40a8-a019-d32a2f4d67eb" }
+    } });
+    expect(result.isError).toBe(true); expect(bridge.call).not.toHaveBeenCalled();
+  });
+  it.each([new BridgeTimeoutError("confirmedAction", 100), new BridgeUnavailableError()])("does not recommend retrying an inconclusive DRC mutation: %s", async error => {
+    const editId = "22bd6220-9f2e-40a8-a019-d32a2f4d67eb";
+    const bridge = { endpoint: "ws://127.0.0.1:8765", getStatus: () => ({ connected: true }), call: vi.fn().mockRejectedValue(error) };
+    const client = await makeClient(bridge);
+    const result = await client.callTool({ name: "easyeda_confirmed_action", arguments: {
+      action: "editDrcRules", confirmation: `CONFIRM editDrcRules ${editId}`, params: { editId }
+    } });
+    expect(result.structuredContent).toMatchObject({ error: "drc_edit_outcome_unknown", status: "unknown", editId, retryable: false });
+    expect(bridge.call).toHaveBeenCalledTimes(1);
+  });
+  it("forwards a reviewed DRC edit and marks a failed result as an MCP error", async () => {
+    const editId = "22bd6220-9f2e-40a8-a019-d32a2f4d67eb";
+    const bridge = { endpoint: "ws://127.0.0.1:8765", getStatus: () => ({ connected: true }), call: vi.fn().mockResolvedValue({ status: "failed" }) };
+    const client = await makeClient(bridge);
+    const result = await client.callTool({ name: "easyeda_confirmed_action", arguments: { action: "editDrcRules", confirmation: `CONFIRM editDrcRules ${editId}`, params: { editId } } });
+    expect(bridge.call).toHaveBeenCalledWith("confirmedAction", { action: "editDrcRules", confirmation: `CONFIRM editDrcRules ${editId}`, params: { editId } }, 60_000);
+    expect(result.isError).toBe(true);
+  });
   it("accepts explicit confirmation phrases", () => {
     expect(hasExplicitMutationConfirmation("confirma salvar")).toBe(true);
     expect(hasExplicitMutationConfirmation("I confirm this save")).toBe(true);

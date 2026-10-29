@@ -20,6 +20,7 @@ Use this page when you know what you want to do and need the right MCP tool.
 | Check exact connection rules | `easyeda_verify_connections` |
 | Move the editor to a part | `easyeda_navigate_component` |
 | Export manufacturing files | `easyeda_export_bom`, `easyeda_export_netlist`, `easyeda_export_gerber`, `easyeda_export_pdf` |
+| Read or edit PCB design rules (experimental) | `easyeda_get_drc_rules`, `easyeda_prepare_drc_edit`, `easyeda_get_drc_edit_result` |
 | Save/import/autoroute/autolayout | `easyeda_confirmed_action` |
 
 ## Recommended First Flow
@@ -210,6 +211,14 @@ Exports Gerber fabrication data from the active PCB.
 
 Exports a PDF from the active schematic or PCB document.
 
+## PCB Design Rules (Experimental)
+
+- `easyeda_get_drc_rules`: read current rules, saved profiles or rule tables.
+- `easyeda_prepare_drc_edit`: retain a before/after preview without writing.
+- `easyeda_get_drc_edit_result`: query a retained edit after completion or timeout.
+
+Use `easyeda_confirmed_action` with `action: "editDrcRules"` to apply the exact human-approved preview. This action requires `CONFIRM editDrcRules <editId>` at both boundaries; generic confirmation phrases do not authorize it. See [DRC rule editing](./drc-rules.md) for operation payloads, full-table replacement semantics, profile persistence and validation limits.
+
 ## Explicitly Confirmed Actions
 
 ### `easyeda_confirmed_action`
@@ -222,8 +231,9 @@ Supported actions:
 - `importChanges`
 - `autoroute`
 - `autolayout`
+- `editDrcRules` (exact prepared edit confirmation; see above)
 
-The confirmation text must include an explicit confirmation phrase such as:
+For the legacy actions, the confirmation text must include an explicit confirmation phrase such as:
 
 - `I confirm`
 - `confirmed`

@@ -86,6 +86,21 @@ Core capabilities:
 - editor navigation and export helpers
 - confirmation-gated editor-changing actions
 
+## Roadmap
+
+Current work is tracked in [issue #14 — DRC Design Rules Manipulation](https://github.com/VLab-Software/easyeda_mcp/issues/14). The detailed roadmap, dependencies and completion criteria are in [docs/evolution-plan.md](./docs/evolution-plan.md).
+
+| Stage | Status | Outcome |
+| --- | --- | --- |
+| Live inspection and review | Available in the public baseline | Local bridge, editor context, schematic analysis, navigation and exports |
+| PCB design rule editing (#14) | In development — experimental | Read native rules, prepare a preview, create a profile or update rules through exact confirmation |
+| International editor acceptance | Next for #14 | Verify the new extension and native rule readback in a disposable PCB; automated/mocked tests alone do not prove editor support |
+| Data reliability and native electrical sources | Planned | Identified per-page captures, native DRC and nets/netlist with explicit evidence |
+| Actionable review and PCB comparison | Planned | Revision differences, finding-linked navigation and schematic–PCB consistency |
+| Operation and distribution | Ongoing | Session safety, compatibility, CI, reproducible packages and documentation |
+
+This branch builds server **1.1.0-rc.1** and extension **0.2.0-rc.1** as development candidates; they are not published releases. The new DRC feature requires importing the extension built from this branch. Rule editing does not run DRC, and real-editor validation is still pending.
+
 ## Documentation
 
 - [Quick Start](https://vlabsoft.org/easyeda_mcp/quick-start): shortest path to a working setup
@@ -93,6 +108,8 @@ Core capabilities:
 - [AI Client Setup](https://vlabsoft.org/easyeda_mcp/ai-client-setup): Claude Desktop, Codex CLI, Claude Code CLI, VS Code, and generic MCP clients
 - [EasyEDA Pro Extension Setup](https://vlabsoft.org/easyeda_mcp/easyeda-extension): install and reconnect the editor extension
 - [Tools Reference](https://vlabsoft.org/easyeda_mcp/tools): available MCP tools
+- [Roadmap](./docs/evolution-plan.md): current implementation and planned work
+- [DRC Rule Editing](./docs/drc-rules.md): experimental previews and confirmed rule changes
 - [Troubleshooting](https://vlabsoft.org/easyeda_mcp/troubleshooting): fixes by symptom
 
 ## Releases
@@ -105,6 +122,8 @@ Download packaged extension builds from [GitHub Releases](https://github.com/VLa
 npm run setup:local
 npm test
 npm run typecheck
+npm run typecheck:extension
+npm run test:smoke:drc
 npm run docs:build
 ```
 
