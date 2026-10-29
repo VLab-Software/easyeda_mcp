@@ -56,5 +56,7 @@ describe("EasyEDA MCP server", () => {
     expect(result.isError).toBe(true);
     expect(result.content[0]?.type).toBe("text");
     expect(result.content[0]?.text).toContain("EasyEDA Pro extension is not connected");
+    const doctor = await client.callTool({ name: "easyeda_doctor", arguments: {} });
+    expect(doctor.structuredContent?.doctor).toMatchObject({ server: client.getServerVersion() });
   });
 });

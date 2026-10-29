@@ -49,7 +49,7 @@ hero:
 <div class="quick-grid">
   <div class="quick-card surface-card">
     <strong>Live context</strong>
-    <p>Read the active project, document, selection, components, nets, and editor state.</p>
+    <p>Read the active project, document, components, nets, and editor state.</p>
   </div>
   <div class="quick-card surface-card">
     <strong>Smarter reviews</strong>
@@ -70,11 +70,11 @@ hero:
   <div class="about-grid">
     <div class="about-item">
       <span class="about-label">How it works</span>
-      <p>An EasyEDA Pro extension connects to a local MCP server over WebSocket. The extension reads the open project through EasyEDA's internal APIs and forwards structured data to any MCP-compatible AI client. Nothing leaves your machine.</p>
+      <p>An EasyEDA Pro extension connects to a local MCP server over WebSocket. The extension reads the open project through EasyEDA's documented extension APIs and forwards structured data to any MCP-compatible AI client. The bridge runs locally; your MCP client and AI provider determine where the returned project data is processed.</p>
     </div>
     <div class="about-item">
       <span class="about-label">EasyEDA Pro version</span>
-      <p>Requires EasyEDA Pro <strong>2.3.0 or later</strong>. The extension uses the <code>eda.*</code> API surface introduced in that release.</p>
+      <p>Tested and supported on EasyEDA Pro <strong>2.3.0 and later</strong> (per the extension manifest <code>engines.eda: "^2.3.0"</code>).</p>
     </div>
     <div class="about-item">
       <span class="about-label">License</span>

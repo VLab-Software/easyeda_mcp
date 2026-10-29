@@ -17,6 +17,8 @@ import {
   type ProtocolCompatibility
 } from "../../src/protocol/messages.js";
 import { getBridgeConfig, getBridgeUri } from "./bridgeConfig.js";
+import { DrcRules } from "./drcRules.js";
+import { EXTENSION_VERSION } from "../../src/version.js";
 
 type EasyEdaApi = Record<string, any>;
 
@@ -45,8 +47,9 @@ type BridgeErrorMessage = {
 };
 
 const WS_ID = "easyeda-mcp-bridge";
-const EXTENSION_VERSION = "0.1.0";
+
 const bridgeConfig = getBridgeConfig();
+const drcRules = new DrcRules(() => eda);
 
 type ConnectionPhase = "idle" | "connecting" | "connected" | "blocked";
 
@@ -73,6 +76,9 @@ const connectionState: ConnectionState = {
 };
 
 const handlers: Record<string, (params: Record<string, any>) => Promise<unknown> | unknown> = {
+  getDrcRules: params => drcRules.read(params),
+  prepareDrcEdit: params => drcRules.prepare(params),
+  getDrcEditResult: params => drcRules.result(params),
   getContext,
   findComponent,
   findNet,
@@ -111,6 +117,7 @@ export function connect(): void {
 }
 
 export function reconnect(): void {
+  drcRules.connectionChanged();
   resetConnectionTimers();
   connectionState.phase = "idle";
   connectionState.attemptIndex = 0;
@@ -168,6 +175,7 @@ async function startBridge(options: { reason: string; manual: boolean }): Promis
         await handleMessage(event.data);
       },
       async () => {
+        drcRules.connectionChanged();
         connectionState.phase = "connected";
         connectionState.lastOpenAt = new Date().toISOString();
         connectionState.lastHandshakeAt = connectionState.lastOpenAt;
@@ -312,6 +320,7 @@ function handleConnectionFailure(
   error: BridgeErrorMessage["error"],
   options: { manual: boolean; shouldRetry: boolean }
 ): void {
+  drcRules.connectionChanged();
   clearOpenTimeout();
   if (connectionState.heartbeatTimer) {
     clearInterval(connectionState.heartbeatTimer);
@@ -690,6 +699,7 @@ async function exportPdf(params: Record<string, any>): Promise<Record<string, un
 
 async function confirmedAction(params: Record<string, any>): Promise<Record<string, unknown>> {
   const action = String(params.action ?? "");
+  if (action === "editDrcRules") return drcRules.apply(params.params, params.confirmation);
   const documentInfo = await optionalCall(() => eda.dmt_SelectControl.getCurrentDocumentInfo());
   const documentUuid = pickString(documentInfo, ["uuid", "documentUuid", "id"]);
 
@@ -731,8 +741,9 @@ async function confirmedAction(params: Record<string, any>): Promise<Record<stri
   throw apiError("unsupported_action", `Unsupported or unavailable confirmed action: ${action}.`);
 }
 
-function detectCapabilities(): Record<string, boolean> {
+function detectCapabilities(): Record<string, unknown> {
   return {
+    drcRules: drcRules.capabilities(),
     websocket: Boolean(eda.sys_WebSocket?.register && eda.sys_WebSocket?.send),
     pcbDocument: Boolean(eda.pcb_Document),
     schDocument: Boolean(eda.sch_Document),
@@ -972,7 +983,9 @@ function inferDocumentType(documentInfo: unknown): string {
     : undefined;
 
   if (numericType === 1) return "schematic";
-  if (numericType === 2) return "pcb";
+  if (numericType === 3) return "pcb";
+  if (numericType === 2) return "symbol";
+  if (numericType === 4) return "footprint";
 
   const raw = JSON.stringify(documentInfo ?? {}).toLowerCase();
   if (raw.includes("pcb")) return "pcb";

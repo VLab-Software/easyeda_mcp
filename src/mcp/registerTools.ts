@@ -3,6 +3,9 @@ import type { EasyEdaBridge } from "../bridge/EasyEdaBridge.js";
 import { ok, fail } from "./toolResult.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { PROTOCOL_VERSION, type EditorStatus } from "../protocol/messages.js";
+import { MCP_SERVER_NAME, MCP_SERVER_VERSION } from "../version.js";
+import { DrcScopeSchema, DrcOperationSchema, DrcEditQuerySchema, drcConfirmation } from "../drc/contracts.js";
+import { BridgeTimeoutError, BridgeUnavailableError } from "../bridge/errors.js";
 
 const DefaultTimeoutSchema = z.number().int().positive().max(120_000).default(10_000);
 const EndpointRefSchema = z.union([
@@ -135,8 +138,8 @@ export function registerEasyEdaTools(server: McpServer, bridge: EasyEdaBridge): 
       return ok(summary, {
         doctor: {
           server: {
-            name: "easyeda-pro-mcp",
-            version: "0.1.0",
+            name: MCP_SERVER_NAME,
+            version: MCP_SERVER_VERSION,
             protocolVersion: PROTOCOL_VERSION
           },
           bridge: {
@@ -412,35 +415,69 @@ export function registerEasyEdaTools(server: McpServer, bridge: EasyEdaBridge): 
     summary: "Requested EasyEDA Pro PDF export."
   });
 
+  registerReadTool(server, bridge, {
+    name: "easyeda_get_drc_rules", title: "Read native PCB design rules",
+    description: "Reads the active PCB's current configuration, named profiles, or net/net-by-net/region rule tables. Returns raw editor JSON and method availability; fields retain editor units. Does not run DRC or write rules.",
+    method: "getDrcRules", inputSchema: { scope: DrcScopeSchema.default("current"), timeoutMs: DefaultTimeoutSchema },
+    summary: "Read native PCB design rules."
+  });
+  registerReadTool(server, bridge, {
+    name: "easyeda_prepare_drc_edit", title: "Prepare a PCB design rule edit",
+    description: "Prepares one typed DRC operation without writing. Creates a new named rule profile, replaces the current configuration, or replaces an entire net/net-by-net/region table. Show all before/after data and obtain human approval for its editId. No implicit PCB save. Profiles persist when explicitly created.",
+    method: "prepareDrcEdit", inputSchema: { operation: DrcOperationSchema, timeoutMs: DefaultTimeoutSchema },
+    summary: "Prepared a PCB design rule edit without writing."
+  });
+  registerReadTool(server, bridge, {
+    name: "easyeda_get_drc_edit_result", title: "Query a PCB design rule edit",
+    description: "Query a retained DRC edit after execution or timeout. Never reapply an uncertain edit. Results live only in this extension instance.",
+    method: "getDrcEditResult", inputSchema: { ...DrcEditQuerySchema.shape, timeoutMs: DefaultTimeoutSchema },
+    summary: "Read retained PCB design rule edit result."
+  });
+
   server.registerTool(
     "easyeda_confirmed_action",
     {
       title: "Confirmed EasyEDA Pro action",
-      description: "Runs a mutating EasyEDA Pro action only when the confirmation text explicitly confirms the action.",
+      description: "Runs a mutating EasyEDA Pro action after human approval. For editDrcRules pass params:{editId} and the exact prepared confirmation. Saving the PCB remains separate.",
       inputSchema: {
-        action: z.enum(["save", "importChanges", "autoroute", "autolayout"]),
-        confirmation: z.string().describe("Must include an explicit confirmation phrase such as 'confirma salvar'."),
+        action: z.enum(["save", "importChanges", "autoroute", "autolayout", "editDrcRules"]),
+        confirmation: z.string().describe("DRC: exact CONFIRM editDrcRules <editId> after human review. Legacy actions require an explicit confirmation phrase."),
         params: z.record(z.string(), z.unknown()).optional(),
         timeoutMs: DefaultTimeoutSchema.default(60_000)
       },
       annotations: {
         readOnlyHint: false,
-        destructiveHint: false,
+        destructiveHint: true,
         idempotentHint: false,
         openWorldHint: false
       }
     },
     async ({ action, confirmation, params, timeoutMs }) => {
+      let drcDispatched = false;
       try {
-        if (!hasExplicitMutationConfirmation(confirmation)) {
+        if (action === "editDrcRules") {
+          const edit = DrcEditQuerySchema.parse(params);
+          if (confirmation !== drcConfirmation(edit.editId)) return fail(new Error("DRC edit blocked: use the exact prepared edit confirmation after human approval."));
+        } else if (!hasExplicitMutationConfirmation(confirmation)) {
           return fail(new Error(`Action "${action}" was blocked. The confirmation text must explicitly include a confirmation phrase such as "confirma salvar".`));
         }
+        drcDispatched = action === "editDrcRules";
         const result = await bridge.call("confirmedAction", { action, confirmation, params }, timeoutMs);
-        return ok(`Executed confirmed EasyEDA Pro action: ${action}.`, {
+        const response = ok(`EasyEDA Pro action result: ${action}.`, {
           action,
           result
         });
+        if (action === "editDrcRules" && (result as { status?: string }).status !== "applied") response.isError = true;
+        return response;
       } catch (error) {
+        if (drcDispatched && (error instanceof BridgeTimeoutError || error instanceof BridgeUnavailableError)) {
+          const response = ok("DRC edit outcome is inconclusive; query the edit without repeating it.", {
+            error: "drc_edit_outcome_unknown", status: "unknown", editId: params?.editId, retryable: false,
+            nextSteps: ["Call easyeda_get_drc_edit_result with this editId. Never automatically replay it."]
+          });
+          response.isError = true;
+          return response;
+        }
         return fail(error);
       }
     }
@@ -465,7 +502,7 @@ function doctorNextSteps(status: EditorStatus): string[] {
     ];
   }
 
-  if (!status.documentName && !status.projectName) {
+  if (!status.documentName && !status.projectName && !status.activeDocumentType && !status.documentInfo) {
     return [
       "Open a schematic or PCB document in EasyEDA Pro.",
       "Run easyeda_get_context or easyeda_live_status again after the document finishes loading."

@@ -1,0 +1,30 @@
+# Changelog
+
+All notable changes to the EasyEDA Pro MCP server and browser extension are documented on this page.
+
+For packaged `.eext` downloads and checksums, see [GitHub Releases](https://github.com/VLab-Software/easyeda_mcp/releases).
+
+## `1.1.0` (Extension `0.2.0`)
+
+**PCB DRC Design Rule Inspection and Editing ([#14](https://github.com/VLab-Software/easyeda_mcp/issues/14))**
+
+- **Native PCB DRC rule reads (`easyeda_get_drc_rules`)**: inspect `current` PCB rules, saved `configurations`, `netRules`, `netByNetRules`, and `regionRules`, along with per-method runtime capability detection on `eda.pcb_Drc`.
+- **Immutable DRC edit previews (`easyeda_prepare_drc_edit`)**: stage changes without modifying the PCB and receive an `editId`, target PCB identity (`projectUuid`, `documentUuid`, `tabId`), before/after snapshot, and exact confirmation phrase.
+- **Confirmed DRC rule updates (`easyeda_confirmed_action` with `action: "editDrcRules"`)**:
+  - `createConfiguration`: create a new named rule profile (`allowOverwrite=false`).
+  - `updateCurrentConfiguration`: update the active PCB rule configuration.
+  - `replaceNetRules`, `replaceNetByNetRules`, `replaceRegionRules`: replace rule tables on the active PCB.
+- **Stale-state & transport safety (`easyeda_get_drc_edit_result`)**: enforce exact confirmation (`CONFIRM editDrcRules <editId>`) at both the MCP server and extension boundaries, block execution if the PCB target, session, or underlying rules changed since preview, verify changes via full native readback, and query inconclusive/timed-out edits without replaying mutations.
+- **Release & CI hardening**: unified runtime/package/manifest version checks (`src/version.ts`), end-to-end stdio + WebSocket DRC smoke test (`npm run test:smoke:drc`), and [DRC Rule Editing documentation](./drc-rules.md).
+
+## `0.1.0` (Extension `0.1.0`)
+
+**Initial Public Release**
+
+- Local MCP server over `stdio` paired with the EasyEDA Pro WebSocket bridge extension (`ws://127.0.0.1:8765`).
+- Live project and active document context (`easyeda_live_status`, `easyeda_doctor`, `easyeda_get_context`).
+- Schematic inspection (`easyeda_schematic_snapshot`, `easyeda_list_schematic_components`, `easyeda_get_component_pins`, `easyeda_find_component`, `easyeda_find_net`).
+- Net and component tracing (`easyeda_trace_net`, `easyeda_trace_component`, `easyeda_find_unconnected_pins`).
+- Schematic validation and targeted connection assertions (`easyeda_validate_schematic_area`, `easyeda_verify_connections`).
+- Editor navigation and manufacturing exports (`easyeda_navigate_component`, `easyeda_navigate_region`, `easyeda_zoom_board`, `easyeda_export_bom`, `easyeda_export_netlist`, `easyeda_export_gerber`, `easyeda_export_pdf`).
+- Confirmation-gated editor actions (`easyeda_confirmed_action`: `save`, `importChanges`, `autoroute`, `autolayout`).

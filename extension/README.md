@@ -54,6 +54,10 @@ Healthy output should show:
 - bridge protocol compatible
 - active document available
 
+## PCB Design Rules (DRC)
+
+Supports native PCB rule reads, edit previews, and confirmed updates (`CONFIRM editDrcRules <editId>`). See the [DRC Rule Editing guide](https://vlabsoft.org/easyeda_mcp/drc-rules).
+
 ## Notes
 
 - This project is live-extension only; it does not parse `.epro` archives.

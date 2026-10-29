@@ -99,6 +99,12 @@ Responsibilities:
 - validate schematic areas
 - verify connection assertions
 
+## PCB Design Rule Editing
+
+`src/drc/contracts.ts` contains browser-compatible typed operations and JSON validation shared by the server and extension. `extension/src/drcRules.ts` handles the native `eda.pcb_Drc` API calls, PCB identity checks, immutable before/after previews, and in-memory edit results. `src/version.ts` defines the server and extension release versions.
+
+The DRC write flow is read → prepare → human approval → `easyeda_confirmed_action` → native write → readback. Both boundaries require the exact prepared confirmation (`CONFIRM editDrcRules <editId>`). See [DRC Rule Editing](./drc-rules.md).
+
 ## Request Flow
 
 When an AI client calls a tool:

@@ -27,11 +27,15 @@ jobs:
       - name: Validate
         run: |
           npm run typecheck
+          npm run typecheck:extension
           npm test
           npm run docs:build
 
       - name: Package extension
         run: npm run setup:local
+
+      - name: Smoke DRC over stdio and WebSocket
+        run: npm run test:smoke:drc
 
       - name: Generate checksums
         run: |
@@ -40,17 +44,22 @@ jobs:
 
       - name: Write release notes
         run: |
-          cat > RELEASE_NOTES.md <<'EOF'
-          First public beta release of EasyEDA Pro MCP.
-
-          Release assets:
-
-          - `easyeda-mcp-bridge_v0.1.0.eext`: versioned EasyEDA Pro extension package
-          - `easyeda_mcp_bridge.eext`: stable filename for the same extension package
-          - `SHA256SUMS.txt`: checksums for release assets
-
-          Start with the Quick Start guide in the documentation.
-          EOF
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const manifest = JSON.parse(fs.readFileSync('extension/extension.json', 'utf8'));
+          fs.writeFileSync('RELEASE_NOTES.md', [
+            'EasyEDA Pro MCP release.',
+            '',
+            'Release assets:',
+            '',
+            `- \`${manifest.name}_v${manifest.version}.eext\`: versioned EasyEDA Pro extension package`,
+            '- `easyeda_mcp_bridge.eext`: stable filename for the same extension package',
+            '- `SHA256SUMS.txt`: checksums for release assets',
+            '',
+            'Start with the Quick Start guide in the documentation.',
+            ''
+          ].join('\n'));
+          NODE
 
       - name: Create GitHub Release
         env:
@@ -60,6 +69,4 @@ jobs:
             build/dist/*.eext \
             build/dist/SHA256SUMS.txt \
             --title "$GITHUB_REF_NAME" \
-            --notes-file RELEASE_NOTES.md \
-            --prerelease \
-            --latest=false
+            --notes-file RELEASE_NOTES.md

@@ -1,6 +1,6 @@
 {
   "name": "@vlabsoft/easyeda-pro-mcp",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "mcpName": "io.github.VLab-Software/easyeda-pro-mcp",
   "description": "Independent open-source MCP server and EasyEDA Pro extension bridge for live PCB project assistance.",
   "main": "dist/index.js",
@@ -43,12 +43,14 @@
     "package:all": "npm run build && npm run build:extension && npm run package:extension",
     "setup:local": "npm run package:all",
     "test": "vitest run",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "typecheck:extension": "tsc -p tsconfig.extension.json --noEmit --rootDir . --types node",
+    "test:smoke:drc": "npm run build && node scripts/smoke-drc.mjs"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.29.0",
-    "ws": "^8.18.0",
-    "zod": "^3.25.76"
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "ws": "^8.22.0",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@types/fs-extra": "^11.0.4",

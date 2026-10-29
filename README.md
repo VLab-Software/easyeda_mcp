@@ -75,6 +75,7 @@ Run easyeda_doctor and summarize whether the EasyEDA Pro bridge is healthy.
 Run easyeda_get_context and tell me which document is open in EasyEDA Pro.
 Run easyeda_schematic_snapshot and summarize components, nets, warnings, and confidence.
 Run easyeda_trace_component for USB1 and summarize its connected nets.
+Run easyeda_get_drc_rules for the current PCB configuration and summarize the active rules.
 ```
 
 Core capabilities:
@@ -83,6 +84,7 @@ Core capabilities:
 - schematic inspection for components, pins, nets, wires, and labels
 - component and net tracing
 - targeted connection assertions
+- PCB design rule (DRC) inspection, preview, and confirmed rule editing
 - editor navigation and export helpers
 - confirmation-gated editor-changing actions
 
@@ -93,11 +95,13 @@ Core capabilities:
 - [AI Client Setup](https://vlabsoft.org/easyeda_mcp/ai-client-setup): Claude Desktop, Codex CLI, Claude Code CLI, VS Code, and generic MCP clients
 - [EasyEDA Pro Extension Setup](https://vlabsoft.org/easyeda_mcp/easyeda-extension): install and reconnect the editor extension
 - [Tools Reference](https://vlabsoft.org/easyeda_mcp/tools): available MCP tools
+- [DRC Rule Editing](./docs/drc-rules.md): inspect, preview, and apply PCB design rule changes
+- [Changelog](./docs/changelog.md): release history and new features
 - [Troubleshooting](https://vlabsoft.org/easyeda_mcp/troubleshooting): fixes by symptom
 
 ## Releases
 
-Download packaged extension builds from [GitHub Releases](https://github.com/VLab-Software/easyeda_mcp/releases). Local builds also create `build/dist/easyeda_mcp_bridge.eext`.
+Download packaged extension builds from [GitHub Releases](https://github.com/VLab-Software/easyeda_mcp/releases) and see [docs/changelog.md](./docs/changelog.md) for what changed in each version. Local builds also create `build/dist/easyeda_mcp_bridge.eext`.
 
 ## Development
 
@@ -105,6 +109,8 @@ Download packaged extension builds from [GitHub Releases](https://github.com/VLa
 npm run setup:local
 npm test
 npm run typecheck
+npm run typecheck:extension
+npm run test:smoke:drc
 npm run docs:build
 ```
 

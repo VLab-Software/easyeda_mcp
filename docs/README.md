@@ -22,9 +22,11 @@ The shortest path is:
 ## Reference
 
 - [Tools Reference](./tools.md): what each MCP tool does
+- [DRC Rule Editing](./drc-rules.md): native PCB design rule inspection, previews, and confirmed changes
 - [MCP Client Setup](./mcp-client-setup.md): generic MCP configuration
 - [Safety Model](./safety.md): read-only defaults and confirmed actions
 - [Architecture](./architecture.md): how server, bridge, and extension fit together
+- [Changelog](./changelog.md): release history and feature updates
 
 ## What This Project Does
 

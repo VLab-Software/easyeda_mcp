@@ -33,8 +33,9 @@ Supported actions:
 - `importChanges`
 - `autoroute`
 - `autolayout`
+- `editDrcRules` (exact prepared-edit confirmation required in server and extension)
 
-The tool blocks the request unless the confirmation text contains a clear confirmation phrase.
+The legacy actions block requests without a clear confirmation phrase. DRC rule edits require a prepared preview and the exact phrase `CONFIRM editDrcRules <editId>` after human approval. Profile creation persists a named configuration; PCB saving remains a separate action. See [DRC Rule Editing](./drc-rules.md).
 
 Accepted examples:
 

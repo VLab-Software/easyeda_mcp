@@ -139,13 +139,13 @@ describe("EasyEDA extension bridge handlers", () => {
     });
   });
 
-  it("infers schematic type from numeric documentType in status", async () => {
+  it.each([[1, "schematic"], [2, "symbol"], [3, "pcb"], [4, "footprint"]])("infers type %s as %s from official numeric documentType", async (documentType, expected) => {
     vi.stubGlobal("eda", {
-      ...(globalThis as { eda: Record<string, unknown> }).eda,
+      ...(globalThis as unknown as { eda: Record<string, unknown> }).eda,
       dmt_SelectControl: {
         getCurrentDocumentInfo: vi.fn(async () => ({
           uuid: "doc-123",
-          documentType: 1
+          documentType
         }))
       }
     });
@@ -156,7 +156,29 @@ describe("EasyEDA extension bridge handlers", () => {
     await registration.onOpen?.();
 
     const helloMessage = JSON.parse(sentMessages.at(0)?.message ?? "{}");
-    expect(helloMessage.status.activeDocumentType).toBe("schematic");
+    expect(helloMessage.status.activeDocumentType).toBe(expected);
+  });
+
+  it("routes DRC previews and enforces confirmation in the extension even without an MCP guard", async () => {
+    const overwrite = vi.fn(async () => true);
+    vi.stubGlobal("eda", {
+      ...(globalThis as unknown as { eda: Record<string, unknown> }).eda,
+      dmt_SelectControl: { getCurrentDocumentInfo: async () => ({ documentType: 3, uuid: "pcb", parentProjectUuid: "project", tabId: "pcb@project" }) },
+      pcb_Drc: { getCurrentRuleConfiguration: async () => ({ name: "Default", config: { testRule: 10 } }), overwriteCurrentRuleConfiguration: overwrite }
+    });
+    const extension = await import("./index.js");
+    extension.connect(); await registration.onOpen?.();
+    await registration.onMessage?.({ data: JSON.stringify({ kind: "call", requestId: "prepare-drc", method: "prepareDrcEdit",
+      params: { operation: { type: "updateCurrentConfiguration", config: { testRule: 20 } } } }) } as MessageEvent<string>);
+    const edit = JSON.parse(sentMessages.at(-1)!.message).result;
+    expect(edit.status).toBe("prepared");
+    await registration.onMessage?.({ data: JSON.stringify({ kind: "call", requestId: "apply-drc", method: "confirmedAction",
+      params: { action: "editDrcRules", confirmation: "confirmo", params: { editId: edit.editId } } }) } as MessageEvent<string>);
+    expect(JSON.parse(sentMessages.at(-1)!.message)).toMatchObject({ kind: "error", error: { code: "confirmation_required" } });
+    expect(overwrite).not.toHaveBeenCalled();
+    extension.reconnect();
+    await registration.onMessage?.({ data: JSON.stringify({ kind: "call", requestId: "query-drc", method: "getDrcEditResult", params: { editId: edit.editId } }) } as MessageEvent<string>);
+    expect(JSON.parse(sentMessages.at(-1)!.message).result.status).toBe("invalidated");
   });
 
   it("responds to verifyConnections requests with structured results", async () => {

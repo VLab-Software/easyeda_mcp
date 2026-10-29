@@ -2,9 +2,11 @@ name: CI
 
 on:
   pull_request:
+    branches:
+      - master
   push:
     branches:
-      - main
+      - master
 
 permissions:
   contents: read
@@ -28,6 +30,9 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
+      - name: Typecheck extension
+        run: npm run typecheck:extension
+
       - name: Test
         run: npm test
 
@@ -39,6 +44,9 @@ jobs:
 
       - name: Package extension
         run: npm run package:extension
+
+      - name: Smoke DRC over stdio and WebSocket
+        run: npm run test:smoke:drc
 
       - name: Build docs
         run: npm run docs:build

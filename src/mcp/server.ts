@@ -3,8 +3,8 @@ import { registerEasyEdaTools } from "./registerTools.js";
 import type { EasyEdaBridge } from "../bridge/EasyEdaBridge.js";
 import { PROTOCOL_VERSION } from "../protocol/messages.js";
 
-export const MCP_SERVER_NAME = "easyeda-pro-mcp";
-export const MCP_SERVER_VERSION = "0.1.0";
+import { MCP_SERVER_NAME, MCP_SERVER_VERSION } from "../version.js";
+export { MCP_SERVER_NAME, MCP_SERVER_VERSION } from "../version.js";
 export const MCP_BRIDGE_PROTOCOL_VERSION = PROTOCOL_VERSION;
 
 export function createMcpServer(bridge: EasyEdaBridge): McpServer {
