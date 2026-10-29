@@ -76,6 +76,6 @@ Earlier experimental work on other branches is not counted as implemented here. 
 - Import the extension built from this branch into the international editor and verify the reported version and method capabilities.
 - On a disposable PCB, read rules, prepare a small change, obtain approval for that preview, apply once and compare the native readback. No automatic PCB save.
 - Test page/rule/session changes and an uncertain result without replaying a mutation. Document instance-local result retention.
-- Open a PR against `main` with actual local results and the real-editor validation gap. Do not equate opening a PR with a release or Pages deployment.
+- Open a PR against `master` with actual local results and the real-editor validation gap. Do not equate opening a PR with a release or Pages deployment.
 
 Heuristic analysis is not ERC, native DRC or simulation. These distinctions remain part of every phase and acceptance record.

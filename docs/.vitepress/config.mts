@@ -60,7 +60,7 @@ export default defineConfig({
       level: [2, 3]
     },
     footer: {
-      message: "Released under the <a href=\"https://github.com/VLab-Software/easyeda_mcp/blob/main/LICENSE\">MIT License</a>. Not affiliated with, endorsed by, or sponsored by EasyEDA or JLCPCB (Shenzhen Jia Chuang Ban Technology Co., Ltd.). EasyEDA and EasyEDA Pro are trademarks of their respective owners.",
+      message: "Released under the <a href=\"https://github.com/VLab-Software/easyeda_mcp/blob/master/LICENSE\">MIT License</a>. Not affiliated with, endorsed by, or sponsored by EasyEDA or JLCPCB (Shenzhen Jia Chuang Ban Technology Co., Ltd.). EasyEDA and EasyEDA Pro are trademarks of their respective owners.",
       copyright: "Copyright © 2026 VLab Software"
     }
   }
