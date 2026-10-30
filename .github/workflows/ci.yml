@@ -2,11 +2,18 @@ name: CI
 
 on:
   pull_request:
+    types:
+      - opened
+      - edited
+      - synchronize
+      - reopened
     branches:
       - master
+      - develop
   push:
     branches:
       - master
+      - develop
 
 permissions:
   contents: read
@@ -17,6 +24,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Validate PR title prefix
+        if: github.event_name == 'pull_request'
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          BASE_REF: ${{ github.base_ref }}
+        run: node scripts/bump-version.mjs --check-pr-title "$PR_TITLE" --base-ref "$BASE_REF"
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -44,6 +58,9 @@ jobs:
 
       - name: Package extension
         run: npm run package:extension
+
+      - name: Package MCPB bundle
+        run: npm run package:mcpb
 
       - name: Smoke DRC over stdio and WebSocket
         run: npm run test:smoke:drc
