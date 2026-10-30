@@ -258,6 +258,40 @@ export function resolveAndPrepareRelease(options = {}) {
     };
   }
 
+  if (requestedBump === "none") {
+    return {
+      skip: true,
+      bumped: false,
+      bumpLevel: "none",
+      serverVersion: currentServerVersion,
+      extensionVersion: currentExtensionVersion,
+      tag: currentTag,
+      reason: "Bump skipped via requestedBump=none."
+    };
+  }
+
+  const changedFilesRaw = runGit(repoRoot, ["diff", "--name-only", `${currentTag}..HEAD`]);
+  const changedFiles = changedFilesRaw
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  if (
+    requestedBump === "auto" &&
+    changedFiles.length > 0 &&
+    changedFiles.every((filePath) => filePath.startsWith(".github/") || filePath.startsWith("scripts/bump-version"))
+  ) {
+    return {
+      skip: true,
+      bumped: false,
+      bumpLevel: "none",
+      serverVersion: currentServerVersion,
+      extensionVersion: currentExtensionVersion,
+      tag: currentTag,
+      reason: `Only CI/release automation files changed since ${currentTag}.`
+    };
+  }
+
   const bumpLevel = detectBumpLevel(commits, requestedBump);
   const nextServerVersion = incSemver(currentServerVersion, bumpLevel);
 
