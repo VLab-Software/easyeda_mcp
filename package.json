@@ -42,6 +42,7 @@
     "docs:preview": "vitepress preview docs",
     "package:extension": "node scripts/package-extension.mjs",
     "package:mcpb": "node scripts/package-mcpb.mjs",
+    "release:notes": "node scripts/generate-release-notes.mjs",
     "prepublishOnly": "npm run package:all",
     "package:all": "npm run build && npm run build:extension && npm run package:extension && npm run package:mcpb",
     "setup:local": "npm run package:all",
