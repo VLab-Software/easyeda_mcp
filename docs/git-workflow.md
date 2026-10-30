@@ -1,28 +1,36 @@
 # Git Workflow
 
-`easyeda_mcp` uses a lightweight **GitHub Flow** with tagged releases.
+`easyeda_mcp` uses a lightweight **`develop` -> `master` release workflow** so ongoing work never leaks unreleased documentation or requires a version bump on every pull request.
 
 ## Branches
 
-- **`master`**: primary branch and public source of truth. Must always stay buildable and passing CI.
-- **Short-lived working branches**: branch from `master` using:
-  - `feature/<short-name>`
-  - `fix/<short-name>`
-  - `docs/<short-name>`
-  - `chore/<short-name>`
+| Branch | Role | Automated Workflows |
+| --- | --- | --- |
+| **`master`** | Production branch & public source of truth. Always matches the latest published release. | `CI`, `Deploy Docs` (GitHub Pages) |
+| **`develop`** | Integration branch for upcoming features, fixes, and refactors before cutting a release. | `CI` |
+| **`feature/*`, `fix/*`, `docs/*`, `chore/*`** | Short-lived working branches created from `develop` (or from `master` for urgent production hotfixes). | `CI` (on Pull Request) |
 
-## Day-to-Day Flow
+## Day-to-Day Development Flow
 
-1. Create a focused branch from `master`.
-2. Implement changes, tests, and documentation updates.
+1. Create a focused branch from `develop`:
+   ```bash
+   git checkout develop && git pull origin develop
+   git checkout -b feature/<short-name>
+   ```
+2. Implement changes, tests, and documentation updates *(no version bump needed for individual feature PRs)*.
 3. Validate locally (`npm run setup:local`, `npm test`, `npm run typecheck`, `npm run typecheck:extension`, `npm run docs:build`).
-4. Open a pull request against `master` following [Pull Request Guide](./pull-requests.md).
-5. Merge once review and CI pass (`Deploy Docs` updates GitHub Pages automatically on pushes to `master`).
+4. Open a pull request against **`develop`** following [Pull Request Guide](./pull-requests.md) and merge once `CI` passes.
 
-## Releases
+## Cutting a Release (`develop` -> `master`)
 
-Do not cut a release for every merged PR. When shipping a new user-facing capability, `.eext` extension update, or important fix:
+When `develop` is ready to ship a new version to users:
 
-1. Update versions in `src/version.ts`, `package.json`, `package-lock.json`, `server.json`, and `extension/extension.json` (verified by `src/version.test.ts`), plus `docs/changelog.md`.
-2. Merge to `master`.
-3. Tag and push (`git tag v1.x.y && git push origin v1.x.y`) — `.github/workflows/release.yml` automatically validates, packages `.eext` + `.mcpb` + `SHA256SUMS.txt`, creates the GitHub Release, and publishes to npm and the Official MCP Registry.
+1. **Bump versions & changelog**: update `src/version.ts`, `package.json`, `package-lock.json`, `server.json`, and `extension/extension.json` (when the `.eext` extension changed — verified by `src/version.test.ts`), plus `docs/changelog.md` and `docs/upgrading.md`.
+2. **Promote to `master`**: open a release pull request from **`develop` -> `master`** and merge once `CI` passes (`Deploy Docs` updates `vlabsoft.org/easyeda_mcp/` automatically).
+3. **Tag & publish**:
+   ```bash
+   git checkout master && git pull origin master
+   git tag v1.x.y
+   git push origin v1.x.y
+   ```
+   Pushing `v*` triggers `.github/workflows/release.yml`, which automatically validates, packages `.eext` + `.mcpb` + `SHA256SUMS.txt`, creates the GitHub Release, and publishes to **npm** and the **Official MCP Registry**.
