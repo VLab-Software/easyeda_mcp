@@ -139,7 +139,7 @@ jobs:
 
   publish-registries:
     needs: release
-    if: needs.release.outputs.released == 'true'
+    if: needs.release.outputs.tag != ''
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -155,14 +155,16 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          registry-url: "https://registry.npmjs.org"
+
+      - name: Upgrade npm CLI for OIDC and Staged Publishing
+        run: npm install -g npm@latest
 
       - name: Install dependencies and build packages
         run: |
           npm ci
           npm run setup:local
 
-      - name: Publish to npm
+      - name: Publish or stage package on npm
         id: npm_publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -171,15 +173,22 @@ jobs:
           PKG_VERSION=$(node -p "JSON.parse(require('fs').readFileSync('package.json', 'utf8')).version")
           if npm view "${PKG_NAME}@${PKG_VERSION}" version >/dev/null 2>&1; then
             echo "${PKG_NAME}@${PKG_VERSION} is already published on npm."
-            echo "published=true" >> "$GITHUB_OUTPUT"
+            echo "published=already" >> "$GITHUB_OUTPUT"
             exit 0
+          fi
+
+          if [ -n "${NODE_AUTH_TOKEN:-}" ]; then
+            npm config set //registry.npmjs.org/:_authToken="${NODE_AUTH_TOKEN}"
           fi
 
           if npm publish --provenance --access public; then
             echo "published=true" >> "$GITHUB_OUTPUT"
+          elif npm stage publish --provenance --access public; then
+            echo "::notice::Staged ${PKG_NAME}@${PKG_VERSION} on npm! Approve it on https://www.npmjs.com/package/${PKG_NAME} or run: npx -y npm@latest stage list && npx -y npm@latest stage approve <stage-id>"
+            echo "published=staged" >> "$GITHUB_OUTPUT"
           else
             if [ -z "${NODE_AUTH_TOKEN:-}" ]; then
-              echo "::warning::npm publish skipped: configure NPM_TOKEN secret or npm OIDC Trusted Publishing for ${PKG_NAME}."
+              echo "::warning::npm publish/stage skipped: check Trusted Publisher settings or NPM_TOKEN for ${PKG_NAME}."
               echo "published=false" >> "$GITHUB_OUTPUT"
             else
               exit 1

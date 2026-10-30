@@ -147,6 +147,24 @@ describe("bump-version automation script", () => {
     expect(res.skip).toBe(true);
   });
 
+  it("skips version bump when only .github/ files changed since the last tag", () => {
+    const repo = makeTempGitRepo();
+    tempDirs.push(repo);
+    execFileSync("git", ["tag", "v1.2.0"], { cwd: repo, stdio: "ignore" });
+
+    fs.mkdirSync(path.join(repo, ".github", "workflows"), { recursive: true });
+    fs.writeFileSync(path.join(repo, ".github", "workflows", "release.yml"), "name: Release\n");
+    execFileSync("git", ["add", "."], { cwd: repo, stdio: "ignore" });
+    execFileSync("git", ["commit", "-m", "fix(ci): update workflow"], { cwd: repo, stdio: "ignore" });
+
+    const res = resolveAndPrepareRelease({ repoRoot: repo });
+    expect(res).toMatchObject({
+      skip: true,
+      bumped: false,
+      tag: "v1.2.0"
+    });
+  });
+
   it("prepends changelog cleanly while filtering merge and release commits", () => {
     const updated = prependChangelogSection("# Changelog\n\n## `1.2.0` (Extension `0.2.0`)\n\n- Old\n", {
       serverVersion: "1.2.1",
