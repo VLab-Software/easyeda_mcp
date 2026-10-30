@@ -33,8 +33,10 @@ export class EasyEdaBridge {
   private status: EditorStatus = createDisconnectedStatus();
 
   constructor(options: EasyEdaBridgeOptions = {}) {
-    this.host = options.host ?? process.env.EASYEDA_MCP_WS_HOST ?? "127.0.0.1";
-    this.port = options.port ?? Number(process.env.EASYEDA_MCP_WS_PORT ?? 8765);
+    const envHost = process.env.EASYEDA_MCP_WS_HOST?.trim();
+    const envPort = process.env.EASYEDA_MCP_WS_PORT?.trim();
+    this.host = options.host ?? (envHost || "127.0.0.1");
+    this.port = options.port ?? (envPort ? Number(envPort) : 8765);
     this.logger = options.logger ?? console;
   }
 
