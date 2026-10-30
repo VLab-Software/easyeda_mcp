@@ -2,18 +2,34 @@ name: Release
 
 on:
   push:
-    tags:
-      - "v*"
+    branches:
+      - master
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: "Version bump level if current version is already tagged (auto, patch, minor, major)"
+        required: false
+        default: "auto"
 
 permissions:
   contents: write
 
+concurrency:
+  group: release-master
+  cancel-in-progress: false
+
 jobs:
   release:
+    if: ${{ github.event_name == 'workflow_dispatch' || !startsWith(github.event.head_commit.message, 'chore(release):') }}
     runs-on: ubuntu-latest
+    outputs:
+      released: ${{ steps.prepare.outputs.skip == 'false' }}
+      tag: ${{ steps.prepare.outputs.tag }}
     steps:
-      - name: Checkout
+      - name: Checkout full history and tags
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -24,49 +40,157 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Prepare release version
+        id: prepare
+        run: node scripts/bump-version.mjs --bump "${{ inputs.bump || 'auto' }}"
+
       - name: Validate
+        if: steps.prepare.outputs.skip == 'false'
         run: |
           npm run typecheck
           npm run typecheck:extension
           npm test
           npm run docs:build
 
-      - name: Package extension
+      - name: Package server, extension, and MCPB bundle
+        if: steps.prepare.outputs.skip == 'false'
         run: npm run setup:local
 
       - name: Smoke DRC over stdio and WebSocket
+        if: steps.prepare.outputs.skip == 'false'
         run: npm run test:smoke:drc
 
+      - name: Commit version bump, tag release, and sync develop
+        if: steps.prepare.outputs.skip == 'false'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          TAG="${{ steps.prepare.outputs.tag }}"
+
+          if [ "${{ steps.prepare.outputs.bumped }}" = "true" ]; then
+            git add src/version.ts package.json package-lock.json server.json extension/extension.json docs/changelog.md
+            git commit -m "chore(release): ${TAG}"
+            git push origin HEAD:master
+          fi
+
+          git tag -a "${TAG}" -m "Release ${TAG}"
+          git push origin "refs/tags/${TAG}"
+
+          if git ls-remote --exit-code --heads origin develop >/dev/null 2>&1; then
+            git fetch origin develop
+            git checkout -B develop origin/develop
+            if git merge --no-edit "${TAG}"; then
+              git push origin develop || echo "::warning::Could not auto-sync develop branch."
+            else
+              git merge --abort || true
+              echo "::warning::develop has diverged with conflicts; merge master into develop manually."
+            fi
+            git checkout -f "${TAG}"
+          fi
+
       - name: Generate checksums
+        if: steps.prepare.outputs.skip == 'false'
         run: |
           cd build/dist
-          sha256sum *.eext > SHA256SUMS.txt
+          sha256sum *.eext *.mcpb > SHA256SUMS.txt
 
       - name: Write release notes
+        if: steps.prepare.outputs.skip == 'false'
         run: |
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
+          const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
           const manifest = JSON.parse(fs.readFileSync('extension/extension.json', 'utf8'));
           fs.writeFileSync('RELEASE_NOTES.md', [
-            'EasyEDA Pro MCP release.',
+            `EasyEDA Pro MCP v${pkg.version} (Extension v${manifest.version}).`,
             '',
-            'Release assets:',
+            '### Quick Install (All AI Clients)',
+            '',
+            '```bash',
+            'npx -y @vlabsoftware/easyeda-pro-mcp setup',
+            '```',
+            '',
+            '### Release Assets',
             '',
             `- \`${manifest.name}_v${manifest.version}.eext\`: versioned EasyEDA Pro extension package`,
-            '- `easyeda_mcp_bridge.eext`: stable filename for the same extension package',
-            '- `SHA256SUMS.txt`: checksums for release assets',
+            '- `easyeda_mcp_bridge.eext`: stable filename for the EasyEDA Pro extension package',
+            `- \`easyeda-pro-mcp_v${pkg.version}.mcpb\`: versioned 1-click MCPB bundle`,
+            '- `easyeda-pro-mcp.mcpb`: stable filename for the 1-click MCPB bundle',
+            '- `SHA256SUMS.txt`: SHA-256 checksums for all release assets',
             '',
-            'Start with the Quick Start guide in the documentation.',
+            'See the [Quick Start](https://vlabsoft.org/easyeda_mcp/quick-start) and [AI Client Setup](https://vlabsoft.org/easyeda_mcp/ai-client-setup) guides for full instructions.',
             ''
           ].join('\n'));
           NODE
 
       - name: Create GitHub Release
+        if: steps.prepare.outputs.skip == 'false'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$GITHUB_REF_NAME" \
+          TAG="${{ steps.prepare.outputs.tag }}"
+          gh release create "$TAG" \
             build/dist/*.eext \
+            build/dist/*.mcpb \
             build/dist/SHA256SUMS.txt \
-            --title "$GITHUB_REF_NAME" \
+            --title "$TAG" \
             --notes-file RELEASE_NOTES.md
+
+  publish-registries:
+    needs: release
+    if: needs.release.outputs.released == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout tagged release commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.release.outputs.tag }}
+
+      - name: Setup Node for npm Registry
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install dependencies and build packages
+        run: |
+          npm ci
+          npm run setup:local
+
+      - name: Publish to npm
+        id: npm_publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          PKG_NAME=$(node -p "JSON.parse(require('fs').readFileSync('package.json', 'utf8')).name")
+          PKG_VERSION=$(node -p "JSON.parse(require('fs').readFileSync('package.json', 'utf8')).version")
+          if npm view "${PKG_NAME}@${PKG_VERSION}" version >/dev/null 2>&1; then
+            echo "${PKG_NAME}@${PKG_VERSION} is already published on npm."
+            echo "published=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if npm publish --provenance --access public; then
+            echo "published=true" >> "$GITHUB_OUTPUT"
+          else
+            if [ -z "${NODE_AUTH_TOKEN:-}" ]; then
+              echo "::warning::npm publish skipped: configure NPM_TOKEN secret or npm OIDC Trusted Publishing for ${PKG_NAME}."
+              echo "published=false" >> "$GITHUB_OUTPUT"
+            else
+              exit 1
+            fi
+          fi
+
+      - name: Publish to Official MCP Registry
+        if: steps.npm_publish.outputs.published == 'true'
+        run: |
+          ARCH=$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')
+          OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+          curl -fsSL "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_${OS}_${ARCH}.tar.gz" | tar xz mcp-publisher
+          ./mcp-publisher login github-oidc
+          ./mcp-publisher publish

@@ -10,23 +10,30 @@ When upgrading to a new release, always update **both** the MCP server and the E
 
 | Release Tag | MCP Server | Extension (`.eext`) | Bridge Protocol | EasyEDA Pro | Highlights |
 | --- | --- | --- | --- | --- | --- |
-| **`v1.1.0`** | `1.1.0` | `0.2.0` | `0.1.0` | `>= 2.3.0` | Native PCB DRC rule reads, previews, and confirmed updates (`#14`) + all `v0.1.0` capabilities (24 tools total) |
+| **`v1.2.0`** | `1.2.0` | `0.2.0` | `0.1.0` | `>= 2.3.0` | One-command `npx` client auto-setup, bundled `.eext` export, Cursor/VS Code 1-click links, and Claude Desktop `.mcpb` bundle |
+| `v1.1.0` | `1.1.0` | `0.2.0` | `0.1.0` | `>= 2.3.0` | Native PCB DRC rule reads, previews, and confirmed updates (`#14`) + all `v0.1.0` capabilities (24 tools total) |
 | `v0.1.0` | `0.1.0` | `0.1.0` | `0.1.0` | `>= 2.3.0` | Live context, schematic analysis, tracing, connection assertions, navigation, and exports (21 tools) |
 
 ## 3-Step Upgrade Checklist
 
-### 1. Pull & Rebuild the Server
+### 1. Update the Server & Export the Matching `.eext`
 
-From your cloned `easyeda_mcp` directory:
+::: code-group
 
-```bash
+```bash [npx (Recommended)]
+npx -y @vlabsoftware/easyeda-pro-mcp@latest setup
+```
+
+```bash [Local Repository Clone]
 git pull origin master
 npm install
 npm run setup:local
 ```
 
-::: tip Prebuilt Extension Package
-You can also download [`easyeda_mcp_bridge.eext`](https://github.com/VLab-Software/easyeda_mcp/releases/latest/download/easyeda_mcp_bridge.eext) directly from [GitHub Releases](https://github.com/VLab-Software/easyeda_mcp/releases/latest).
+:::
+
+::: tip Prebuilt Release Packages (.eext & Claude Desktop .mcpb)
+You can also download [`easyeda_mcp_bridge.eext`](https://github.com/VLab-Software/easyeda_mcp/releases/latest/download/easyeda_mcp_bridge.eext) and [`easyeda-pro-mcp.mcpb`](https://github.com/VLab-Software/easyeda_mcp/releases/latest/download/easyeda-pro-mcp.mcpb) directly from [GitHub Releases](https://github.com/VLab-Software/easyeda_mcp/releases/latest).
 :::
 
 ### 2. Re-import the Extension in EasyEDA Pro
@@ -47,6 +54,6 @@ Run easyeda_doctor and check the server and extension versions.
 
 Confirm the response matches the Compatibility Matrix above:
 
-- `server.version: "1.1.0"`
+- `server.version: "1.2.0"`
 - `extension.version: "0.2.0"`
 - `compatibility.compatible: true`

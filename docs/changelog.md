@@ -2,7 +2,16 @@
 
 All notable changes to the EasyEDA Pro MCP server and browser extension are documented on this page.
 
-For packaged `.eext` downloads and checksums, see [GitHub Releases](https://github.com/VLab-Software/easyeda_mcp/releases).
+For packaged `.eext` and `.mcpb` downloads and checksums, see [GitHub Releases](https://github.com/VLab-Software/easyeda_mcp/releases).
+
+## `1.2.0` (Extension `0.2.0`)
+
+**One-Command Client Setup, 1-Click Install Links, and Claude Desktop `.mcpb` Bundle**
+
+- **Multi-client auto-installer (`npx -y @vlabsoftware/easyeda-pro-mcp setup`)**: automatically detects and configures **Claude Desktop**, **Cursor**, **VS Code** (`servers` schema), **Antigravity**, **Windsurf**, **Claude Code** (`~/.claude.json`), and **Codex** (`~/.codex/config.toml`) across macOS, Windows (`cmd /c npx`), and Linux while preserving existing MCP servers and comments.
+- **Bundled `.eext` extension in npm package (`export-extension`)**: packages `build/dist/easyeda_mcp_bridge.eext` inside `@vlabsoftware/easyeda-pro-mcp` so `setup` and `export-extension` extract the version-matched EasyEDA Pro extension directly to disk without cloning the repository.
+- **1-click install badges & Claude Desktop `.mcpb` bundle (`npm run package:mcpb`)**: adds verified 1-click install links for Cursor and VS Code plus a standalone `easyeda-pro-mcp.mcpb` (`manifest_version: "0.3"`) archive for Claude Desktop.
+- **Bridge environment variable hardening**: safely falls back to `127.0.0.1:8765` when `EASYEDA_MCP_WS_HOST` or `EASYEDA_MCP_WS_PORT` are blank strings.
 
 ## `1.1.0` (Extension `0.2.0`)
 

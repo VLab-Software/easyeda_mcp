@@ -2,10 +2,15 @@
 
 The **EasyEDA MCP Bridge** browser extension (`easyeda_mcp_bridge.eext`) connects your open EasyEDA Pro session to the local MCP server over `ws://127.0.0.1:8765`.
 
-## 1. Download or Build the `.eext` Package
+## 1. Download or Export the `.eext` Package
 
-Choose either option:
+Choose whichever option is easiest:
 
+- **Export via `npx`** (bundled with the matching MCP server version):
+  ```bash
+  npx -y @vlabsoftware/easyeda-pro-mcp export-extension .
+  ```
+  *(Running `npx -y @vlabsoftware/easyeda-pro-mcp setup` also exports `easyeda_mcp_bridge.eext` automatically.)*
 - **Prebuilt release**: download [`easyeda_mcp_bridge.eext`](https://github.com/VLab-Software/easyeda_mcp/releases/latest/download/easyeda_mcp_bridge.eext) (or the versioned `easyeda-mcp-bridge_v0.2.0.eext`) from [GitHub Releases](https://github.com/VLab-Software/easyeda_mcp/releases/latest).
 - **Local build**: run `npm run setup:local` in the repository root to generate `build/dist/easyeda_mcp_bridge.eext`.
 
