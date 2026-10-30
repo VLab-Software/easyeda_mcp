@@ -10,7 +10,8 @@ When upgrading to a new release, always update **both** the MCP server and the E
 
 | Release Tag | MCP Server | Extension (`.eext`) | Bridge Protocol | EasyEDA Pro | Highlights |
 | --- | --- | --- | --- | --- | --- |
-| **`v1.2.0`** | `1.2.0` | `0.2.0` | `0.1.0` | `>= 2.3.0` | One-command `npx` client auto-setup, bundled `.eext` export, Cursor/VS Code 1-click links, and Claude Desktop `.mcpb` bundle |
+| **`v1.3.0`** | `1.3.0` | `0.3.0` | `0.1.0` | `>= 2.3.0` | Active PCB DRC execution (`easyeda_run_drc`), CPL/Pick-and-Place export (`easyeda_export_cpl`), PCB layer stackup (`easyeda_get_pcb_layers`), and routing status (`easyeda_get_routing_status`) (28 tools total) |
+| `v1.2.0` | `1.2.0` | `0.2.0` | `0.1.0` | `>= 2.3.0` | One-command `npx` client auto-setup, bundled `.eext` export, Cursor/VS Code 1-click links, and Claude Desktop `.mcpb` bundle |
 | `v1.1.0` | `1.1.0` | `0.2.0` | `0.1.0` | `>= 2.3.0` | Native PCB DRC rule reads, previews, and confirmed updates (`#14`) + all `v0.1.0` capabilities (24 tools total) |
 | `v0.1.0` | `0.1.0` | `0.1.0` | `0.1.0` | `>= 2.3.0` | Live context, schematic analysis, tracing, connection assertions, navigation, and exports (21 tools) |
 
@@ -54,6 +55,6 @@ Run easyeda_doctor and check the server and extension versions.
 
 Confirm the response matches the Compatibility Matrix above:
 
-- `server.version: "1.2.0"`
-- `extension.version: "0.2.0"`
+- `server.version: "1.3.0"`
+- `extension.version: "0.3.0"`
 - `compatibility.compatible: true`

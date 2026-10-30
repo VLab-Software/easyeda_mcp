@@ -104,6 +104,10 @@ const handlers: Record<string, (params: Record<string, any>) => Promise<unknown>
   exportNetlist,
   exportGerber,
   exportPdf,
+  exportCpl,
+  runDrc,
+  getPcbLayers,
+  getRoutingStatus,
   confirmedAction
 };
 
@@ -697,6 +701,160 @@ async function exportPdf(params: Record<string, any>): Promise<Record<string, un
   return saveApiFile(file, `${fileName}.pdf`, true);
 }
 
+async function exportCpl(params: Record<string, any>): Promise<Record<string, unknown>> {
+  ensureApi("pcb_ManufactureData", "getPickAndPlaceFile");
+  const fileName = params.fileName ?? `easyeda-cpl-${timestamp()}`;
+  const format = params.format ?? "csv";
+  const unit = params.unit ?? "mm";
+  const file = await eda.pcb_ManufactureData.getPickAndPlaceFile(fileName, format, unit);
+  return saveApiFile(file, `${fileName}.${format}`, true);
+}
+
+async function runDrc(params: Record<string, any>): Promise<Record<string, unknown>> {
+  const documentInfo = await optionalCall(() => eda.dmt_SelectControl?.getCurrentDocumentInfo?.());
+  if (documentInfo && ![3, "pcb"].includes(documentInfo?.documentType ?? documentInfo?.doctype ?? documentInfo?.type)) {
+    throw apiError("wrong_document", "Open a PCB document before running DRC checks.");
+  }
+  ensureApi("pcb_Drc", "check");
+  const strict = params.strict !== false;
+  const startedAt = Date.now();
+  const rawResult = await eda.pcb_Drc.check(strict);
+  const durationMs = Date.now() - startedAt;
+
+  let errors: unknown[] = [];
+  let passed = true;
+  let errorsCount = 0;
+  let warningsCount = 0;
+
+  if (Array.isArray(rawResult)) {
+    errors = rawResult;
+    errorsCount = rawResult.length;
+    passed = errorsCount === 0;
+  } else if (rawResult && typeof rawResult === "object") {
+    const rawObj = rawResult as Record<string, any>;
+    if (Array.isArray(rawObj.errors)) {
+      errors = rawObj.errors;
+      errorsCount = rawObj.errors.length;
+    }
+    if (Array.isArray(rawObj.warnings)) {
+      warningsCount = rawObj.warnings.length;
+    }
+    if (typeof rawObj.passed === "boolean") {
+      passed = rawObj.passed;
+    } else if (typeof rawObj.success === "boolean") {
+      passed = rawObj.success;
+    } else {
+      passed = errorsCount === 0;
+    }
+  } else if (typeof rawResult === "boolean") {
+    passed = rawResult;
+    errorsCount = rawResult ? 0 : 1;
+  }
+
+  return {
+    passed,
+    errorsCount,
+    warningsCount,
+    errors: sanitize(errors),
+    durationMs,
+    rawResult: sanitize(rawResult)
+  };
+}
+
+async function getPcbLayers(): Promise<Record<string, unknown>> {
+  ensureApi("pcb_Layer", "getAllLayers");
+  const rawLayers = toArray(await eda.pcb_Layer.getAllLayers());
+  const layers = rawLayers.map((layer: any) => {
+    if (!layer || typeof layer !== "object") return layer;
+    const typeStr = String(layer.type ?? layer.layerType ?? "").toLowerCase();
+    const isSignal = Boolean(
+      layer.isSignal ??
+      layer.isCopper ??
+      (typeStr === "signal" || typeStr === "copper" || layer.type === 1 || layer.type === 2)
+    );
+    return {
+      id: layer.id ?? layer.layerId ?? layer.layerNo,
+      name: layer.name ?? layer.layerName,
+      type: layer.type ?? layer.layerType,
+      color: layer.color,
+      visible: layer.visible ?? layer.isVisible,
+      isSignal,
+      copperThickness: layer.copperThickness ?? layer.thickness
+    };
+  });
+  const copperLayers = layers.filter((l: any) => l && (l.isSignal || ["signal", "copper", "plane"].includes(String(l.type).toLowerCase())));
+  return {
+    layerCount: layers.length,
+    copperLayerCount: copperLayers.length,
+    layers: sanitize(layers),
+    rawLayers: sanitize(rawLayers)
+  };
+}
+
+async function getRoutingStatus(params: Record<string, any>): Promise<Record<string, unknown>> {
+  const netNames = await getPcbNetNames();
+  const names = netNames.map(n => String(n)).filter(Boolean);
+  const includeLengths = Boolean(params.includeNetLengths);
+  let netLengths: Record<string, number> | undefined;
+
+  if (includeLengths && eda.pcb_Net?.getNetLength) {
+    netLengths = {};
+    for (const name of names) {
+      const len = await optionalCall(() => eda.pcb_Net.getNetLength(name));
+      if (typeof len === "number") {
+        netLengths[name] = len;
+      }
+    }
+  }
+
+  let allNetsDetails: any[] = [];
+  if (eda.pcb_Net?.getAllNets) {
+    allNetsDetails = toArray(await optionalCall(() => eda.pcb_Net.getAllNets()));
+  }
+
+  const unroutedNetNames: string[] = [];
+  let routedCount = 0;
+
+  if (allNetsDetails.length > 0) {
+    for (const net of allNetsDetails) {
+      const name = String(net.name ?? net.netName ?? "");
+      const isRouted = Boolean(
+        net.isRouted === true ||
+        (net.unroutedCount === 0 && (net.trackCount > 0 || net.routedCount > 0)) ||
+        (netLengths && (netLengths[name] ?? 0) > 0)
+      );
+      if (isRouted) {
+        routedCount++;
+      } else if (name) {
+        unroutedNetNames.push(name);
+      }
+    }
+  } else if (netLengths) {
+    for (const [name, len] of Object.entries(netLengths)) {
+      if (len > 0) {
+        routedCount++;
+      } else {
+        unroutedNetNames.push(name);
+      }
+    }
+  } else {
+    routedCount = names.length;
+  }
+
+  const totalNets = names.length;
+  const completionPercent = totalNets > 0 ? Math.round((routedCount / totalNets) * 1000) / 10 : 100;
+
+  return {
+    totalNets,
+    routedNets: routedCount,
+    unroutedNets: Math.max(0, totalNets - routedCount),
+    completionPercent,
+    unroutedNetNames: sanitize(unroutedNetNames),
+    netNames: sanitize(names),
+    ...(netLengths ? { netLengths } : {})
+  };
+}
+
 async function confirmedAction(params: Record<string, any>): Promise<Record<string, unknown>> {
   const action = String(params.action ?? "");
   if (action === "editDrcRules") return drcRules.apply(params.params, params.confirmation);
@@ -744,6 +902,10 @@ async function confirmedAction(params: Record<string, any>): Promise<Record<stri
 function detectCapabilities(): Record<string, unknown> {
   return {
     drcRules: drcRules.capabilities(),
+    drcCheck: Boolean(eda.pcb_Drc?.check),
+    pcbLayers: Boolean(eda.pcb_Layer?.getAllLayers),
+    pcbNet: Boolean(eda.pcb_Net?.getAllNetsName || eda.pcb_Net?.getAllNetName),
+    pickAndPlace: Boolean(eda.pcb_ManufactureData?.getPickAndPlaceFile),
     websocket: Boolean(eda.sys_WebSocket?.register && eda.sys_WebSocket?.send),
     pcbDocument: Boolean(eda.pcb_Document),
     schDocument: Boolean(eda.sch_Document),
