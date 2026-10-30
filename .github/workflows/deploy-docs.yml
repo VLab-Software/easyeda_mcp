@@ -1,9 +1,10 @@
 name: Deploy Docs
 
 on:
-  push:
-    branches:
-      - master
+  workflow_run:
+    workflows: ["Release"]
+    types:
+      - completed
   workflow_dispatch:
 
 permissions:
@@ -17,10 +18,13 @@ concurrency:
 
 jobs:
   build:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout latest master
         uses: actions/checkout@v4
+        with:
+          ref: master
 
       - name: Setup Node
         uses: actions/setup-node@v4

@@ -147,6 +147,22 @@ describe("EasyEdaBridge", () => {
     oldClient.close();
     newClient.close();
   });
+
+  it("falls back to default host and port when env vars are blank strings", () => {
+    const prevHost = process.env.EASYEDA_MCP_WS_HOST;
+    const prevPort = process.env.EASYEDA_MCP_WS_PORT;
+    try {
+      process.env.EASYEDA_MCP_WS_HOST = "   ";
+      process.env.EASYEDA_MCP_WS_PORT = "";
+      const bridge = new EasyEdaBridge();
+      expect(bridge.endpoint).toBe("ws://127.0.0.1:8765");
+    } finally {
+      if (prevHost === undefined) delete process.env.EASYEDA_MCP_WS_HOST;
+      else process.env.EASYEDA_MCP_WS_HOST = prevHost;
+      if (prevPort === undefined) delete process.env.EASYEDA_MCP_WS_PORT;
+      else process.env.EASYEDA_MCP_WS_PORT = prevPort;
+    }
+  });
 });
 
 async function startBridge(): Promise<EasyEdaBridge> {
