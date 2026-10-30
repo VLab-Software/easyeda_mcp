@@ -45,6 +45,9 @@ jobs:
       - name: Package extension
         run: npm run package:extension
 
+      - name: Package MCPB bundle
+        run: npm run package:mcpb
+
       - name: Smoke DRC over stdio and WebSocket
         run: npm run test:smoke:drc
 
