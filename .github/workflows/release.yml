@@ -108,7 +108,7 @@ jobs:
             '### Quick Install (All AI Clients)',
             '',
             '```bash',
-            'npx -y @vlabsoft/easyeda-pro-mcp setup',
+            'npx -y @vlabsoftware/easyeda-pro-mcp setup',
             '```',
             '',
             '### Release Assets',
