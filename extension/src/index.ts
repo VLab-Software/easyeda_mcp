@@ -766,17 +766,23 @@ async function getPcbLayers(): Promise<Record<string, unknown>> {
   const rawLayers = toArray(await eda.pcb_Layer.getAllLayers());
   const layers = rawLayers.map((layer: any) => {
     if (!layer || typeof layer !== "object") return layer;
+    const typeStr = String(layer.type ?? layer.layerType ?? "").toLowerCase();
+    const isSignal = Boolean(
+      layer.isSignal ??
+      layer.isCopper ??
+      (typeStr === "signal" || typeStr === "copper" || layer.type === 1 || layer.type === 2)
+    );
     return {
       id: layer.id ?? layer.layerId ?? layer.layerNo,
       name: layer.name ?? layer.layerName,
       type: layer.type ?? layer.layerType,
       color: layer.color,
       visible: layer.visible ?? layer.isVisible,
-      isSignal: Boolean(layer.isSignal ?? layer.isCopper ?? (layer.type === "signal" || layer.type === 1)),
+      isSignal,
       copperThickness: layer.copperThickness ?? layer.thickness
     };
   });
-  const copperLayers = layers.filter((l: any) => l && (l.isSignal || l.type === "copper" || l.type === "plane"));
+  const copperLayers = layers.filter((l: any) => l && (l.isSignal || ["signal", "copper", "plane"].includes(String(l.type).toLowerCase())));
   return {
     layerCount: layers.length,
     copperLayerCount: copperLayers.length,
@@ -811,12 +817,16 @@ async function getRoutingStatus(params: Record<string, any>): Promise<Record<str
 
   if (allNetsDetails.length > 0) {
     for (const net of allNetsDetails) {
-      const name = net.name ?? net.netName;
-      const isRouted = net.isRouted ?? (net.unroutedCount === 0 || (net.trackCount > 0 && net.unroutedCount === 0));
+      const name = String(net.name ?? net.netName ?? "");
+      const isRouted = Boolean(
+        net.isRouted === true ||
+        (net.unroutedCount === 0 && (net.trackCount > 0 || net.routedCount > 0)) ||
+        (netLengths && (netLengths[name] ?? 0) > 0)
+      );
       if (isRouted) {
         routedCount++;
       } else if (name) {
-        unroutedNetNames.push(String(name));
+        unroutedNetNames.push(name);
       }
     }
   } else if (netLengths) {
