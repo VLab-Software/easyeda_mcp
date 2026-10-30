@@ -4,6 +4,15 @@ All notable changes to the EasyEDA Pro MCP server and browser extension are docu
 
 For packaged `.eext` and `.mcpb` downloads and checksums, see [GitHub Releases](https://github.com/VLab-Software/easyeda_mcp/releases).
 
+## `1.3.0` (Extension `0.3.0`)
+
+**Active PCB DRC Execution, CPL/Pick-and-Place Export, Layer Stackup, and Routing Status**
+
+- **Active PCB DRC execution (`easyeda_run_drc`)**: execute native PCB design rule checks (`eda.pcb_Drc.check`) with optional verbose violation reporting.
+- **Pick-and-Place / CPL export (`easyeda_export_cpl`)**: generate component placement files (`eda.pcb_ManufactureData.getPickAndPlaceFile`) for SMT assembly workflows.
+- **PCB layer stackup (`easyeda_get_pcb_layers`)**: inspect active PCB layers, copper thicknesses, visibility, and layer types with case-insensitive copper filtering.
+- **PCB routing status (`easyeda_get_routing_status`)**: inspect routed vs. unrouted nets, track segments, vias, and airwire/ratline completion status on the active PCB.
+
 ## `1.2.0` (Extension `0.2.0`)
 
 **One-Command Client Setup, 1-Click Install Links, and Claude Desktop `.mcpb` Bundle**
