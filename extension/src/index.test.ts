@@ -111,6 +111,32 @@ describe("EasyEDA extension bridge handlers", () => {
         save: vi.fn(async (uuid: string) => {
           savedDocumentUuids.push(uuid);
         })
+      },
+      pcb_ManufactureData: {
+        getPickAndPlaceFile: vi.fn(async (fileName: string, format: string, unit: string) => ({
+          file: { name: `${fileName}.${format}`, content: `designator,x,y\nU1,10,20\n`, unit }
+        }))
+      },
+      pcb_Drc: {
+        check: vi.fn(async (_strict: boolean) => ({
+          passed: true,
+          errors: [],
+          warnings: []
+        }))
+      },
+      pcb_Layer: {
+        getAllLayers: vi.fn(async () => [
+          { id: 1, name: "TopLayer", type: "signal", color: "#ff0000", visible: true, isSignal: true, thickness: 0.035 },
+          { id: 2, name: "BottomLayer", type: "signal", color: "#0000ff", visible: true, isSignal: true, thickness: 0.035 },
+          { id: 3, name: "TopSilkscreen", type: "silkscreen", color: "#ffffff", visible: true, isSignal: false }
+        ])
+      },
+      pcb_Net: {
+        getAllNetsName: vi.fn(async () => ["GND", "VCC_3V3", "SDA", "SCL"]),
+        getNetLength: vi.fn(async (name: string) => (name === "GND" ? 150.5 : name === "VCC_3V3" ? 80.2 : 0))
+      },
+      sys_FileSystem: {
+        saveFile: vi.fn(async (_file: unknown, fileName: string) => ({ success: true, fileName }))
       }
     });
   });
@@ -261,5 +287,130 @@ describe("EasyEDA extension bridge handlers", () => {
     expect(dialogMessages.at(-1)?.message).toContain("Bridge URI: ws://127.0.0.1:8765");
     expect(dialogMessages.at(-1)?.message).toContain("Connection phase:");
     expect(dialogMessages.at(-1)?.message).toContain("Document: Power Supply.Schematic");
+  });
+
+  it("exports CPL pick and place file", async () => {
+    const extension = await import("./index.js");
+    extension.connect();
+    await registration.onMessage?.({
+      data: JSON.stringify({
+        kind: "call",
+        requestId: "cpl-1",
+        method: "exportCpl",
+        params: { fileName: "my-cpl", format: "csv", unit: "mm" }
+      })
+    } as MessageEvent<string>);
+
+    const resultMessage = JSON.parse(sentMessages.at(-1)?.message ?? "{}");
+    expect(resultMessage.kind).toBe("result");
+    expect(resultMessage.requestId).toBe("cpl-1");
+    expect(resultMessage.result).toMatchObject({
+      saved: true,
+      fileName: "my-cpl.csv",
+      betaApi: true
+    });
+  });
+
+  it("runs PCB DRC check and handles wrong_document error", async () => {
+    const extension = await import("./index.js");
+    extension.connect();
+
+    // Document is schematic by default, so runDrc should fail with wrong_document
+    await registration.onMessage?.({
+      data: JSON.stringify({
+        kind: "call",
+        requestId: "drc-fail",
+        method: "runDrc",
+        params: { strict: true }
+      })
+    } as MessageEvent<string>);
+
+    const failMessage = JSON.parse(sentMessages.at(-1)?.message ?? "{}");
+    expect(failMessage.kind).toBe("error");
+    expect(failMessage.error.code).toBe("wrong_document");
+
+    // Now stub documentType to PCB (3)
+    vi.stubGlobal("eda", {
+      ...(globalThis as unknown as { eda: Record<string, unknown> }).eda,
+      dmt_SelectControl: {
+        getCurrentDocumentInfo: vi.fn(async () => ({
+          uuid: "pcb-doc-456",
+          documentType: 3,
+          name: "MainBoard.PCB"
+        }))
+      }
+    });
+
+    await registration.onMessage?.({
+      data: JSON.stringify({
+        kind: "call",
+        requestId: "drc-pass",
+        method: "runDrc",
+        params: { strict: true }
+      })
+    } as MessageEvent<string>);
+
+    const passMessage = JSON.parse(sentMessages.at(-1)?.message ?? "{}");
+    expect(passMessage.kind).toBe("result");
+    expect(passMessage.result).toMatchObject({
+      passed: true,
+      errorsCount: 0,
+      warningsCount: 0
+    });
+  });
+
+  it("retrieves PCB layers stackup", async () => {
+    const extension = await import("./index.js");
+    extension.connect();
+
+    await registration.onMessage?.({
+      data: JSON.stringify({
+        kind: "call",
+        requestId: "layers-1",
+        method: "getPcbLayers",
+        params: {}
+      })
+    } as MessageEvent<string>);
+
+    const resultMessage = JSON.parse(sentMessages.at(-1)?.message ?? "{}");
+    expect(resultMessage.kind).toBe("result");
+    expect(resultMessage.result).toMatchObject({
+      layerCount: 3,
+      copperLayerCount: 2
+    });
+    expect(resultMessage.result.layers[0]).toMatchObject({
+      name: "TopLayer",
+      isSignal: true
+    });
+  });
+
+  it("analyzes PCB routing status and calculates completion percent", async () => {
+    const extension = await import("./index.js");
+    extension.connect();
+
+    await registration.onMessage?.({
+      data: JSON.stringify({
+        kind: "call",
+        requestId: "routing-1",
+        method: "getRoutingStatus",
+        params: { includeNetLengths: true }
+      })
+    } as MessageEvent<string>);
+
+    const resultMessage = JSON.parse(sentMessages.at(-1)?.message ?? "{}");
+    expect(resultMessage.kind).toBe("result");
+    expect(resultMessage.result).toMatchObject({
+      totalNets: 4,
+      routedNets: 2,
+      unroutedNets: 2,
+      completionPercent: 50
+    });
+    expect(resultMessage.result.unroutedNetNames).toEqual(["SDA", "SCL"]);
+    expect(resultMessage.result.netLengths).toMatchObject({
+      GND: 150.5,
+      VCC_3V3: 80.2,
+      SDA: 0,
+      SCL: 0
+    });
   });
 });

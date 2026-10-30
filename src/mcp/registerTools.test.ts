@@ -267,4 +267,62 @@ describe("mutation confirmation guard", () => {
       }
     });
   });
+
+  it("exposes Phase 1 tools and forwards calls to the bridge", async () => {
+    const bridge = {
+      endpoint: "ws://127.0.0.1:8765",
+      getStatus: () => ({ connected: true }),
+      call: vi.fn(async (method: string, params: unknown) => {
+        if (method === "exportCpl") return { saved: true, fileName: "test.csv" };
+        if (method === "runDrc") return { passed: true, errorsCount: 0 };
+        if (method === "getPcbLayers") return { layerCount: 4, copperLayerCount: 2 };
+        if (method === "getRoutingStatus") return { totalNets: 10, routedNets: 10, completionPercent: 100 };
+        return { ok: true, params };
+      })
+    };
+    const client = await makeClient(bridge);
+    const tools = await client.listTools();
+    const names = tools.tools.map((t) => t.name);
+
+    expect(names).toEqual(
+      expect.arrayContaining([
+        "easyeda_export_cpl",
+        "easyeda_run_drc",
+        "easyeda_get_pcb_layers",
+        "easyeda_get_routing_status"
+      ])
+    );
+
+    // Call exportCpl
+    const cplRes = await client.callTool({
+      name: "easyeda_export_cpl",
+      arguments: { fileName: "test", format: "csv", unit: "mm" }
+    });
+    expect(cplRes.isError).toBeFalsy();
+    expect(bridge.call).toHaveBeenCalledWith("exportCpl", { fileName: "test", format: "csv", unit: "mm" }, 30_000);
+
+    // Call runDrc
+    const drcRes = await client.callTool({
+      name: "easyeda_run_drc",
+      arguments: { strict: true }
+    });
+    expect(drcRes.isError).toBeFalsy();
+    expect(bridge.call).toHaveBeenCalledWith("runDrc", { strict: true }, 60_000);
+
+    // Call getPcbLayers
+    const layersRes = await client.callTool({
+      name: "easyeda_get_pcb_layers",
+      arguments: {}
+    });
+    expect(layersRes.isError).toBeFalsy();
+    expect(bridge.call).toHaveBeenCalledWith("getPcbLayers", {}, 10_000);
+
+    // Call getRoutingStatus
+    const routingRes = await client.callTool({
+      name: "easyeda_get_routing_status",
+      arguments: { includeNetLengths: true }
+    });
+    expect(routingRes.isError).toBeFalsy();
+    expect(bridge.call).toHaveBeenCalledWith("getRoutingStatus", { includeNetLengths: true }, 30_000);
+  });
 });

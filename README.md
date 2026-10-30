@@ -181,15 +181,15 @@ More examples: **[Practical Workflows](https://vlabsoft.org/easyeda_mcp/workflow
 
 ---
 
-## Available Tools (24)
+## Available Tools (28)
 
 | Category | Tools |
 | --- | --- |
 | **Status & Context** | `easyeda_doctor` · `easyeda_live_status` · `easyeda_get_context` |
 | **Schematic Inspection & Search** | `easyeda_schematic_snapshot` · `easyeda_list_schematic_components` · `easyeda_get_component_pins` · `easyeda_find_component` · `easyeda_find_net` |
 | **Circuit Tracing & Verification** | `easyeda_trace_net` · `easyeda_trace_component` · `easyeda_find_unconnected_pins` · `easyeda_validate_schematic_area` · `easyeda_verify_connections` |
-| **PCB Design Rules (DRC)** | `easyeda_get_drc_rules` · `easyeda_prepare_drc_edit` · `easyeda_get_drc_edit_result` |
-| **Navigation & Exports** | `easyeda_navigate_component` · `easyeda_navigate_region` · `easyeda_zoom_board` · `easyeda_export_bom` · `easyeda_export_netlist` · `easyeda_export_gerber` · `easyeda_export_pdf` |
+| **PCB Layout & DRC Rules** | `easyeda_run_drc` · `easyeda_get_pcb_layers` · `easyeda_get_routing_status` · `easyeda_get_drc_rules` · `easyeda_prepare_drc_edit` · `easyeda_get_drc_edit_result` |
+| **Navigation & Exports** | `easyeda_navigate_component` · `easyeda_navigate_region` · `easyeda_zoom_board` · `easyeda_export_cpl` · `easyeda_export_bom` · `easyeda_export_netlist` · `easyeda_export_gerber` · `easyeda_export_pdf` |
 | **Confirmed Actions** | `easyeda_confirmed_action` (`save`, `importChanges`, `autoroute`, `autolayout`, `editDrcRules`) |
 
 Full parameter schemas and examples: **[Tools Reference](https://vlabsoft.org/easyeda_mcp/tools)** · **[DRC Rule Editing](https://vlabsoft.org/easyeda_mcp/drc-rules)**

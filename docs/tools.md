@@ -1,6 +1,6 @@
 # Tools Reference
 
-EasyEDA Pro MCP exposes **24 tools** across 6 categories. All inspection, tracing, navigation, and export tools are read-only (`readOnlyHint: true`).
+EasyEDA Pro MCP exposes **28 tools** across 6 categories. All inspection, tracing, navigation, and export tools are read-only (`readOnlyHint: true`).
 
 ## Tool Catalog
 
@@ -10,10 +10,10 @@ EasyEDA Pro MCP exposes **24 tools** across 6 categories. All inspection, tracin
   - [`easyeda_schematic_snapshot`](#easyeda_schematic_snapshot) · [`easyeda_list_schematic_components`](#easyeda_list_schematic_components) · [`easyeda_get_component_pins`](#easyeda_get_component_pins) · [`easyeda_find_component`](#easyeda_find_component) · [`easyeda_find_net`](#easyeda_find_net)
 - **[Circuit Tracing & Verification](#circuit-tracing-verification)** (5 tools)
   - [`easyeda_trace_net`](#easyeda_trace_net) · [`easyeda_trace_component`](#easyeda_trace_component) · [`easyeda_find_unconnected_pins`](#easyeda_find_unconnected_pins) · [`easyeda_validate_schematic_area`](#easyeda_validate_schematic_area) · [`easyeda_verify_connections`](#easyeda_verify_connections)
-- **[PCB Design Rules — DRC](#pcb-design-rules-drc)** (3 tools)
-  - [`easyeda_get_drc_rules`](#easyeda_get_drc_rules) · [`easyeda_prepare_drc_edit`](#easyeda_prepare_drc_edit) · [`easyeda_get_drc_edit_result`](#easyeda_get_drc_edit_result)
-- **[Navigation & Exports](#navigation-exports)** (7 tools)
-  - [`easyeda_navigate_component`](#easyeda_navigate_component) · [`easyeda_navigate_region`](#easyeda_navigate_region) · [`easyeda_zoom_board`](#easyeda_zoom_board) · [`easyeda_export_bom`](#easyeda_export_bom) · [`easyeda_export_netlist`](#easyeda_export_netlist) · [`easyeda_export_gerber`](#easyeda_export_gerber) · [`easyeda_export_pdf`](#easyeda_export_pdf)
+- **[PCB Layout & DRC Rules](#pcb-layout-drc-rules)** (6 tools)
+  - [`easyeda_run_drc`](#easyeda_run_drc) · [`easyeda_get_pcb_layers`](#easyeda_get_pcb_layers) · [`easyeda_get_routing_status`](#easyeda_get_routing_status) · [`easyeda_get_drc_rules`](#easyeda_get_drc_rules) · [`easyeda_prepare_drc_edit`](#easyeda_prepare_drc_edit) · [`easyeda_get_drc_edit_result`](#easyeda_get_drc_edit_result)
+- **[Navigation & Exports](#navigation-exports)** (8 tools)
+  - [`easyeda_export_cpl`](#easyeda_export_cpl) · [`easyeda_export_bom`](#easyeda_export_bom) · [`easyeda_export_netlist`](#easyeda_export_netlist) · [`easyeda_export_gerber`](#easyeda_export_gerber) · [`easyeda_export_pdf`](#easyeda_export_pdf) · [`easyeda_navigate_component`](#easyeda_navigate_component) · [`easyeda_navigate_region`](#easyeda_navigate_region) · [`easyeda_zoom_board`](#easyeda_zoom_board)
 - **[Confirmation-Gated Actions](#confirmation-gated-actions)** (1 tool)
   - [`easyeda_confirmed_action`](#easyeda_confirmed_action)
 
@@ -232,11 +232,46 @@ Evaluates structured circuit assertions (`pin_connected`, `pin_on_net`, `same_no
 
 ---
 
-## PCB Design Rules — DRC
+## PCB Layout & DRC Rules
 
 ::: tip Active PCB Required
-DRC tools require an active **PCB** document (`documentType: 3`). See [DRC Rule Editing](./drc-rules.md) for the full two-phase preview and confirmation workflow.
+PCB and DRC tools require an active **PCB** document (`documentType: 3`). See [DRC Rule Editing](./drc-rules.md) for the full two-phase preview and confirmation workflow.
 :::
+
+### `easyeda_run_drc`
+
+**Scope:** PCB RPC (`readOnlyHint: true`, default timeout: `60000` ms)
+
+Executes the native EasyEDA Pro PCB Design Rule Check (DRC) against the active board and returns passed status, error counts, warning counts, and detected design violations.
+
+**Parameters:**
+- **`strict`** (`boolean`, _optional_, default: `true`): Enforce strict DRC validation rules.
+- **`timeoutMs`** (`number`, _optional_, default: `60000`): RPC timeout in ms.
+
+---
+
+### `easyeda_get_pcb_layers`
+
+**Scope:** PCB RPC (`readOnlyHint: true`, default timeout: `10000` ms)
+
+Returns the layer stackup configuration of the active EasyEDA Pro PCB, including layer names, IDs, types (signal, plane, mechanical, silkscreen), visibility, and copper thickness.
+
+**Parameters:**
+- **`timeoutMs`** (`number`, _optional_, default: `10000`): RPC timeout in ms.
+
+---
+
+### `easyeda_get_routing_status`
+
+**Scope:** PCB RPC (`readOnlyHint: true`, default timeout: `30000` ms)
+
+Analyzes the physical routing progress of the active PCB, calculating the completion percentage, total nets, routed nets, unrouted airwires (ratsnest), and optional track lengths per net.
+
+**Parameters:**
+- **`includeNetLengths`** (`boolean`, _optional_, default: `false`): Include calculated track length for each net in millimeters.
+- **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
+
+---
 
 ### `easyeda_get_drc_rules`
 
@@ -313,6 +348,20 @@ Zooms the active PCB editor to fit the board outline.
 
 **Parameters:**
 - **`timeoutMs`** (`number`, _optional_, default: `10000`): RPC timeout in ms.
+
+---
+
+### `easyeda_export_cpl`
+
+**Scope:** PCB Manufacture RPC (`readOnlyHint: true`, default timeout: `30000` ms)
+
+Exports the component Pick and Place (CPL / Centroid) coordinate file from the active PCB for automated SMT assembly (standard JLCPCB format).
+
+**Parameters:**
+- **`fileName`** (`string`, _optional_): Custom output filename without extension.
+- **`format`** (`"csv" | "xlsx" | "txt"`, _optional_, default: `"csv"`): File format for the pick and place report.
+- **`unit`** (`"mm" | "mil"`, _optional_, default: `"mm"`): Coordinate unit for component positions.
+- **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
 
 ---
 
