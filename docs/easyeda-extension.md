@@ -8,9 +8,9 @@ Choose whichever option is easiest:
 
 - **Export via `npx`** (bundled with the matching MCP server version):
   ```bash
-  npx -y @vlabsoft/easyeda-pro-mcp export-extension .
+  npx -y @vlabsoftware/easyeda-pro-mcp export-extension .
   ```
-  *(Running `npx -y @vlabsoft/easyeda-pro-mcp setup` also exports `easyeda_mcp_bridge.eext` automatically.)*
+  *(Running `npx -y @vlabsoftware/easyeda-pro-mcp setup` also exports `easyeda_mcp_bridge.eext` automatically.)*
 - **Prebuilt release**: download [`easyeda_mcp_bridge.eext`](https://github.com/VLab-Software/easyeda_mcp/releases/latest/download/easyeda_mcp_bridge.eext) (or the versioned `easyeda-mcp-bridge_v0.2.0.eext`) from [GitHub Releases](https://github.com/VLab-Software/easyeda_mcp/releases/latest).
 - **Local build**: run `npm run setup:local` in the repository root to generate `build/dist/easyeda_mcp_bridge.eext`.
 

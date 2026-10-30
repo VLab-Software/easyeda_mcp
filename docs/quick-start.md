@@ -13,7 +13,7 @@ Connect any MCP-compatible AI assistant to your live EasyEDA Pro session in a fe
 Run one command in your terminal:
 
 ```bash
-npx -y @vlabsoft/easyeda-pro-mcp setup
+npx -y @vlabsoftware/easyeda-pro-mcp setup
 ```
 
 This automatically configures detected AI clients on your machine and exports the matching EasyEDA Pro extension package:
@@ -36,7 +36,7 @@ If you cloned the repository to contribute or test local changes, run `npm insta
 
 ## 3. Manual / 1-Click Client Setup (Optional)
 
-If you prefer configuring a single client manually instead of running `npx -y @vlabsoft/easyeda-pro-mcp setup`:
+If you prefer configuring a single client manually instead of running `npx -y @vlabsoftware/easyeda-pro-mcp setup`:
 
 ::: code-group
 
@@ -45,7 +45,7 @@ If you prefer configuring a single client manually instead of running `npx -y @v
   "mcpServers": {
     "easyeda-pro": {
       "command": "npx",
-      "args": ["-y", "@vlabsoft/easyeda-pro-mcp"]
+      "args": ["-y", "@vlabsoftware/easyeda-pro-mcp"]
     }
   }
 }
@@ -56,18 +56,18 @@ If you prefer configuring a single client manually instead of running `npx -y @v
   "mcpServers": {
     "easyeda-pro": {
       "command": "cmd",
-      "args": ["/c", "npx", "-y", "@vlabsoft/easyeda-pro-mcp"]
+      "args": ["/c", "npx", "-y", "@vlabsoftware/easyeda-pro-mcp"]
     }
   }
 }
 ```
 
 ```bash [Claude Code]
-claude mcp add --scope user easyeda-pro -- npx -y @vlabsoft/easyeda-pro-mcp
+claude mcp add --scope user easyeda-pro -- npx -y @vlabsoftware/easyeda-pro-mcp
 ```
 
 ```bash [Codex]
-codex mcp add easyeda-pro -- npx -y @vlabsoft/easyeda-pro-mcp
+codex mcp add easyeda-pro -- npx -y @vlabsoftware/easyeda-pro-mcp
 ```
 
 ```json [VS Code (.vscode/mcp.json)]
@@ -76,7 +76,7 @@ codex mcp add easyeda-pro -- npx -y @vlabsoft/easyeda-pro-mcp
     "easyeda-pro": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "@vlabsoft/easyeda-pro-mcp"]
+      "args": ["-y", "@vlabsoftware/easyeda-pro-mcp"]
     }
   }
 }

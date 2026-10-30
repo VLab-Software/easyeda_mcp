@@ -21,7 +21,7 @@ When upgrading to a new release, always update **both** the MCP server and the E
 ::: code-group
 
 ```bash [npx (Recommended)]
-npx -y @vlabsoft/easyeda-pro-mcp@latest setup
+npx -y @vlabsoftware/easyeda-pro-mcp@latest setup
 ```
 
 ```bash [Local Repository Clone]

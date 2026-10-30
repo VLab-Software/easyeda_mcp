@@ -14,7 +14,7 @@
 
 <p align="center">
   <a href="https://github.com/VLab-Software/easyeda_mcp/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/VLab-Software/easyeda_mcp/ci.yml?branch=master&label=CI"></a>
-  <a href="https://www.npmjs.com/package/@vlabsoft/easyeda-pro-mcp"><img alt="npm" src="https://img.shields.io/npm/v/@vlabsoft/easyeda-pro-mcp?label=npm"></a>
+  <a href="https://www.npmjs.com/package/@vlabsoftware/easyeda-pro-mcp"><img alt="npm" src="https://img.shields.io/npm/v/@vlabsoftware/easyeda-pro-mcp?label=npm"></a>
   <a href="https://github.com/VLab-Software/easyeda_mcp/releases"><img alt="Release" src="https://img.shields.io/github/v/release/VLab-Software/easyeda_mcp?include_prereleases&label=release"></a>
   <a href="./LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-blue"></a>
   <img alt="Node" src="https://img.shields.io/badge/node-%3E%3D20-339933">
@@ -22,8 +22,8 @@
 </p>
 
 <p align="center">
-  <a href="https://cursor.com/install-mcp?name=easyeda-pro&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB2bGFic29mdC9lYXN5ZWRhLXByby1tY3AiXX0%3D"><img alt="Install in Cursor" src="https://img.shields.io/badge/Cursor-Install_MCP-000000?logo=cursor&logoColor=white"></a>
-  <a href="https://vscode.dev/redirect?url=vscode%3Amcp%2Finstall%3F%257B%2522name%2522%253A%2522easyeda-pro%2522%252C%2522command%2522%253A%2522npx%2522%252C%2522args%2522%253A%255B%2522-y%2522%252C%2522%2540vlabsoft%252Feasyeda-pro-mcp%2522%255D%257D"><img alt="Install in VS Code" src="https://img.shields.io/badge/VS_Code-Install_MCP-0098FF?logo=visualstudiocode&logoColor=white"></a>
+  <a href="https://cursor.com/install-mcp?name=easyeda-pro&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB2bGFic29mdHdhcmUvZWFzeWVkYS1wcm8tbWNwIl19"><img alt="Install in Cursor" src="https://img.shields.io/badge/Cursor-Install_MCP-000000?logo=cursor&logoColor=white"></a>
+  <a href="https://vscode.dev/redirect?url=vscode%3Amcp%2Finstall%3F%257B%2522name%2522%253A%2522easyeda-pro%2522%252C%2522command%2522%253A%2522npx%2522%252C%2522args%2522%253A%255B%2522-y%2522%252C%2522%2540vlabsoftware%252Feasyeda-pro-mcp%2522%255D%257D"><img alt="Install in VS Code" src="https://img.shields.io/badge/VS_Code-Install_MCP-0098FF?logo=visualstudiocode&logoColor=white"></a>
   <a href="https://github.com/VLab-Software/easyeda_mcp/releases/latest/download/easyeda-pro-mcp.mcpb"><img alt="Claude Desktop .mcpb" src="https://img.shields.io/badge/Claude_Desktop-Download_.mcpb-D97757?logo=claude&logoColor=white"></a>
   <a href="https://github.com/VLab-Software/easyeda_mcp/releases/latest/download/easyeda_mcp_bridge.eext"><img alt="EasyEDA Extension .eext" src="https://img.shields.io/badge/EasyEDA_Pro-Download_.eext-2563EB"></a>
 </p>
@@ -62,14 +62,14 @@
 
 ## Getting Started
 
-EasyEDA Pro MCP has two local parts: the **EasyEDA Pro Extension** (`.eext`) inside the editor and the **MCP Server** (`@vlabsoft/easyeda-pro-mcp`) launched by your AI client.
+EasyEDA Pro MCP has two local parts: the **EasyEDA Pro Extension** (`.eext`) inside the editor and the **MCP Server** (`@vlabsoftware/easyeda-pro-mcp`) launched by your AI client.
 
 ### 1. Automatic Setup (Fastest — No Git Clone)
 
 Run one command in your terminal:
 
 ```bash
-npx -y @vlabsoft/easyeda-pro-mcp setup
+npx -y @vlabsoftware/easyeda-pro-mcp setup
 ```
 
 This automatically detects and configures installed AI clients (**Claude Desktop**, **Cursor**, **VS Code**, **Antigravity**, **Windsurf**, **Claude Code**, **Codex**) with platform-safe commands and exports `easyeda_mcp_bridge.eext` to your `~/Downloads` folder (or current directory).
@@ -97,20 +97,20 @@ This builds `dist/index.js`, `build/dist/easyeda_mcp_bridge.eext`, and `build/di
 
 ### 3. Or Add the MCP Server Manually / 1-Click
 
-If you skipped `npx -y @vlabsoft/easyeda-pro-mcp setup`, use a 1-click badge above or add the **standard `npx` config** below:
+If you skipped `npx -y @vlabsoftware/easyeda-pro-mcp setup`, use a 1-click badge above or add the **standard `npx` config** below:
 
 ```json
 {
   "mcpServers": {
     "easyeda-pro": {
       "command": "npx",
-      "args": ["-y", "@vlabsoft/easyeda-pro-mcp"]
+      "args": ["-y", "@vlabsoftware/easyeda-pro-mcp"]
     }
   }
 }
 ```
 
-> **Windows JSON note:** In GUI clients on Windows, use `"command": "cmd", "args": ["/c", "npx", "-y", "@vlabsoft/easyeda-pro-mcp"]` so `npx.cmd` spawns cleanly.
+> **Windows JSON note:** In GUI clients on Windows, use `"command": "cmd", "args": ["/c", "npx", "-y", "@vlabsoftware/easyeda-pro-mcp"]` so `npx.cmd` spawns cleanly.
 
 <details>
 <summary><b>Claude Code</b></summary>
@@ -118,7 +118,7 @@ If you skipped `npx -y @vlabsoft/easyeda-pro-mcp setup`, use a 1-click badge abo
 Run in your terminal:
 
 ```bash
-claude mcp add --scope user easyeda-pro -- npx -y @vlabsoft/easyeda-pro-mcp
+claude mcp add --scope user easyeda-pro -- npx -y @vlabsoftware/easyeda-pro-mcp
 ```
 
 </details>
@@ -129,7 +129,7 @@ claude mcp add --scope user easyeda-pro -- npx -y @vlabsoft/easyeda-pro-mcp
 Run in your terminal:
 
 ```bash
-codex mcp add easyeda-pro -- npx -y @vlabsoft/easyeda-pro-mcp
+codex mcp add easyeda-pro -- npx -y @vlabsoftware/easyeda-pro-mcp
 ```
 
 </details>
@@ -140,21 +140,21 @@ codex mcp add easyeda-pro -- npx -y @vlabsoft/easyeda-pro-mcp
 - **1-Click Bundle**: Download [`easyeda-pro-mcp.mcpb`](https://github.com/VLab-Software/easyeda_mcp/releases/latest/download/easyeda-pro-mcp.mcpb) and double-click it to install in Claude Desktop.
 - **Manual JSON**: Or add the standard config above to `claude_desktop_config.json`, then **fully quit and reopen** Claude Desktop:
   - **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
-  - **Windows**: `%APPDATA%\Claude\claude_desktop_config.json` *(use `"command": "cmd", "args": ["/c", "npx", "-y", "@vlabsoft/easyeda-pro-mcp"]`)*
+  - **Windows**: `%APPDATA%\Claude\claude_desktop_config.json` *(use `"command": "cmd", "args": ["/c", "npx", "-y", "@vlabsoftware/easyeda-pro-mcp"]`)*
 
 </details>
 
 <details>
 <summary><b>Cursor</b></summary>
 
-Click **[Install in Cursor](https://cursor.com/install-mcp?name=easyeda-pro&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB2bGFic29mdC9lYXN5ZWRhLXByby1tY3AiXX0%3D)**, or add the standard config above to `~/.cursor/mcp.json` (global) or `.cursor/mcp.json` (project) and refresh servers in **Cursor Settings -> MCP**.
+Click **[Install in Cursor](https://cursor.com/install-mcp?name=easyeda-pro&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB2bGFic29mdHdhcmUvZWFzeWVkYS1wcm8tbWNwIl19)**, or add the standard config above to `~/.cursor/mcp.json` (global) or `.cursor/mcp.json` (project) and refresh servers in **Cursor Settings -> MCP**.
 
 </details>
 
 <details>
 <summary><b>VS Code (GitHub Copilot)</b></summary>
 
-Click **[Install in VS Code](https://vscode.dev/redirect?url=vscode%3Amcp%2Finstall%3F%257B%2522name%2522%253A%2522easyeda-pro%2522%252C%2522command%2522%253A%2522npx%2522%252C%2522args%2522%253A%255B%2522-y%2522%252C%2522%2540vlabsoft%252Feasyeda-pro-mcp%2522%255D%257D)**, or add to `.vscode/mcp.json` (or **Command Palette -> `MCP: Open User Configuration`**) and open **Copilot Chat (Agent mode)**:
+Click **[Install in VS Code](https://vscode.dev/redirect?url=vscode%3Amcp%2Finstall%3F%257B%2522name%2522%253A%2522easyeda-pro%2522%252C%2522command%2522%253A%2522npx%2522%252C%2522args%2522%253A%255B%2522-y%2522%252C%2522%2540vlabsoftware%252Feasyeda-pro-mcp%2522%255D%257D)**, or add to `.vscode/mcp.json` (or **Command Palette -> `MCP: Open User Configuration`**) and open **Copilot Chat (Agent mode)**:
 
 ```json
 {
@@ -162,7 +162,7 @@ Click **[Install in VS Code](https://vscode.dev/redirect?url=vscode%3Amcp%2Finst
     "easyeda-pro": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "@vlabsoft/easyeda-pro-mcp"]
+      "args": ["-y", "@vlabsoftware/easyeda-pro-mcp"]
     }
   }
 }
@@ -173,8 +173,8 @@ Click **[Install in VS Code](https://vscode.dev/redirect?url=vscode%3Amcp%2Finst
 <details>
 <summary><b>Antigravity & Windsurf</b></summary>
 
-- **Antigravity**: Run `npx -y @vlabsoft/easyeda-pro-mcp setup --client antigravity` (or add the standard config to `~/.gemini/config/mcp_config.json`), then click **Refresh** in **Additional Options (`...`) -> MCP Servers**.
-- **Windsurf**: Run `npx -y @vlabsoft/easyeda-pro-mcp setup --client windsurf` (or add the standard config to `~/.codeium/windsurf/mcp_config.json`), then refresh MCP servers in Cascade settings.
+- **Antigravity**: Run `npx -y @vlabsoftware/easyeda-pro-mcp setup --client antigravity` (or add the standard config to `~/.gemini/config/mcp_config.json`), then click **Refresh** in **Additional Options (`...`) -> MCP Servers**.
+- **Windsurf**: Run `npx -y @vlabsoftware/easyeda-pro-mcp setup --client windsurf` (or add the standard config to `~/.codeium/windsurf/mcp_config.json`), then refresh MCP servers in Cascade settings.
 
 </details>
 

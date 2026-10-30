@@ -10,7 +10,7 @@
   "packages": [
     {
       "registryType": "npm",
-      "identifier": "@vlabsoft/easyeda-pro-mcp",
+      "identifier": "@vlabsoftware/easyeda-pro-mcp",
       "version": "1.2.0",
       "transport": {
         "type": "stdio"

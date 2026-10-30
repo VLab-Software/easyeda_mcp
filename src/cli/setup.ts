@@ -2,7 +2,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-export const PACKAGE_NAME = "@vlabsoft/easyeda-pro-mcp";
+export const PACKAGE_NAME = "@vlabsoftware/easyeda-pro-mcp";
 export const DEFAULT_SERVER_NAME = "easyeda-pro";
 export const BUNDLED_EXTENSION_FILENAME = "easyeda_mcp_bridge.eext";
 

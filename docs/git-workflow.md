@@ -34,4 +34,4 @@ When `develop` is ready to ship:
    - Calculates the next SemVer version via `scripts/bump-version.mjs` (updating `src/version.ts`, `package.json`, `package-lock.json`, `server.json`, `docs/changelog.md`, and `extension/extension.json` if files under `extension/` changed — or uses an already-bumped untagged version directly).
    - Validates typechecks, unit tests, VitePress docs, `.eext`/`.mcpb` packaging, and the DRC stdio + WebSocket smoke test.
    - Commits `chore(release): vX.Y.Z`, creates and pushes tag `vX.Y.Z`, and merges `master` back into `develop` so `develop` stays synchronized.
-   - Publishes the **GitHub Release** (`*.eext`, `*.mcpb`, `SHA256SUMS.txt`), **npm** (`@vlabsoft/easyeda-pro-mcp`), the **Official MCP Registry**, and **GitHub Pages** (`vlabsoft.org/easyeda_mcp/`).
+   - Publishes the **GitHub Release** (`*.eext`, `*.mcpb`, `SHA256SUMS.txt`), **npm** (`@vlabsoftware/easyeda-pro-mcp`), the **Official MCP Registry**, and **GitHub Pages** (`vlabsoft.org/easyeda_mcp/`).
