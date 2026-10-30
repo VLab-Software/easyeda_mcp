@@ -69,7 +69,10 @@ describe("EasyEDA extension bridge handlers", () => {
           uuid: "doc-123",
           type: "schematic",
           name: "Power Supply.Schematic"
-        }))
+        })),
+        getSelectedPrimitives: vi.fn(async () => [
+          { id: "$u5", designator: "U5", type: "component", layer: 1 }
+        ])
       },
       dmt_EditorControl: {
         getSplitScreenTree: vi.fn(async () => []),
@@ -131,9 +134,22 @@ describe("EasyEDA extension bridge handlers", () => {
           { id: 3, name: "TopSilkscreen", type: "silkscreen", color: "#ffffff", visible: true, isSignal: false }
         ])
       },
+      pcb_PrimitiveComponent: {
+        getAll: vi.fn(async () => [
+          { primitiveId: "$pcb-u1", designator: "U1", footprint: "SOP-8", value: "TP4056", x: 10, y: 20, rotation: 0, layer: 1 },
+          { primitiveId: "$pcb-c1", designator: "C1", footprint: "0603", value: "10uF", x: 15, y: 25, rotation: 90, layer: 2 }
+        ])
+      },
       pcb_Net: {
         getAllNetsName: vi.fn(async () => ["GND", "VCC_3V3", "SDA", "SCL"]),
-        getNetLength: vi.fn(async (name: string) => (name === "GND" ? 150.5 : name === "VCC_3V3" ? 80.2 : 0))
+        getNetLength: vi.fn(async (name: string) => (name === "GND" ? 150.5 : name === "VCC_3V3" ? 80.2 : 0)),
+        highlightNet: vi.fn(async (_net: string) => undefined),
+        unhighlightAllNets: vi.fn(async () => undefined)
+      },
+      lib_Device: {
+        search: vi.fn(async (query: string) => [
+          { uuid: "dev-c1523", name: "10uF 0805", lcscCode: "C1523", package: "0805", manufacturer: "Samsung", inStock: 50000, isJlcBasic: true }
+        ])
       },
       sys_FileSystem: {
         saveFile: vi.fn(async (_file: unknown, fileName: string) => ({ success: true, fileName }))
@@ -411,6 +427,109 @@ describe("EasyEDA extension bridge handlers", () => {
       VCC_3V3: 80.2,
       SDA: 0,
       SCL: 0
+    });
+  });
+
+  it("lists normalized PCB components and filters by layer", async () => {
+    const extension = await import("./index.js");
+    extension.connect();
+
+    await registration.onMessage?.({
+      data: JSON.stringify({
+        kind: "call",
+        requestId: "pcb-comp-1",
+        method: "listPcbComponents",
+        params: { layer: "top" }
+      })
+    } as MessageEvent<string>);
+
+    const resultMessage = JSON.parse(sentMessages.at(-1)?.message ?? "{}");
+    expect(resultMessage.kind).toBe("result");
+    expect(resultMessage.result.total).toBe(2);
+    expect(resultMessage.result.count).toBe(1);
+    expect(resultMessage.result.components[0]).toMatchObject({
+      designator: "U1",
+      footprint: "SOP-8",
+      side: "top"
+    });
+  });
+
+  it("highlights and clears nets on PCB", async () => {
+    const extension = await import("./index.js");
+    extension.connect();
+
+    // Highlight GND
+    await registration.onMessage?.({
+      data: JSON.stringify({
+        kind: "call",
+        requestId: "hl-1",
+        method: "highlightNet",
+        params: { net: "GND" }
+      })
+    } as MessageEvent<string>);
+
+    const res1 = JSON.parse(sentMessages.at(-1)?.message ?? "{}");
+    expect(res1.kind).toBe("result");
+    expect(res1.result.highlighted).toBe(true);
+    expect(res1.result.net).toBe("GND");
+
+    // Clear highlights
+    await registration.onMessage?.({
+      data: JSON.stringify({
+        kind: "call",
+        requestId: "hl-2",
+        method: "highlightNet",
+        params: { clear: true }
+      })
+    } as MessageEvent<string>);
+
+    const res2 = JSON.parse(sentMessages.at(-1)?.message ?? "{}");
+    expect(res2.kind).toBe("result");
+    expect(res2.result.cleared).toBe(true);
+  });
+
+  it("retrieves current canvas selection", async () => {
+    const extension = await import("./index.js");
+    extension.connect();
+
+    await registration.onMessage?.({
+      data: JSON.stringify({
+        kind: "call",
+        requestId: "sel-1",
+        method: "getSelection",
+        params: {}
+      })
+    } as MessageEvent<string>);
+
+    const resultMessage = JSON.parse(sentMessages.at(-1)?.message ?? "{}");
+    expect(resultMessage.kind).toBe("result");
+    expect(resultMessage.result.count).toBe(1);
+    expect(resultMessage.result.selection[0]).toMatchObject({
+      id: "$u5",
+      name: "U5"
+    });
+  });
+
+  it("searches component library by query", async () => {
+    const extension = await import("./index.js");
+    extension.connect();
+
+    await registration.onMessage?.({
+      data: JSON.stringify({
+        kind: "call",
+        requestId: "lib-1",
+        method: "searchLibrary",
+        params: { query: "C1523" }
+      })
+    } as MessageEvent<string>);
+
+    const resultMessage = JSON.parse(sentMessages.at(-1)?.message ?? "{}");
+    expect(resultMessage.kind).toBe("result");
+    expect(resultMessage.result.count).toBe(1);
+    expect(resultMessage.result.results[0]).toMatchObject({
+      lcscCode: "C1523",
+      package: "0805",
+      isJlcBasic: true
     });
   });
 });

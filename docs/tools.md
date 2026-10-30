@@ -1,17 +1,17 @@
 # Tools Reference
 
-EasyEDA Pro MCP exposes **28 tools** across 6 categories. All inspection, tracing, navigation, and export tools are read-only (`readOnlyHint: true`).
+EasyEDA Pro MCP exposes **32 tools** across 6 categories. All inspection, tracing, navigation, and export tools are read-only (`readOnlyHint: true`).
 
 ## Tool Catalog
 
-- **[Status & Context](#status-context)** (3 tools)
-  - [`easyeda_doctor`](#easyeda_doctor) · [`easyeda_live_status`](#easyeda_live_status) · [`easyeda_get_context`](#easyeda_get_context)
-- **[Search & Schematic Inspection](#search-schematic-inspection)** (5 tools)
-  - [`easyeda_schematic_snapshot`](#easyeda_schematic_snapshot) · [`easyeda_list_schematic_components`](#easyeda_list_schematic_components) · [`easyeda_get_component_pins`](#easyeda_get_component_pins) · [`easyeda_find_component`](#easyeda_find_component) · [`easyeda_find_net`](#easyeda_find_net)
+- **[Status & Context](#status-context)** (4 tools)
+  - [`easyeda_doctor`](#easyeda_doctor) · [`easyeda_live_status`](#easyeda_live_status) · [`easyeda_get_context`](#easyeda_get_context) · [`easyeda_get_selection`](#easyeda_get_selection)
+- **[Search & Schematic Inspection](#search-schematic-inspection)** (6 tools)
+  - [`easyeda_schematic_snapshot`](#easyeda_schematic_snapshot) · [`easyeda_list_schematic_components`](#easyeda_list_schematic_components) · [`easyeda_get_component_pins`](#easyeda_get_component_pins) · [`easyeda_find_component`](#easyeda_find_component) · [`easyeda_find_net`](#easyeda_find_net) · [`easyeda_search_library`](#easyeda_search_library)
 - **[Circuit Tracing & Verification](#circuit-tracing-verification)** (5 tools)
   - [`easyeda_trace_net`](#easyeda_trace_net) · [`easyeda_trace_component`](#easyeda_trace_component) · [`easyeda_find_unconnected_pins`](#easyeda_find_unconnected_pins) · [`easyeda_validate_schematic_area`](#easyeda_validate_schematic_area) · [`easyeda_verify_connections`](#easyeda_verify_connections)
-- **[PCB Layout & DRC Rules](#pcb-layout-drc-rules)** (6 tools)
-  - [`easyeda_run_drc`](#easyeda_run_drc) · [`easyeda_get_pcb_layers`](#easyeda_get_pcb_layers) · [`easyeda_get_routing_status`](#easyeda_get_routing_status) · [`easyeda_get_drc_rules`](#easyeda_get_drc_rules) · [`easyeda_prepare_drc_edit`](#easyeda_prepare_drc_edit) · [`easyeda_get_drc_edit_result`](#easyeda_get_drc_edit_result)
+- **[PCB Layout & DRC Rules](#pcb-layout-drc-rules)** (8 tools)
+  - [`easyeda_run_drc`](#easyeda_run_drc) · [`easyeda_get_pcb_layers`](#easyeda_get_pcb_layers) · [`easyeda_get_routing_status`](#easyeda_get_routing_status) · [`easyeda_list_pcb_components`](#easyeda_list_pcb_components) · [`easyeda_highlight_net`](#easyeda_highlight_net) · [`easyeda_get_drc_rules`](#easyeda_get_drc_rules) · [`easyeda_prepare_drc_edit`](#easyeda_prepare_drc_edit) · [`easyeda_get_drc_edit_result`](#easyeda_get_drc_edit_result)
 - **[Navigation & Exports](#navigation-exports)** (8 tools)
   - [`easyeda_export_cpl`](#easyeda_export_cpl) · [`easyeda_export_bom`](#easyeda_export_bom) · [`easyeda_export_netlist`](#easyeda_export_netlist) · [`easyeda_export_gerber`](#easyeda_export_gerber) · [`easyeda_export_pdf`](#easyeda_export_pdf) · [`easyeda_navigate_component`](#easyeda_navigate_component) · [`easyeda_navigate_region`](#easyeda_navigate_region) · [`easyeda_zoom_board`](#easyeda_zoom_board)
 - **[Confirmation-Gated Actions](#confirmation-gated-actions)** (1 tool)
@@ -53,6 +53,17 @@ Fetches live context from EasyEDA Pro: active project/document UUIDs, `splitScre
 
 **Parameters:**
 - **`timeoutMs`** (`number`, _optional_, default: `10000`): RPC timeout in milliseconds (`<= 120000`).
+
+---
+
+### `easyeda_get_selection`
+
+**Scope:** Editor RPC (`readOnlyHint: true`, default timeout: `10000` ms)
+
+Inspects the user's active canvas selection on either schematic or PCB documents via `eda.dmt_SelectControl`, returning selected primitive IDs, component designators, and types.
+
+**Parameters:**
+- **`timeoutMs`** (`number`, _optional_, default: `10000`): RPC timeout in ms.
 
 ---
 
@@ -123,6 +134,19 @@ Searches nets by exact or partial name and returns matching net metadata and pin
 - **`query`** (`string`, **required**): Net name or substring (e.g., `"GND"`, `"VBUS"`, `"SDA"`).
 - **`limit`** (`number`, _optional_, default: `20`, max: `100`): Maximum nets returned.
 - **`timeoutMs`** (`number`, _optional_, default: `10000`): RPC timeout in ms.
+
+---
+
+### `easyeda_search_library`
+
+**Scope:** Library RPC (`readOnlyHint: true`, default timeout: `30000` ms)
+
+Searches the official EasyEDA component catalog and JLCPCB/LCSC device database by keyword, manufacturer part number, or LCSC part code (e.g., `C1523`, `ESP32`, `0402 10k`). Returns package details, manufacturer, stock availability, and JLCPCB Basic/Extended part status.
+
+**Parameters:**
+- **`query`** (`string`, **required**): Keyword, manufacturer part number, or LCSC part code.
+- **`limit`** (`number`, _optional_, default: `20`, max: `100`): Maximum devices returned.
+- **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
 
 ---
 
@@ -270,6 +294,34 @@ Analyzes the physical routing progress of the active PCB, calculating the comple
 **Parameters:**
 - **`includeNetLengths`** (`boolean`, _optional_, default: `false`): Include calculated track length for each net in millimeters.
 - **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
+
+---
+
+### `easyeda_list_pcb_components`
+
+**Scope:** PCB RPC (`readOnlyHint: true`, default timeout: `30000` ms)
+
+Lists normalized components placed on the active PCB layout with designator, footprint, placement layer, coordinates (`x`, `y` in mm), rotation angle, and side (`top` / `bottom`).
+
+**Parameters:**
+- **`query`** (`string`, _optional_): Filter by designator, footprint, value, or primitive ID.
+- **`layer`** (`"all" | "top" | "bottom"`, _optional_, default: `"all"`): Filter components by placement side.
+- **`limit`** (`number`, _optional_, default: `100`, max: `500`): Maximum components returned.
+- **`includeRaw`** (`boolean`, _optional_, default: `false`): Include raw primitive fields.
+- **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
+
+---
+
+### `easyeda_highlight_net`
+
+**Scope:** PCB RPC (`readOnlyHint: true`, default timeout: `10000` ms)
+
+Interactively highlights a specified net on the EasyEDA Pro PCB canvas via `eda.pcb_Net.highlightNet()`, or clears all highlights with `clear: true`.
+
+**Parameters:**
+- **`net`** (`string`, _optional_): Net name to highlight (e.g., `"GND"`, `"VCC_5V"`).
+- **`clear`** (`boolean`, _optional_, default: `false`): When `true`, unhighlights all nets.
+- **`timeoutMs`** (`number`, _optional_, default: `10000`): RPC timeout in ms.
 
 ---
 

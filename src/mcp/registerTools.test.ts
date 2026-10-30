@@ -277,6 +277,10 @@ describe("mutation confirmation guard", () => {
         if (method === "runDrc") return { passed: true, errorsCount: 0 };
         if (method === "getPcbLayers") return { layerCount: 4, copperLayerCount: 2 };
         if (method === "getRoutingStatus") return { totalNets: 10, routedNets: 10, completionPercent: 100 };
+        if (method === "listPcbComponents") return { total: 2, count: 2, components: [] };
+        if (method === "highlightNet") return { highlighted: true, net: "GND" };
+        if (method === "getSelection") return { count: 0, selection: [] };
+        if (method === "searchLibrary") return { count: 1, results: [] };
         return { ok: true, params };
       })
     };
@@ -289,7 +293,11 @@ describe("mutation confirmation guard", () => {
         "easyeda_export_cpl",
         "easyeda_run_drc",
         "easyeda_get_pcb_layers",
-        "easyeda_get_routing_status"
+        "easyeda_get_routing_status",
+        "easyeda_list_pcb_components",
+        "easyeda_highlight_net",
+        "easyeda_get_selection",
+        "easyeda_search_library"
       ])
     );
 
@@ -323,6 +331,39 @@ describe("mutation confirmation guard", () => {
       arguments: { includeNetLengths: true }
     });
     expect(routingRes.isError).toBeFalsy();
+    expect(bridge.call).toHaveBeenCalledWith("getRoutingStatus", { includeNetLengths: true }, 30_000);
+
+    // Call listPcbComponents
+    const pcbCompRes = await client.callTool({
+      name: "easyeda_list_pcb_components",
+      arguments: { layer: "top" }
+    });
+    expect(pcbCompRes.isError).toBeFalsy();
+    expect(bridge.call).toHaveBeenCalledWith("listPcbComponents", { layer: "top", limit: 100, includeRaw: false }, 30_000);
+
+    // Call highlightNet
+    const hlRes = await client.callTool({
+      name: "easyeda_highlight_net",
+      arguments: { net: "GND" }
+    });
+    expect(hlRes.isError).toBeFalsy();
+    expect(bridge.call).toHaveBeenCalledWith("highlightNet", { net: "GND", clear: false }, 10_000);
+
+    // Call getSelection
+    const selRes = await client.callTool({
+      name: "easyeda_get_selection",
+      arguments: {}
+    });
+    expect(selRes.isError).toBeFalsy();
+    expect(bridge.call).toHaveBeenCalledWith("getSelection", {}, 10_000);
+
+    // Call searchLibrary
+    const libRes = await client.callTool({
+      name: "easyeda_search_library",
+      arguments: { query: "C1523" }
+    });
+    expect(libRes.isError).toBeFalsy();
+    expect(bridge.call).toHaveBeenCalledWith("searchLibrary", { query: "C1523", limit: 20 }, 30_000);
     expect(bridge.call).toHaveBeenCalledWith("getRoutingStatus", { includeNetLengths: true }, 30_000);
   });
 });
