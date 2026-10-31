@@ -32,6 +32,7 @@ export default defineConfig({
         items: [
           { text: "Practical Workflows", link: "/workflows" },
           { text: "Tools Reference", link: "/tools" },
+          { text: "Resources & Prompts", link: "/resources-and-prompts" },
           { text: "DRC Rule Editing", link: "/drc-rules" },
           { text: "Architecture", link: "/architecture" },
           { text: "Safety Model", link: "/safety" },

@@ -31,6 +31,7 @@ export class EasyEdaBridge {
   private socket?: WebSocket;
   private readonly pending = new Map<string, PendingCall>();
   private status: EditorStatus = createDisconnectedStatus();
+  private readonly statusListeners = new Set<(status: EditorStatus) => void>();
 
   constructor(options: EasyEdaBridgeOptions = {}) {
     const envHost = process.env.EASYEDA_MCP_WS_HOST?.trim();
@@ -48,6 +49,21 @@ export class EasyEdaBridge {
 
   getStatus(): EditorStatus {
     return this.status;
+  }
+
+  addStatusListener(listener: (status: EditorStatus) => void): () => void {
+    this.statusListeners.add(listener);
+    return () => this.statusListeners.delete(listener);
+  }
+
+  private notifyStatusListeners(): void {
+    for (const listener of this.statusListeners) {
+      try {
+        listener(this.status);
+      } catch (err) {
+        this.logger.warn(`[easyeda-mcp] Error in status listener: ${String(err)}`);
+      }
+    }
   }
 
   async start(): Promise<void> {
@@ -133,6 +149,7 @@ export class EasyEdaBridge {
       updatedAt: new Date().toISOString()
     };
     this.logger.error("[easyeda-mcp] EasyEDA Pro extension connected");
+    this.notifyStatusListeners();
 
     socket.on("message", (data) => {
       try {
@@ -146,6 +163,7 @@ export class EasyEdaBridge {
       if (this.socket === socket) {
         this.socket = undefined;
         this.status = createDisconnectedStatus("EasyEDA Pro extension disconnected. Keep the extension open or reopen EasyEDA Pro.");
+        this.notifyStatusListeners();
         this.rejectAll(new BridgeUnavailableError(this.status.message));
       }
       this.logger.error("[easyeda-mcp] EasyEDA Pro extension disconnected");
@@ -168,6 +186,7 @@ export class EasyEdaBridge {
           : compatibility.reason,
         updatedAt: new Date().toISOString()
       };
+      this.notifyStatusListeners();
       return;
     }
 
@@ -185,6 +204,7 @@ export class EasyEdaBridge {
           : compatibility.reason,
         updatedAt: new Date().toISOString()
       };
+      this.notifyStatusListeners();
       return;
     }
 

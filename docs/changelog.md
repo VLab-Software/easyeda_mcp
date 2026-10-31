@@ -4,6 +4,16 @@ All notable changes to the EasyEDA Pro MCP server and browser extension are docu
 
 For packaged `.eext` and `.mcpb` downloads and checksums, see [GitHub Releases](https://github.com/VLab-Software/easyeda_mcp/releases).
 
+## `1.4.0` (Extension `0.4.0`)
+
+**Native MCP Resources, One-Click Engineering Prompts, and 87% Token Optimization**
+
+- **Native MCP Resources (`easyeda://...`)**: exposes 7 high-density resource URIs (`project/status`, `project/context`, `schematic/active`, `pcb/active`, `pcb/layers`, `pcb/drc-rules`, `component/{designator}`) for instant on-demand state retrieval without tool call roundtrips.
+- **87% Token Optimization Projections**: high-density serializers for schematic and PCB topology eliminate raw SVG render paths and coordinate geometry, reducing schematic context from ~23k tokens down to ~3k tokens.
+- **Token-Conscious Tool Defaults**: `easyeda_schematic_snapshot` now defaults `includeRaw: false` to eliminate accidental payload bloat on large boards.
+- **Pre-Engineered MCP Prompts**: adds 4 guided engineering workflows (`review_schematic`, `audit_pcb_drc`, `prepare_manufacturing`, `trace_circuit_path`) for instant one-click analysis in Claude Desktop, Cursor, Antigravity, and VS Code.
+- **Real-Time Push Notifications**: hooks bridge state transitions to `sendResourceUpdated` notifications for `easyeda://project/status` and `easyeda://project/context`.
+
 ## `1.3.0` (Extension `0.4.0`)
 
 **PCB DRC Execution, CPL Export, Layer Stackup, Routing Status, PCB Components, Net Highlighting, Canvas Selection, and Library Search**

@@ -213,7 +213,7 @@ export function registerEasyEdaTools(server: McpServer, bridge: EasyEdaBridge): 
     description: "Returns a structured snapshot of the active schematic: components, pins, nets, wires, labels, and confidence metadata.",
     method: "schematicSnapshot",
     inputSchema: {
-      includeRaw: z.boolean().default(true).describe("Include compact raw EasyEDA API data for fallback reasoning."),
+      includeRaw: z.boolean().default(false).describe("Include compact raw EasyEDA API data for fallback reasoning. Defaults to false to minimize token consumption."),
       allPages: z.boolean().default(true).describe("Collect all schematic pages when EasyEDA Pro exposes them."),
       timeoutMs: DefaultTimeoutSchema.default(30_000)
     },

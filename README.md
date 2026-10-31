@@ -221,12 +221,38 @@ Full parameter schemas and examples: **[Tools Reference](https://vlabsoft.org/ea
 
 ---
 
+## MCP Resources (7) & Prompts (4)
+
+Save up to 80% tokens by inspecting compact, pre-projected circuit state and executing one-click engineering workflows directly in your AI client.
+
+| Resource URI | Type | Description |
+| --- | --- | --- |
+| `easyeda://project/status` | Static | Real-time bridge connection state, capabilities, and active document preview |
+| `easyeda://project/context` | Static | Active project, open documents, active tab, and canvas selection |
+| `easyeda://schematic/active` | Static | High-density schematic projection (components, values, footprints, nets) |
+| `easyeda://pcb/active` | Static | High-density PCB projection (routing status, completion %, airwires) |
+| `easyeda://pcb/layers` | Static | Physical copper, silkscreen, mask, and mechanical layer stackup |
+| `easyeda://pcb/drc-rules` | Static | Active PCB design rule settings, clearances, and track width limits |
+| `easyeda://component/{designator}` | Template | On-demand component inspection by designator (e.g. `R1`, `U2`, `C15`) |
+
+| Prompt | Arguments | Purpose |
+| --- | --- | --- |
+| `review_schematic` | `scope` (`all`, `power`, `signals`), `strict` (`boolean`) | Guided electrical review inspecting power decoupling, floating pins, and pull-ups |
+| `audit_pcb_drc` | `focus` (`all`, `clearance`, `routing`) | Layout audit checking native DRC violations, airwires, and trace widths |
+| `prepare_manufacturing` | `manufacturer` (e.g. `jlcpcb`) | Pre-flight validation checklist for BOM, CPL, Gerber, and SMT assembly |
+| `trace_circuit_path` | `startNet` (`string`), `targetComponent` (`string`) | Signal or power rail trace from origin to load across series elements |
+
+Full reference: **[Resources & Prompts](https://vlabsoft.org/easyeda_mcp/resources-and-prompts)**
+
+---
+
 ## Documentation
 
 | Guide | When to use |
 | --- | --- |
 | **[Quick Start](https://vlabsoft.org/easyeda_mcp/quick-start)** | Shortest path from zero to a working bridge |
 | **[AI Client Setup](https://vlabsoft.org/easyeda_mcp/ai-client-setup)** | Detailed setup for Claude Code, Codex, Claude Desktop, Cursor, VS Code, Antigravity & others |
+| **[Resources & Prompts](https://vlabsoft.org/easyeda_mcp/resources-and-prompts)** | Token-saving MCP resources and pre-engineered engineering prompts |
 | **[Practical Workflows](https://vlabsoft.org/easyeda_mcp/workflows)** | Copy-pasteable prompts for schematic review, circuit assertions, DRC, and exports |
 | **[Upgrading & Compatibility](https://vlabsoft.org/easyeda_mcp/upgrading)** | Server/Extension version matrix and 3-step upgrade checklist |
 | **[Troubleshooting](https://vlabsoft.org/easyeda_mcp/troubleshooting)** | Common fixes and bridge error code reference |
