@@ -37,7 +37,11 @@ describe("pcbTools", () => {
       "easyeda_prepare_copper_keepout",
       "easyeda_get_pcb_airwires",
       "easyeda_get_pcb_placement_report",
-      "easyeda_get_pcb_net_report"
+      "easyeda_get_pcb_net_report",
+      "easyeda_get_pcb_net_classes",
+      "easyeda_get_pcb_differential_pairs",
+      "easyeda_get_pcb_length_groups",
+      "easyeda_prepare_pcb_net_constraint"
     ]);
   });
 
@@ -874,6 +878,206 @@ describe("pcbTools", () => {
         totalNets: 5,
         overallRoutingCompletionPercent: 92.5
       }
+    });
+
+    await client.close();
+  });
+
+  it("invokes easyeda_get_pcb_net_classes and returns net classes", async () => {
+    const bridge = {
+      endpoint: "ws://127.0.0.1:8765",
+      getStatus: vi.fn((): EditorStatus => ({ connected: true, updatedAt: "2026-11-01T00:00:00.000Z" })),
+      call: vi.fn(async () => ({
+        totalClasses: 1,
+        classes: [
+          {
+            name: "PWR",
+            nets: ["VCC", "GND"],
+            netCount: 2,
+            routingWidth: 0.5,
+            clearance: 0.3,
+            source: "native_api"
+          }
+        ]
+      }))
+    };
+
+    const server = new McpServer({ name: "test", version: "1.0.0" });
+    registerPcbTools(server, bridge as any);
+    const client = new Client({ name: "test-client", version: "1.0.0" });
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
+
+    const result = await client.callTool({
+      name: "easyeda_get_pcb_net_classes",
+      arguments: {
+        name: "PWR"
+      }
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(bridge.call).toHaveBeenCalledWith(
+      "getPcbNetClasses",
+      expect.objectContaining({
+        name: "PWR"
+      }),
+      30_000
+    );
+    expect(result.structuredContent).toMatchObject({
+      result: {
+        totalClasses: 1
+      }
+    });
+
+    await client.close();
+  });
+
+  it("invokes easyeda_get_pcb_differential_pairs and returns differential pairs", async () => {
+    const bridge = {
+      endpoint: "ws://127.0.0.1:8765",
+      getStatus: vi.fn((): EditorStatus => ({ connected: true, updatedAt: "2026-11-01T00:00:00.000Z" })),
+      call: vi.fn(async () => ({
+        totalPairs: 1,
+        pairs: [
+          {
+            name: "DIFF_USB",
+            positiveNet: "USB_DP",
+            negativeNet: "USB_DM",
+            skewMm: 0.05,
+            toleranceMm: 0.15,
+            matched: true,
+            source: "inferred_naming"
+          }
+        ]
+      }))
+    };
+
+    const server = new McpServer({ name: "test", version: "1.0.0" });
+    registerPcbTools(server, bridge as any);
+    const client = new Client({ name: "test-client", version: "1.0.0" });
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
+
+    const result = await client.callTool({
+      name: "easyeda_get_pcb_differential_pairs",
+      arguments: {
+        toleranceMm: 0.15
+      }
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(bridge.call).toHaveBeenCalledWith(
+      "getPcbDifferentialPairs",
+      expect.objectContaining({
+        toleranceMm: 0.15
+      }),
+      30_000
+    );
+    expect(result.structuredContent).toMatchObject({
+      result: {
+        totalPairs: 1
+      }
+    });
+
+    await client.close();
+  });
+
+  it("invokes easyeda_get_pcb_length_groups and returns equal length groups", async () => {
+    const bridge = {
+      endpoint: "ws://127.0.0.1:8765",
+      getStatus: vi.fn((): EditorStatus => ({ connected: true, updatedAt: "2026-11-01T00:00:00.000Z" })),
+      call: vi.fn(async () => ({
+        totalGroups: 1,
+        groups: [
+          {
+            name: "BUS_DATA",
+            nets: ["D0", "D1", "D2", "D3"],
+            netCount: 4,
+            maxSkewMm: 0.2,
+            toleranceMm: 0.5,
+            compliant: true,
+            source: "native_api"
+          }
+        ]
+      }))
+    };
+
+    const server = new McpServer({ name: "test", version: "1.0.0" });
+    registerPcbTools(server, bridge as any);
+    const client = new Client({ name: "test-client", version: "1.0.0" });
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
+
+    const result = await client.callTool({
+      name: "easyeda_get_pcb_length_groups",
+      arguments: {
+        name: "BUS_DATA"
+      }
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(bridge.call).toHaveBeenCalledWith(
+      "getPcbLengthGroups",
+      expect.objectContaining({
+        name: "BUS_DATA"
+      }),
+      30_000
+    );
+    expect(result.structuredContent).toMatchObject({
+      result: {
+        totalGroups: 1
+      }
+    });
+
+    await client.close();
+  });
+
+  it("invokes easyeda_prepare_pcb_net_constraint to stage a differential pair creation", async () => {
+    const bridge = {
+      endpoint: "ws://127.0.0.1:8765",
+      getStatus: vi.fn((): EditorStatus => ({ connected: true, updatedAt: "2026-11-01T00:00:00.000Z" })),
+      call: vi.fn(async () => ({
+        mutationId: "mut-diff-1",
+        confirmation: "CONFIRM pcb:createDifferentialPair mut-diff-1",
+        preview: {
+          impact: "Creates differential pair 'DIFF_PCIE' (PCIE_TXP / PCIE_TXN, target: 100Ω, tol: ±0.1mm).",
+          scope: "differentialPair:create:DIFF_PCIE"
+        }
+      }))
+    };
+
+    const server = new McpServer({ name: "test", version: "1.0.0" });
+    registerPcbTools(server, bridge as any);
+    const client = new Client({ name: "test-client", version: "1.0.0" });
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
+
+    const result = await client.callTool({
+      name: "easyeda_prepare_pcb_net_constraint",
+      arguments: {
+        entity: "differentialPair",
+        action: "create",
+        name: "DIFF_PCIE",
+        positiveNet: "PCIE_TXP",
+        negativeNet: "PCIE_TXN",
+        targetImpedance: 100,
+        toleranceMm: 0.1
+      }
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(bridge.call).toHaveBeenCalledWith(
+      "prepareNetConstraint",
+      expect.objectContaining({
+        entity: "differentialPair",
+        action: "create",
+        name: "DIFF_PCIE"
+      }),
+      30_000
+    );
+    expect(result.structuredContent).toMatchObject({
+      mutationId: "mut-diff-1",
+      confirmation: "CONFIRM pcb:createDifferentialPair mut-diff-1"
     });
 
     await client.close();

@@ -660,4 +660,115 @@ export function registerPcbTools(server: McpServer, bridge: EditorClient): void 
     },
     summary: "Generated EasyEDA Pro PCB net and routing report."
   });
+
+  registerReadTool(server, bridge, {
+    name: "easyeda_get_pcb_net_classes",
+    title: "Get PCB net classes",
+    description:
+      "Lists net classes and their member net assignments, routing rules (trace width, clearance, via size) on the active PCB.",
+    method: "getPcbNetClasses",
+    inputSchema: {
+      name: z.string().min(1).optional().describe("Optional filter by specific net class name."),
+      includeRaw: z.boolean().default(false).describe("Include raw underlying primitive data."),
+      target: DocumentTargetSchema.optional(),
+      timeoutMs: DefaultTimeoutSchema.default(30_000)
+    },
+    summary: "Fetched EasyEDA Pro PCB net classes."
+  });
+
+  registerReadTool(server, bridge, {
+    name: "easyeda_get_pcb_differential_pairs",
+    title: "Get PCB differential pairs",
+    description:
+      "Lists differential pairs with positive and negative net assignments, target impedance, trace width, gap, actual routed track lengths, and skew tolerance compliance.",
+    method: "getPcbDifferentialPairs",
+    inputSchema: {
+      name: z.string().min(1).optional().describe("Optional filter by specific differential pair name."),
+      toleranceMm: z.number().positive().optional().describe("Length matching skew tolerance in mm (default: 0.15)."),
+      includeRaw: z.boolean().default(false).describe("Include raw underlying primitive data."),
+      target: DocumentTargetSchema.optional(),
+      timeoutMs: DefaultTimeoutSchema.default(30_000)
+    },
+    summary: "Fetched EasyEDA Pro PCB differential pairs."
+  });
+
+  registerReadTool(server, bridge, {
+    name: "easyeda_get_pcb_length_groups",
+    title: "Get PCB equal length groups",
+    description:
+      "Lists equal length matching groups with member net lengths, reference length, max skew, and tolerance compliance.",
+    method: "getPcbLengthGroups",
+    inputSchema: {
+      name: z.string().min(1).optional().describe("Optional filter by specific length group name."),
+      toleranceMm: z.number().positive().optional().describe("Length matching tolerance in mm (default: 0.5)."),
+      includeRaw: z.boolean().default(false).describe("Include raw underlying primitive data."),
+      target: DocumentTargetSchema.optional(),
+      timeoutMs: DefaultTimeoutSchema.default(30_000)
+    },
+    summary: "Fetched EasyEDA Pro PCB equal length groups."
+  });
+
+  server.registerTool(
+    "easyeda_prepare_pcb_net_constraint",
+    {
+      title: "Prepare PCB net constraint mutation",
+      description:
+        "Prepares creating, modifying, or deleting net classes, differential pairs, or equal length groups with safety preview, API capability check, and exact confirmation phrase. Does not modify the PCB until confirmed.",
+      inputSchema: {
+        entity: z
+          .enum(["netClass", "differentialPair", "lengthGroup"])
+          .describe("Entity type to mutate: 'netClass', 'differentialPair', or 'lengthGroup'."),
+        action: z.enum(["create", "modify", "delete"]).describe("Action: 'create', 'modify', or 'delete'."),
+        name: z.string().min(1).describe("Name of the net class, differential pair, or length group."),
+        nets: z.array(z.string().min(1)).optional().describe("Member net names (for netClass or lengthGroup)."),
+        positiveNet: z.string().min(1).optional().describe("Positive net name for differential pair."),
+        negativeNet: z.string().min(1).optional().describe("Negative net name for differential pair."),
+        targetImpedance: z
+          .number()
+          .positive()
+          .optional()
+          .describe("Target differential impedance in Ohms (e.g. 90, 100)."),
+        traceWidth: z.number().positive().optional().describe("Trace width in mm."),
+        differentialGap: z.number().positive().optional().describe("Differential pair spacing/gap in mm."),
+        clearance: z.number().positive().optional().describe("Isolation clearance in mm (for netClass)."),
+        viaDiameter: z.number().positive().optional().describe("Via outer diameter in mm (for netClass)."),
+        viaHoleDiameter: z.number().positive().optional().describe("Via drill hole diameter in mm (for netClass)."),
+        toleranceMm: z.number().positive().optional().describe("Length matching skew tolerance in mm."),
+        targetLengthMm: z.number().positive().optional().describe("Target length in mm for length group."),
+        properties: z
+          .record(z.string(), z.unknown())
+          .optional()
+          .describe("Property modifications dictionary (for modify action)."),
+        target: DocumentTargetSchema.optional().describe("Expected active PCB target."),
+        timeoutMs: DefaultTimeoutSchema.default(30_000)
+      },
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: false,
+        openWorldHint: false
+      }
+    },
+    async (params) => {
+      try {
+        const timeoutMs = params.timeoutMs ?? 30_000;
+        const result = (await bridge.call("prepareNetConstraint", params, timeoutMs)) as Record<string, unknown>;
+
+        const mutationId = String(result.mutationId ?? "");
+        const confirmation = String(result.confirmation ?? "");
+        const preview = (result.preview as { impact?: string; scope?: string }) ?? {};
+        const summary = [
+          `Prepared PCB ${params.entity} ${params.action} mutation:`,
+          `Impact: ${preview.impact ?? "none"}`,
+          `Scope: ${preview.scope ?? "active document"}`,
+          `Confirmation phrase required: "${confirmation}"`,
+          `Review the preview and run easyeda_confirmed_action with action="mutation", params={ mutationId: "${mutationId}" }, and the exact confirmation string.`
+        ].join("\n");
+
+        return ok(summary, result);
+      } catch (error) {
+        return fail(error);
+      }
+    }
+  );
 }

@@ -1,6 +1,6 @@
 # Tools Reference
 
-EasyEDA Pro MCP exposes **55 tools** across 8 categories. All inspection, tracing, navigation, and export tools are read-only (`readOnlyHint: true`).
+EasyEDA Pro MCP exposes **59 tools** across 8 categories. All inspection, tracing, navigation, and export tools are read-only (`readOnlyHint: true`).
 
 ## Tool Catalog
 
@@ -14,8 +14,8 @@ EasyEDA Pro MCP exposes **55 tools** across 8 categories. All inspection, tracin
   - [`easyeda_schematic_snapshot`](#easyeda_schematic_snapshot) · [`easyeda_get_schematic_nets`](#easyeda_get_schematic_nets) · [`easyeda_list_schematic_components`](#easyeda_list_schematic_components) · [`easyeda_get_component_pins`](#easyeda_get_component_pins) · [`easyeda_find_component`](#easyeda_find_component) · [`easyeda_find_net`](#easyeda_find_net) · [`easyeda_search_library`](#easyeda_search_library)
 - **[Circuit Tracing & Verification](#circuit-tracing-verification)** (6 tools)
   - [`easyeda_run_schematic_erc`](#easyeda_run_schematic_erc) · [`easyeda_trace_net`](#easyeda_trace_net) · [`easyeda_trace_component`](#easyeda_trace_component) · [`easyeda_find_unconnected_pins`](#easyeda_find_unconnected_pins) · [`easyeda_validate_schematic_area`](#easyeda_validate_schematic_area) · [`easyeda_verify_connections`](#easyeda_verify_connections)
-- **[PCB Layout & DRC Rules](#pcb-layout-drc-rules)** (23 tools)
-  - [`easyeda_run_drc`](#easyeda_run_drc) · [`easyeda_get_pcb_layers`](#easyeda_get_pcb_layers) · [`easyeda_get_routing_status`](#easyeda_get_routing_status) · [`easyeda_list_pcb_components`](#easyeda_list_pcb_components) · [`easyeda_get_pcb_pads`](#easyeda_get_pcb_pads) · [`easyeda_prepare_pcb_component`](#easyeda_prepare_pcb_component) · [`easyeda_get_board_outline`](#easyeda_get_board_outline) · [`easyeda_prepare_board_outline`](#easyeda_prepare_board_outline) · [`easyeda_prepare_pcb_routing`](#easyeda_prepare_pcb_routing) · [`easyeda_prepare_pcb_layout`](#easyeda_prepare_pcb_layout) · [`easyeda_get_pcb_tracks`](#easyeda_get_pcb_tracks) · [`easyeda_get_pcb_vias`](#easyeda_get_pcb_vias) · [`easyeda_prepare_pcb_track_via`](#easyeda_prepare_pcb_track_via) · [`easyeda_highlight_net`](#easyeda_highlight_net) · [`easyeda_get_copper_zones`](#easyeda_get_copper_zones) · [`easyeda_get_keepouts`](#easyeda_get_keepouts) · [`easyeda_prepare_copper_keepout`](#easyeda_prepare_copper_keepout) · [`easyeda_get_pcb_airwires`](#easyeda_get_pcb_airwires) · [`easyeda_get_pcb_placement_report`](#easyeda_get_pcb_placement_report) · [`easyeda_get_pcb_net_report`](#easyeda_get_pcb_net_report) · [`easyeda_get_drc_rules`](#easyeda_get_drc_rules) · [`easyeda_prepare_drc_edit`](#easyeda_prepare_drc_edit) · [`easyeda_get_drc_edit_result`](#easyeda_get_drc_edit_result)
+- **[PCB Layout & DRC Rules](#pcb-layout-drc-rules)** (27 tools)
+  - [`easyeda_run_drc`](#easyeda_run_drc) · [`easyeda_get_pcb_layers`](#easyeda_get_pcb_layers) · [`easyeda_get_routing_status`](#easyeda_get_routing_status) · [`easyeda_list_pcb_components`](#easyeda_list_pcb_components) · [`easyeda_get_pcb_pads`](#easyeda_get_pcb_pads) · [`easyeda_prepare_pcb_component`](#easyeda_prepare_pcb_component) · [`easyeda_get_board_outline`](#easyeda_get_board_outline) · [`easyeda_prepare_board_outline`](#easyeda_prepare_board_outline) · [`easyeda_prepare_pcb_routing`](#easyeda_prepare_pcb_routing) · [`easyeda_prepare_pcb_layout`](#easyeda_prepare_pcb_layout) · [`easyeda_get_pcb_tracks`](#easyeda_get_pcb_tracks) · [`easyeda_get_pcb_vias`](#easyeda_get_pcb_vias) · [`easyeda_prepare_pcb_track_via`](#easyeda_prepare_pcb_track_via) · [`easyeda_highlight_net`](#easyeda_highlight_net) · [`easyeda_get_copper_zones`](#easyeda_get_copper_zones) · [`easyeda_get_keepouts`](#easyeda_get_keepouts) · [`easyeda_prepare_copper_keepout`](#easyeda_prepare_copper_keepout) · [`easyeda_get_pcb_airwires`](#easyeda_get_pcb_airwires) · [`easyeda_get_pcb_placement_report`](#easyeda_get_pcb_placement_report) · [`easyeda_get_pcb_net_report`](#easyeda_get_pcb_net_report) · [`easyeda_get_pcb_net_classes`](#easyeda_get_pcb_net_classes) · [`easyeda_get_pcb_differential_pairs`](#easyeda_get_pcb_differential_pairs) · [`easyeda_get_pcb_length_groups`](#easyeda_get_pcb_length_groups) · [`easyeda_prepare_pcb_net_constraint`](#easyeda_prepare_pcb_net_constraint) · [`easyeda_get_drc_rules`](#easyeda_get_drc_rules) · [`easyeda_prepare_drc_edit`](#easyeda_prepare_drc_edit) · [`easyeda_get_drc_edit_result`](#easyeda_get_drc_edit_result)
 - **[Navigation & Exports](#navigation-exports)** (8 tools)
   - [`easyeda_export_cpl`](#easyeda_export_cpl) · [`easyeda_export_bom`](#easyeda_export_bom) · [`easyeda_export_netlist`](#easyeda_export_netlist) · [`easyeda_export_gerber`](#easyeda_export_gerber) · [`easyeda_export_pdf`](#easyeda_export_pdf) · [`easyeda_navigate_component`](#easyeda_navigate_component) · [`easyeda_navigate_region`](#easyeda_navigate_region) · [`easyeda_zoom_board`](#easyeda_zoom_board)
 - **[Confirmation-Gated Actions](#confirmation-gated-actions)** (1 tool)
@@ -804,6 +804,87 @@ Categorizes nets automatically into power, ground, and signal rails, and reports
 - **`status`** (`"all" | "routed" | "partially_routed" | "unrouted"`, _optional_): Filter nets by physical routing status.
 - **`limit`** (`number`, _optional_, default: `200`, max: `500`): Maximum number of net records to return.
 - **`target`** (`object`, _optional_): Asserts execution against the expected active PCB document.
+- **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
+
+---
+
+### `easyeda_get_pcb_net_classes`
+
+**Scope:** PCB RPC (`readOnlyHint: true`, default timeout: `30000` ms)
+
+Lists net classes and their member net assignments along with routing constraints (trace width, clearance, via outer diameter, and via drill hole diameter).
+
+Queries native `eda.pcb_NetClass` with seamless fallback to DRC net rules (`eda.pcb_Drc.getNetRules`).
+
+**Parameters:**
+- **`name`** (`string`, _optional_): Query a single net class by name.
+- **`includeRaw`** (`boolean`, _optional_, default: `false`): Include raw underlying primitive data.
+- **`target`** (`object`, _optional_): Asserts execution against the expected active PCB document.
+- **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
+
+---
+
+### `easyeda_get_pcb_differential_pairs`
+
+**Scope:** PCB RPC (`readOnlyHint: true`, default timeout: `30000` ms)
+
+Lists differential pairs with positive and negative net assignments, target impedance, trace width, gap, actual routed track lengths, and skew tolerance compliance.
+
+Queries native `eda.pcb_DifferentialPair` with automatic fallback to heuristic net pair discovery (`_P`/`_N`, `_DP`/`_DM`, `_POS`/`_NEG`, `+`/`-`) based on actual board tracks.
+
+**Parameters:**
+- **`name`** (`string`, _optional_): Filter by specific differential pair name.
+- **`toleranceMm`** (`number`, _optional_, default: `0.15`): Length matching skew tolerance in mm.
+- **`includeRaw`** (`boolean`, _optional_, default: `false`): Include raw underlying primitive data.
+- **`target`** (`object`, _optional_): Asserts execution against the expected active PCB document.
+- **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
+
+---
+
+### `easyeda_get_pcb_length_groups`
+
+**Scope:** PCB RPC (`readOnlyHint: true`, default timeout: `30000` ms)
+
+Lists equal length matching groups with member net lengths, reference length, max skew, and tolerance compliance.
+
+Queries native `eda.pcb_LengthGroup` / `eda.pcb_EqualLengthGroup` and measures physical track lengths for all member nets.
+
+**Parameters:**
+- **`name`** (`string`, _optional_): Filter by specific length group name.
+- **`toleranceMm`** (`number`, _optional_, default: `0.5`): Length matching skew tolerance in mm.
+- **`includeRaw`** (`boolean`, _optional_, default: `false`): Include raw underlying primitive data.
+- **`target`** (`object`, _optional_): Asserts execution against the expected active PCB document.
+- **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
+
+---
+
+### `easyeda_prepare_pcb_net_constraint`
+
+**Scope:** PCB Mutation RPC (`readOnlyHint: false`, `destructiveHint: true`, default timeout: `30000` ms)
+
+Stages creating, modifying, or deleting net classes, differential pairs, or equal length groups on the active PCB layout with safety preview, API capability check, and exact confirmation phrase. Does not modify the PCB until confirmed.
+
+Guarantees API-conditioned safety: execution verifies the presence of native APIs (`pcb_NetClass`, `pcb_DifferentialPair`, `pcb_LengthGroup`) before proceeding, preventing false success assertions when native features are not exposed.
+
+Returns `mutationId`, exact confirmation token `CONFIRM pcb:<action> <mutationId>`, and structured `preview`. Previews expire after 5 minutes and require execution via `easyeda_confirmed_action` with `action="mutation"`.
+
+**Parameters:**
+- **`entity`** (`"netClass" | "differentialPair" | "lengthGroup"`, **required**): Entity type to mutate.
+- **`action`** (`"create" | "modify" | "delete"`, **required**): Operation to stage.
+- **`name`** (`string`, **required**): Name of the net class, differential pair, or length group.
+- **`nets`** (`array`, _optional_): Member net names (for `netClass` or `lengthGroup`).
+- **`positiveNet`** (`string`, _optional_): Positive net name (for `differentialPair`).
+- **`negativeNet`** (`string`, _optional_): Negative net name (for `differentialPair`).
+- **`targetImpedance`** (`number`, _optional_): Target differential impedance in Ohms (e.g. `90`, `100`).
+- **`traceWidth`** (`number`, _optional_): Trace width in mm.
+- **`differentialGap`** (`number`, _optional_): Differential pair spacing/gap in mm.
+- **`clearance`** (`number`, _optional_): Isolation clearance spacing in mm (for `netClass`).
+- **`viaDiameter`** (`number`, _optional_): Via outer diameter in mm (for `netClass`).
+- **`viaHoleDiameter`** (`number`, _optional_): Via drill hole diameter in mm (for `netClass`).
+- **`toleranceMm`** (`number`, _optional_): Skew matching tolerance in mm.
+- **`targetLengthMm`** (`number`, _optional_): Target length in mm for length group.
+- **`properties`** (`object`, _optional_): Dictionary of properties to modify on existing constraint.
+- **`target`** (`object`, _optional_): Expected document target specification to assert against active canvas.
 - **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
 
 ---
