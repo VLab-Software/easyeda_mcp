@@ -8,6 +8,7 @@ import { registerExportTools } from "./tools/exportTools.js";
 import { registerDocumentTools } from "./tools/documentTools.js";
 import { registerSchematicMutationTools } from "./tools/schematicMutationTools.js";
 import { registerActionTools } from "./tools/actionTools.js";
+import { registerSpiceTools } from "./tools/spiceTools.js";
 import { DefaultTimeoutSchema, hasExplicitMutationConfirmation, registerReadTool } from "./tools/common.js";
 
 export { DefaultTimeoutSchema, hasExplicitMutationConfirmation, registerReadTool };
@@ -21,4 +22,5 @@ export function registerEasyEdaTools(server: McpServer, bridge: EditorClient): v
   registerDocumentTools(server, bridge);
   registerSchematicMutationTools(server, bridge);
   registerActionTools(server, bridge);
+  registerSpiceTools(server, bridge);
 }

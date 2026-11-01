@@ -222,6 +222,10 @@ export function detectMethodCapabilities(api: () => EasyEdaApi): Record<string, 
     ),
     "sch_Drc.check": Boolean(eda.sch_Drc?.check),
     "sch_Netlist.getNetlist": Boolean(eda.sch_Netlist?.getNetlist),
+    "sch_Sim.check": Boolean((eda as any).sch_Sim?.check || (eda as any).sim_Document?.run),
+    "sch_Netlist.getSpiceNetlist": Boolean(
+      (eda as any).sch_Netlist?.getSpiceNetlist || (eda as any).sch_Netlist?.getNetlist
+    ),
 
     // Libraries & System
     "lib_Device.search": Boolean(eda.lib_Device?.search || eda.lib_Search?.search),
