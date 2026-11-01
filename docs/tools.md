@@ -1,6 +1,6 @@
 # Tools Reference
 
-EasyEDA Pro MCP exposes **62 tools** across 8 categories. All inspection, tracing, navigation, and export tools are read-only (`readOnlyHint: true`).
+EasyEDA Pro MCP exposes **65 tools** across 8 categories. All inspection, tracing, navigation, and export tools are read-only (`readOnlyHint: true`).
 
 ## Tool Catalog
 
@@ -16,8 +16,8 @@ EasyEDA Pro MCP exposes **62 tools** across 8 categories. All inspection, tracin
   - [`easyeda_run_schematic_erc`](#easyeda_run_schematic_erc) · [`easyeda_trace_net`](#easyeda_trace_net) · [`easyeda_trace_component`](#easyeda_trace_component) · [`easyeda_find_unconnected_pins`](#easyeda_find_unconnected_pins) · [`easyeda_validate_schematic_area`](#easyeda_validate_schematic_area) · [`easyeda_verify_connections`](#easyeda_verify_connections)
 - **[PCB Layout & DRC Rules](#pcb-layout-drc-rules)** (30 tools)
   - [`easyeda_run_drc`](#easyeda_run_drc) · [`easyeda_get_pcb_layers`](#easyeda_get_pcb_layers) · [`easyeda_get_routing_status`](#easyeda_get_routing_status) · [`easyeda_list_pcb_components`](#easyeda_list_pcb_components) · [`easyeda_get_pcb_pads`](#easyeda_get_pcb_pads) · [`easyeda_prepare_pcb_component`](#easyeda_prepare_pcb_component) · [`easyeda_get_board_outline`](#easyeda_get_board_outline) · [`easyeda_prepare_board_outline`](#easyeda_prepare_board_outline) · [`easyeda_prepare_pcb_routing`](#easyeda_prepare_pcb_routing) · [`easyeda_prepare_pcb_layout`](#easyeda_prepare_pcb_layout) · [`easyeda_get_pcb_tracks`](#easyeda_get_pcb_tracks) · [`easyeda_get_pcb_vias`](#easyeda_get_pcb_vias) · [`easyeda_prepare_pcb_track_via`](#easyeda_prepare_pcb_track_via) · [`easyeda_highlight_net`](#easyeda_highlight_net) · [`easyeda_get_copper_zones`](#easyeda_get_copper_zones) · [`easyeda_get_keepouts`](#easyeda_get_keepouts) · [`easyeda_prepare_copper_keepout`](#easyeda_prepare_copper_keepout) · [`easyeda_get_pcb_airwires`](#easyeda_get_pcb_airwires) · [`easyeda_get_pcb_placement_report`](#easyeda_get_pcb_placement_report) · [`easyeda_get_pcb_net_report`](#easyeda_get_pcb_net_report) · [`easyeda_get_pcb_net_classes`](#easyeda_get_pcb_net_classes) · [`easyeda_get_pcb_differential_pairs`](#easyeda_get_pcb_differential_pairs) · [`easyeda_get_pcb_length_groups`](#easyeda_get_pcb_length_groups) · [`easyeda_prepare_pcb_net_constraint`](#easyeda_prepare_pcb_net_constraint) · [`easyeda_get_pcb_3d_inspection`](#easyeda_get_pcb_3d_inspection) · [`easyeda_get_pcb_3d_view`](#easyeda_get_pcb_3d_view) · [`easyeda_prepare_pcb_external_import`](#easyeda_prepare_pcb_external_import) · [`easyeda_get_drc_rules`](#easyeda_get_drc_rules) · [`easyeda_prepare_drc_edit`](#easyeda_prepare_drc_edit) · [`easyeda_get_drc_edit_result`](#easyeda_get_drc_edit_result)
-- **[Navigation & Exports](#navigation-exports)** (8 tools)
-  - [`easyeda_export_cpl`](#easyeda_export_cpl) · [`easyeda_export_bom`](#easyeda_export_bom) · [`easyeda_export_netlist`](#easyeda_export_netlist) · [`easyeda_export_gerber`](#easyeda_export_gerber) · [`easyeda_export_pdf`](#easyeda_export_pdf) · [`easyeda_navigate_component`](#easyeda_navigate_component) · [`easyeda_navigate_region`](#easyeda_navigate_region) · [`easyeda_zoom_board`](#easyeda_zoom_board)
+- **[Libraries, Navigation & Exports](#navigation-exports)** (11 tools)
+  - [`easyeda_export_cpl`](#easyeda_export_cpl) · [`easyeda_export_bom`](#easyeda_export_bom) · [`easyeda_export_netlist`](#easyeda_export_netlist) · [`easyeda_export_gerber`](#easyeda_export_gerber) · [`easyeda_export_pdf`](#easyeda_export_pdf) · [`easyeda_navigate_component`](#easyeda_navigate_component) · [`easyeda_navigate_region`](#easyeda_navigate_region) · [`easyeda_zoom_board`](#easyeda_zoom_board) · [`easyeda_get_device_details`](#easyeda_get_device_details) · [`easyeda_compare_devices`](#easyeda_compare_devices) · [`easyeda_verify_pin_pad_mapping`](#easyeda_verify_pin_pad_mapping)
 - **[Confirmation-Gated Actions](#confirmation-gated-actions)** (1 tool)
   - [`easyeda_confirmed_action`](#easyeda_confirmed_action)
 
@@ -1078,6 +1078,52 @@ Exports a PDF of the active schematic or PCB document.
 - **`scope`** (`"pcb" | "schematic" | "auto"`, _optional_, default: `"auto"`): Source document scope.
 - **`fileName`** (`string`, _optional_): Custom output filename.
 - **`timeoutMs`** (`number`, _optional_, default: `60000`): RPC timeout in ms.
+
+---
+
+### `easyeda_get_device_details`
+
+**Scope:** Library & Component RPC (`readOnlyHint: true`, default timeout: `30000` ms)
+
+Fetches the complete device definition, schematic symbol pinout, PCB footprint pad geometry, and pin-to-pad correspondence mapping by device UUID, LCSC part code (e.g., `"C1523"`), or placed component designator (e.g., `"U1"`). Evaluates mapping integrity and detects unmapped pins or extra footprint pads.
+
+**Parameters:**
+- **`deviceUuid`** (`string`, _optional_): Library device UUID.
+- **`designator`** (`string`, _optional_): Placed component designator in active schematic/PCB (e.g., `"U1"`).
+- **`lcscCode`** (`string`, _optional_): LCSC component part code (e.g., `"C1523"`).
+- **`includePinPadMap`** (`boolean`, _optional_, default: `true`): Whether to include the detailed pin-to-pad mapping table.
+- **`includeRaw`** (`boolean`, _optional_, default: `false`): Include raw underlying primitive data.
+- **`target`** (`object`, _optional_): Expected document target specification.
+- **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
+
+---
+
+### `easyeda_compare_devices`
+
+**Scope:** Library & Component RPC (`readOnlyHint: true`, default timeout: `30000` ms)
+
+Compares two component devices (by UUID, LCSC code, or designator) evaluating pinout matching, footprint geometry, JLCPCB stock availability, and drop-in replacement feasibility. Normalizes power/ground/reset pin aliases and flags electrical type or naming conflicts.
+
+**Parameters:**
+- **`deviceA`** (`string`, **required**): First device UUID, LCSC part number (e.g., `"C1523"`), or component designator (e.g., `"U1"`).
+- **`deviceB`** (`string`, **required**): Second device UUID, LCSC part number (e.g., `"C2040"`), or component designator (e.g., `"U2"`).
+- **`strictPinout`** (`boolean`, _optional_, default: `true`): Strictly compare pin electrical types in addition to pin names.
+- **`target`** (`object`, _optional_): Expected document target specification.
+- **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
+
+---
+
+### `easyeda_verify_pin_pad_mapping`
+
+**Scope:** Library & Component RPC (`readOnlyHint: true`, default timeout: `30000` ms)
+
+Validates 1-to-1 correspondence between schematic symbol pins and PCB footprint pads across all components on the active canvas or for a specific component. Identifies unmapped pins, unmapped pads, and potential netlist connectivity breaks.
+
+**Parameters:**
+- **`designator`** (`string`, _optional_): Optional component designator to inspect (e.g., `"U1"`). If omitted, verifies all components on active canvas.
+- **`deviceUuid`** (`string`, _optional_): Optional library device UUID to verify.
+- **`target`** (`object`, _optional_): Expected document target specification.
+- **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
 
 ---
 
