@@ -15,6 +15,12 @@ import {
   fetchPcbKeepouts,
   preparePcbCopperKeepoutMutation
 } from "../mutation/pcbCopperKeepoutMutations.js";
+import {
+  fetchPcbNetClasses,
+  fetchPcbDifferentialPairs,
+  fetchPcbLengthGroups,
+  preparePcbNetConstraintMutation
+} from "../mutation/pcbNetConstraintMutations.js";
 import { fetchPcbTracks, fetchPcbVias, preparePcbTrackViaMutation } from "../mutation/pcbTrackViaMutations.js";
 import {
   generatePcbAirwiresReport,
@@ -753,6 +759,95 @@ export function createPcbHandlers(api: () => EasyEdaApi): Record<string, RpcHand
     };
   }
 
+  async function getPcbNetClasses(params: Record<string, any> = {}): Promise<Record<string, unknown>> {
+    const eda = api();
+    const documentInfo = await optionalCall(() => eda.dmt_SelectControl?.getCurrentDocumentInfo?.());
+    const currentTarget = extractDocumentIdentity(documentInfo, undefined, "native_api");
+
+    const expectedTarget = params.expectedTarget ?? params.target;
+    if (expectedTarget) {
+      assertDocumentTargetMatch(expectedTarget, currentTarget);
+    }
+    if (
+      currentTarget.documentType &&
+      currentTarget.documentType !== "pcb" &&
+      currentTarget.documentType !== "unknown"
+    ) {
+      throw apiError("wrong_document", "Getting PCB net classes requires an active PCB document.");
+    }
+
+    const { total, classes } = await fetchPcbNetClasses(eda, {
+      name: params.name,
+      includeRaw: params.includeRaw
+    });
+
+    return {
+      target: currentTarget,
+      totalClasses: total,
+      classes
+    };
+  }
+
+  async function getPcbDifferentialPairs(params: Record<string, any> = {}): Promise<Record<string, unknown>> {
+    const eda = api();
+    const documentInfo = await optionalCall(() => eda.dmt_SelectControl?.getCurrentDocumentInfo?.());
+    const currentTarget = extractDocumentIdentity(documentInfo, undefined, "native_api");
+
+    const expectedTarget = params.expectedTarget ?? params.target;
+    if (expectedTarget) {
+      assertDocumentTargetMatch(expectedTarget, currentTarget);
+    }
+    if (
+      currentTarget.documentType &&
+      currentTarget.documentType !== "pcb" &&
+      currentTarget.documentType !== "unknown"
+    ) {
+      throw apiError("wrong_document", "Getting PCB differential pairs requires an active PCB document.");
+    }
+
+    const { total, pairs } = await fetchPcbDifferentialPairs(eda, {
+      name: params.name,
+      toleranceMm: params.toleranceMm,
+      includeRaw: params.includeRaw
+    });
+
+    return {
+      target: currentTarget,
+      totalPairs: total,
+      pairs
+    };
+  }
+
+  async function getPcbLengthGroups(params: Record<string, any> = {}): Promise<Record<string, unknown>> {
+    const eda = api();
+    const documentInfo = await optionalCall(() => eda.dmt_SelectControl?.getCurrentDocumentInfo?.());
+    const currentTarget = extractDocumentIdentity(documentInfo, undefined, "native_api");
+
+    const expectedTarget = params.expectedTarget ?? params.target;
+    if (expectedTarget) {
+      assertDocumentTargetMatch(expectedTarget, currentTarget);
+    }
+    if (
+      currentTarget.documentType &&
+      currentTarget.documentType !== "pcb" &&
+      currentTarget.documentType !== "unknown"
+    ) {
+      throw apiError("wrong_document", "Getting PCB length groups requires an active PCB document.");
+    }
+
+    const { total, groups } = await fetchPcbLengthGroups(eda, {
+      name: params.name,
+      toleranceMm: params.toleranceMm,
+      includeRaw: params.includeRaw
+    });
+
+    return {
+      target: currentTarget,
+      totalGroups: total,
+      groups
+    };
+  }
+
   return {
     runDrc,
     getPcbLayers,
@@ -770,6 +865,10 @@ export function createPcbHandlers(api: () => EasyEdaApi): Record<string, RpcHand
     prepareCopperKeepout: (params: Record<string, any>) => preparePcbCopperKeepoutMutation(api, params),
     getPcbAirwires: (params: Record<string, any>) => generatePcbAirwiresReport(api, params),
     getPcbPlacementReport: (params: Record<string, any>) => generatePcbPlacementReport(api, params),
-    getPcbNetReport: (params: Record<string, any>) => generatePcbNetReport(api, params)
+    getPcbNetReport: (params: Record<string, any>) => generatePcbNetReport(api, params),
+    getPcbNetClasses,
+    getPcbDifferentialPairs,
+    getPcbLengthGroups,
+    prepareNetConstraint: (params: Record<string, any>) => preparePcbNetConstraintMutation(api, params)
   };
 }

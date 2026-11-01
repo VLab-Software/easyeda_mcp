@@ -137,6 +137,26 @@ export function detectMethodCapabilities(api: () => EasyEdaApi): Record<string, 
     "pcb_PrimitiveRatsnest.getAll": Boolean(
       (eda as any).pcb_PrimitiveRatsnest?.getAll || (eda as any).pcb_PrimitiveAirwire?.getAll
     ),
+    "pcb_NetClass.getAll": Boolean((eda as any).pcb_NetClass?.getAll),
+    "pcb_NetClass.create": Boolean((eda as any).pcb_NetClass?.create),
+    "pcb_NetClass.modify": Boolean((eda as any).pcb_NetClass?.modify),
+    "pcb_NetClass.delete": Boolean((eda as any).pcb_NetClass?.delete),
+    "pcb_DifferentialPair.getAll": Boolean((eda as any).pcb_DifferentialPair?.getAll),
+    "pcb_DifferentialPair.create": Boolean((eda as any).pcb_DifferentialPair?.create),
+    "pcb_DifferentialPair.modify": Boolean((eda as any).pcb_DifferentialPair?.modify),
+    "pcb_DifferentialPair.delete": Boolean((eda as any).pcb_DifferentialPair?.delete),
+    "pcb_LengthGroup.getAll": Boolean(
+      (eda as any).pcb_LengthGroup?.getAll || (eda as any).pcb_EqualLengthGroup?.getAll
+    ),
+    "pcb_LengthGroup.create": Boolean(
+      (eda as any).pcb_LengthGroup?.create || (eda as any).pcb_EqualLengthGroup?.create
+    ),
+    "pcb_LengthGroup.modify": Boolean(
+      (eda as any).pcb_LengthGroup?.modify || (eda as any).pcb_EqualLengthGroup?.modify
+    ),
+    "pcb_LengthGroup.delete": Boolean(
+      (eda as any).pcb_LengthGroup?.delete || (eda as any).pcb_EqualLengthGroup?.delete
+    ),
     "pcb_Document.rebuildCopper": Boolean(
       (eda.pcb_Document as any)?.rebuildAllCopperArea || (eda.pcb_Document as any)?.rebuildCopperArea
     ),
