@@ -15,6 +15,13 @@ import {
   segmentsTouch,
   unique
 } from "./normalization.js";
+import {
+  assertDocumentTargetMatch,
+  validateDocumentTarget,
+  type DataCompleteness,
+  type DataSource,
+  type DocumentIdentity
+} from "../protocol/identity.js";
 import type {
   Confidence,
   ConnectivityGroup,
@@ -306,7 +313,23 @@ export function buildSchematicSnapshot(raw: RawSchematicData): SchematicSnapshot
   }
   warnings.push(...resolved.warnings);
 
+  const completeness: DataCompleteness =
+    raw.completeness ??
+    (components.length > 0 && pins.length > 0
+      ? "full"
+      : components.length > 0 || wires.length > 0
+        ? "partial"
+        : "empty");
+  const source: DataSource = raw.source ?? raw.target?.source ?? "native_api";
+  const capturedAt = raw.capturedAt ?? raw.target?.capturedAt ?? new Date().toISOString();
+  const snapshotId = raw.snapshotId ?? `snap_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+
   return {
+    snapshotId,
+    target: raw.target,
+    capturedAt,
+    source,
+    completeness,
     components,
     pins: resolved.pins,
     wires: resolved.wires,
@@ -323,6 +346,78 @@ export function buildSchematicSnapshot(raw: RawSchematicData): SchematicSnapshot
     warnings,
     betaApi: true
   };
+}
+
+export function isSnapshotFresh(
+  snapshot: SchematicSnapshot,
+  options?: {
+    expectedTarget?: Partial<DocumentIdentity>;
+    currentTarget?: Partial<DocumentIdentity>;
+    maxAgeMs?: number;
+    nowMs?: number;
+  }
+): boolean {
+  if (options?.expectedTarget && snapshot.target) {
+    const res = validateDocumentTarget(options.expectedTarget, snapshot.target, {
+      maxAgeMs: options.maxAgeMs,
+      nowMs: options.nowMs
+    });
+    if (!res.valid) return false;
+  }
+
+  if (options?.currentTarget && snapshot.target) {
+    const res = validateDocumentTarget(snapshot.target, options.currentTarget, {
+      maxAgeMs: options.maxAgeMs,
+      nowMs: options.nowMs
+    });
+    if (!res.valid) return false;
+  }
+
+  if (options?.maxAgeMs && snapshot.capturedAt) {
+    const captureTime = Date.parse(snapshot.capturedAt);
+    const now = options.nowMs ?? Date.now();
+    if (!Number.isNaN(captureTime) && now - captureTime > options.maxAgeMs) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+export function assertSnapshotFresh(
+  snapshot: SchematicSnapshot,
+  options?: {
+    expectedTarget?: Partial<DocumentIdentity>;
+    currentTarget?: Partial<DocumentIdentity>;
+    maxAgeMs?: number;
+    nowMs?: number;
+  }
+): void {
+  if (options?.expectedTarget) {
+    assertDocumentTargetMatch(options.expectedTarget, snapshot.target, {
+      maxAgeMs: options.maxAgeMs,
+      nowMs: options.nowMs
+    });
+  }
+
+  if (options?.currentTarget) {
+    assertDocumentTargetMatch(snapshot.target, options.currentTarget, {
+      maxAgeMs: options.maxAgeMs,
+      nowMs: options.nowMs
+    });
+  }
+
+  if (options?.maxAgeMs && snapshot.capturedAt) {
+    const captureTime = Date.parse(snapshot.capturedAt);
+    const now = options.nowMs ?? Date.now();
+    if (!Number.isNaN(captureTime) && now - captureTime > options.maxAgeMs) {
+      const error = new Error(
+        `Schematic snapshot has expired (age: ${Math.round((now - captureTime) / 1000)}s, max: ${Math.round(options.maxAgeMs / 1000)}s)`
+      ) as Error & { code: string };
+      error.code = "capture_expired";
+      throw error;
+    }
+  }
 }
 
 export function findComponent(snapshot: SchematicSnapshot, query: string): SchematicComponent | undefined {

@@ -1,3 +1,5 @@
+import type { DataCompleteness, DataSource, DocumentIdentity } from "../protocol/identity.js";
+
 export type Confidence = "high" | "partial" | "low";
 
 export type Position = {
@@ -77,6 +79,11 @@ export type SchematicNet = {
 };
 
 export type SchematicSnapshot = {
+  snapshotId?: string;
+  target?: DocumentIdentity;
+  capturedAt?: string;
+  source?: DataSource;
+  completeness?: DataCompleteness;
   components: SchematicComponent[];
   pins: SchematicPin[];
   wires: SchematicWire[];
@@ -95,6 +102,11 @@ export type SchematicSnapshot = {
 };
 
 export type RawSchematicData = {
+  snapshotId?: string;
+  target?: DocumentIdentity;
+  capturedAt?: string;
+  source?: DataSource;
+  completeness?: DataCompleteness;
   components?: unknown[];
   pinsByComponent?: Record<string, unknown[]>;
   wires?: unknown[];

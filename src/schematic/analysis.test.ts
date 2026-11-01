@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
+  assertSnapshotFresh,
   buildSchematicSnapshot,
   findUnconnectedPins,
   getComponentPins,
+  isSnapshotFresh,
   traceComponent,
   traceNet,
   validateSchematicArea,
@@ -394,6 +396,61 @@ describe("schematic analysis", () => {
     ]);
 
     expect(result.checks.map((check) => check.status)).toEqual(["pass", "pass", "pass", "pass", "pass"]);
+  });
+
+  it("attaches target identity, completeness, source and snapshotId", () => {
+    const target = {
+      projectId: "proj-easy",
+      documentId: "doc-sch-1",
+      documentType: "schematic" as const,
+      capturedAt: new Date(1_000_000).toISOString(),
+      completeness: "full" as const,
+      source: "native_api" as const,
+      fingerprint: "proj-easy::doc-sch-1::schematic::*::*"
+    };
+
+    const snapshot = buildSchematicSnapshot({
+      target,
+      components: [component("R1", "$r1", "10k")],
+      pinsByComponent: { $r1: [pin("1", "1", "VCC"), pin("2", "2", "GND")] },
+      wires: [wire("VCC"), wire("GND")]
+    });
+
+    expect(snapshot.snapshotId).toMatch(/^snap_\d+_[a-z0-9]+$/);
+    expect(snapshot.target).toEqual(target);
+    expect(snapshot.source).toBe("native_api");
+    expect(snapshot.completeness).toBe("full");
+    expect(snapshot.capturedAt).toBe(target.capturedAt);
+  });
+
+  it("validates snapshot freshness and refuses stale targets", () => {
+    const target = {
+      projectId: "proj-easy",
+      documentId: "doc-sch-1",
+      documentType: "schematic" as const,
+      capturedAt: new Date(1_000_000).toISOString(),
+      completeness: "full" as const,
+      source: "native_api" as const,
+      fingerprint: "proj-easy::doc-sch-1::schematic::*::*"
+    };
+
+    const snapshot = buildSchematicSnapshot({
+      target,
+      components: [component("R1", "$r1", "10k")]
+    });
+
+    // Fresh matching target
+    expect(isSnapshotFresh(snapshot, { currentTarget: target })).toBe(true);
+    expect(() => assertSnapshotFresh(snapshot, { currentTarget: target })).not.toThrow();
+
+    // Stale target when document changed
+    const switchedDoc = { ...target, documentId: "doc-sch-2" };
+    expect(isSnapshotFresh(snapshot, { currentTarget: switchedDoc })).toBe(false);
+    expect(() => assertSnapshotFresh(snapshot, { currentTarget: switchedDoc })).toThrow(/document ID changed/i);
+
+    // Stale target when capture expired
+    expect(isSnapshotFresh(snapshot, { maxAgeMs: 5_000, nowMs: 1_000_000 + 10_000 })).toBe(false);
+    expect(() => assertSnapshotFresh(snapshot, { maxAgeMs: 5_000, nowMs: 1_000_000 + 10_000 })).toThrow(/has expired/i);
   });
 });
 
