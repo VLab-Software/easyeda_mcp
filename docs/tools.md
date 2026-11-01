@@ -1,6 +1,6 @@
 # Tools Reference
 
-EasyEDA Pro MCP exposes **52 tools** across 8 categories. All inspection, tracing, navigation, and export tools are read-only (`readOnlyHint: true`).
+EasyEDA Pro MCP exposes **55 tools** across 8 categories. All inspection, tracing, navigation, and export tools are read-only (`readOnlyHint: true`).
 
 ## Tool Catalog
 
@@ -14,8 +14,8 @@ EasyEDA Pro MCP exposes **52 tools** across 8 categories. All inspection, tracin
   - [`easyeda_schematic_snapshot`](#easyeda_schematic_snapshot) · [`easyeda_get_schematic_nets`](#easyeda_get_schematic_nets) · [`easyeda_list_schematic_components`](#easyeda_list_schematic_components) · [`easyeda_get_component_pins`](#easyeda_get_component_pins) · [`easyeda_find_component`](#easyeda_find_component) · [`easyeda_find_net`](#easyeda_find_net) · [`easyeda_search_library`](#easyeda_search_library)
 - **[Circuit Tracing & Verification](#circuit-tracing-verification)** (6 tools)
   - [`easyeda_run_schematic_erc`](#easyeda_run_schematic_erc) · [`easyeda_trace_net`](#easyeda_trace_net) · [`easyeda_trace_component`](#easyeda_trace_component) · [`easyeda_find_unconnected_pins`](#easyeda_find_unconnected_pins) · [`easyeda_validate_schematic_area`](#easyeda_validate_schematic_area) · [`easyeda_verify_connections`](#easyeda_verify_connections)
-- **[PCB Layout & DRC Rules](#pcb-layout-drc-rules)** (20 tools)
-  - [`easyeda_run_drc`](#easyeda_run_drc) · [`easyeda_get_pcb_layers`](#easyeda_get_pcb_layers) · [`easyeda_get_routing_status`](#easyeda_get_routing_status) · [`easyeda_list_pcb_components`](#easyeda_list_pcb_components) · [`easyeda_get_pcb_pads`](#easyeda_get_pcb_pads) · [`easyeda_prepare_pcb_component`](#easyeda_prepare_pcb_component) · [`easyeda_get_board_outline`](#easyeda_get_board_outline) · [`easyeda_prepare_board_outline`](#easyeda_prepare_board_outline) · [`easyeda_prepare_pcb_routing`](#easyeda_prepare_pcb_routing) · [`easyeda_prepare_pcb_layout`](#easyeda_prepare_pcb_layout) · [`easyeda_get_pcb_tracks`](#easyeda_get_pcb_tracks) · [`easyeda_get_pcb_vias`](#easyeda_get_pcb_vias) · [`easyeda_prepare_pcb_track_via`](#easyeda_prepare_pcb_track_via) · [`easyeda_highlight_net`](#easyeda_highlight_net) · [`easyeda_get_copper_zones`](#easyeda_get_copper_zones) · [`easyeda_get_keepouts`](#easyeda_get_keepouts) · [`easyeda_prepare_copper_keepout`](#easyeda_prepare_copper_keepout) · [`easyeda_get_drc_rules`](#easyeda_get_drc_rules) · [`easyeda_prepare_drc_edit`](#easyeda_prepare_drc_edit) · [`easyeda_get_drc_edit_result`](#easyeda_get_drc_edit_result)
+- **[PCB Layout & DRC Rules](#pcb-layout-drc-rules)** (23 tools)
+  - [`easyeda_run_drc`](#easyeda_run_drc) · [`easyeda_get_pcb_layers`](#easyeda_get_pcb_layers) · [`easyeda_get_routing_status`](#easyeda_get_routing_status) · [`easyeda_list_pcb_components`](#easyeda_list_pcb_components) · [`easyeda_get_pcb_pads`](#easyeda_get_pcb_pads) · [`easyeda_prepare_pcb_component`](#easyeda_prepare_pcb_component) · [`easyeda_get_board_outline`](#easyeda_get_board_outline) · [`easyeda_prepare_board_outline`](#easyeda_prepare_board_outline) · [`easyeda_prepare_pcb_routing`](#easyeda_prepare_pcb_routing) · [`easyeda_prepare_pcb_layout`](#easyeda_prepare_pcb_layout) · [`easyeda_get_pcb_tracks`](#easyeda_get_pcb_tracks) · [`easyeda_get_pcb_vias`](#easyeda_get_pcb_vias) · [`easyeda_prepare_pcb_track_via`](#easyeda_prepare_pcb_track_via) · [`easyeda_highlight_net`](#easyeda_highlight_net) · [`easyeda_get_copper_zones`](#easyeda_get_copper_zones) · [`easyeda_get_keepouts`](#easyeda_get_keepouts) · [`easyeda_prepare_copper_keepout`](#easyeda_prepare_copper_keepout) · [`easyeda_get_pcb_airwires`](#easyeda_get_pcb_airwires) · [`easyeda_get_pcb_placement_report`](#easyeda_get_pcb_placement_report) · [`easyeda_get_pcb_net_report`](#easyeda_get_pcb_net_report) · [`easyeda_get_drc_rules`](#easyeda_get_drc_rules) · [`easyeda_prepare_drc_edit`](#easyeda_prepare_drc_edit) · [`easyeda_get_drc_edit_result`](#easyeda_get_drc_edit_result)
 - **[Navigation & Exports](#navigation-exports)** (8 tools)
   - [`easyeda_export_cpl`](#easyeda_export_cpl) · [`easyeda_export_bom`](#easyeda_export_bom) · [`easyeda_export_netlist`](#easyeda_export_netlist) · [`easyeda_export_gerber`](#easyeda_export_gerber) · [`easyeda_export_pdf`](#easyeda_export_pdf) · [`easyeda_navigate_component`](#easyeda_navigate_component) · [`easyeda_navigate_region`](#easyeda_navigate_region) · [`easyeda_zoom_board`](#easyeda_zoom_board)
 - **[Confirmation-Gated Actions](#confirmation-gated-actions)** (1 tool)
@@ -753,6 +753,57 @@ Returns `mutationId`, exact confirmation token `CONFIRM pcb:<action> <mutationId
 - **`keepoutType`** (`string`, _optional_, default: `"all"`): Keepout restriction type (`"all"`, `"track"`, `"via"`, `"copper"`).
 - **`properties`** (`object`, _optional_): Dictionary of properties to modify on existing copper zone or keepout.
 - **`target`** (`object`, _optional_): Expected document target specification to assert against active canvas.
+- **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
+
+---
+
+### `easyeda_get_pcb_airwires`
+
+**Scope:** PCB RPC (`readOnlyHint: true`, default timeout: `30000` ms)
+
+Inspects unrouted ratsnest airwire lines on the active PCB layout with endpoints, coordinates, Euclidean and Manhattan lengths, and transparent method/tolerance metadata.
+
+Supports native EasyEDA Pro ratsnest line primitives with seamless fallback to topological Minimum Spanning Tree (MST) based on pad center Euclidean distances.
+
+**Parameters:**
+- **`net`** (`string`, _optional_): Filter airwires by connected electrical net name (e.g. `"GND"`, `"VCC"`).
+- **`limit`** (`number`, _optional_, default: `200`, max: `500`): Maximum number of airwire lines to return.
+- **`padSnapTolerance`** (`number`, _optional_, default: `0.1`): Snap distance tolerance in mm.
+- **`target`** (`object`, _optional_): Asserts execution against the expected active PCB document.
+- **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
+
+---
+
+### `easyeda_get_pcb_placement_report`
+
+**Scope:** PCB RPC (`readOnlyHint: true`, default timeout: `30000` ms)
+
+Generates a comprehensive component placement report including density, component bounding boxes, layer distribution, and collision/clearance warnings.
+
+Identifies unplaced components (missing coordinates or positioned outside board outline boundaries), calculates board packing density percentage, and performs pairwise bounding box intersection checks.
+
+**Parameters:**
+- **`collisionTolerance`** (`number`, _optional_, default: `0.2`): Clearance margin in mm below which tight spacing or potential collision warnings are flagged.
+- **`boardMarginTolerance`** (`number`, _optional_, default: `1.0`): Margin in mm beyond board outline before considering a component placed outside boundaries.
+- **`target`** (`object`, _optional_): Asserts execution against the expected active PCB document.
+- **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
+
+---
+
+### `easyeda_get_pcb_net_report`
+
+**Scope:** PCB RPC (`readOnlyHint: true`, default timeout: `30000` ms)
+
+Generates detailed physical metrics for nets across the active PCB (pad counts, track segment counts, routed track length in mm, via count, copper flood zone coverage, and routing completion percentage).
+
+Categorizes nets automatically into power, ground, and signal rails, and reports overall board-wide routing completion statistics.
+
+**Parameters:**
+- **`net`** (`string`, _optional_): Filter by specific net name.
+- **`category`** (`"all" | "power" | "ground" | "signal"`, _optional_): Filter nets by electrical category.
+- **`status`** (`"all" | "routed" | "partially_routed" | "unrouted"`, _optional_): Filter nets by physical routing status.
+- **`limit`** (`number`, _optional_, default: `200`, max: `500`): Maximum number of net records to return.
+- **`target`** (`object`, _optional_): Asserts execution against the expected active PCB document.
 - **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
 
 ---

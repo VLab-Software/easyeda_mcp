@@ -134,6 +134,9 @@ export function detectMethodCapabilities(api: () => EasyEdaApi): Record<string, 
     "pcb_PrimitiveKeepout.create": Boolean((eda as any).pcb_PrimitiveKeepout?.create),
     "pcb_PrimitiveKeepout.modify": Boolean((eda as any).pcb_PrimitiveKeepout?.modify),
     "pcb_PrimitiveKeepout.delete": Boolean((eda as any).pcb_PrimitiveKeepout?.delete),
+    "pcb_PrimitiveRatsnest.getAll": Boolean(
+      (eda as any).pcb_PrimitiveRatsnest?.getAll || (eda as any).pcb_PrimitiveAirwire?.getAll
+    ),
     "pcb_Document.rebuildCopper": Boolean(
       (eda.pcb_Document as any)?.rebuildAllCopperArea || (eda.pcb_Document as any)?.rebuildCopperArea
     ),
