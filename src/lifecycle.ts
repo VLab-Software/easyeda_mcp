@@ -1,6 +1,6 @@
 import process from "node:process";
-import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import type { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import type { McpServer } from "@modelcontextprotocol/server";
+import type { StdioServerTransport } from "@modelcontextprotocol/server/stdio";
 import type { EasyEdaBridge } from "./bridge/EasyEdaBridge.js";
 
 type ProcessLike = {

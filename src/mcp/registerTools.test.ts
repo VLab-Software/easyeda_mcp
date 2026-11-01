@@ -1,9 +1,9 @@
 import type { EditorClient } from "../editor/EditorClient.js";
 import type { EditorStatus } from "../protocol/messages.js";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { Client } from "@modelcontextprotocol/sdk/client/index.js";
-import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { Client } from "@modelcontextprotocol/client";
+import { InMemoryTransport } from "@modelcontextprotocol/server";
+import { McpServer } from "@modelcontextprotocol/server";
 import { hasExplicitMutationConfirmation, registerEasyEdaTools } from "./registerTools.js";
 import { BridgeTimeoutError, BridgeUnavailableError } from "../bridge/errors.js";
 

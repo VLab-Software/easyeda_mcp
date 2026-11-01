@@ -1,4 +1,4 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { McpServer } from "@modelcontextprotocol/server";
 import { registerEasyEdaTools } from "./registerTools.js";
 import type { EditorClient } from "../editor/EditorClient.js";
 import { PROTOCOL_VERSION } from "../protocol/messages.js";

@@ -4,7 +4,7 @@ import {
   BridgeTimeoutError,
   BridgeUnavailableError
 } from "../bridge/errors.js";
-import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+import type { CallToolResult } from "@modelcontextprotocol/server";
 
 export type ToolResult = CallToolResult;
 
