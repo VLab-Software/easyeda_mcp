@@ -4,16 +4,6 @@ All notable changes to the EasyEDA Pro MCP server and browser extension are docu
 
 For packaged `.eext` and `.mcpb` downloads and checksums, see [GitHub Releases](https://github.com/VLab-Software/easyeda_mcp/releases).
 
-## Unreleased (Phase 0: SDD Architecture & Modularization)
-
-- **Incremental delivery governance**: added repository instructions, the [evolution plan](./evolution-plan.md), and [ADR 0001](./adr/0001-incremental-architecture.md); each part has its own branch/PR, user review, and integration gate.
-- **Architecture documentation accuracy**: distinguish current DRC safeguards from legacy actions, structured error fields from proposed contracts, and tool annotations from actual side effects.
-
-- **Spec-Driven Development Governance (`specs/`)**: added `specs/SPEC_TEMPLATE.md` defining strict Zod schema contracts, MCP annotations, native `eda.*` API mappings, and error recovery policies.
-- **Domain Modularization (`src/mcp/tools/`)**: refactored monolithic `registerTools.ts` (658 lines down to 24 lines) into domain modules: `statusTools.ts`, `schematicTools.ts`, `pcbTools.ts`, `drcTools.ts`, `exportTools.ts`, `actionTools.ts`, and `common.ts`.
-- **Extension Helpers Modularization (`extension/src/helpers.ts`)**: extracted defensive browser helpers (`ensureApi`, `apiError`, `normalizeError`, `sanitize`, `inferDocumentType`) to eliminate code duplication across extension handlers.
-- **Dedicated Domain Unit Tests**: added isolated Vitest suites for `statusTools`, `pcbTools`, and `exportTools`.
-
 ## `1.3.1` (Extension `0.4.0`)
 
 - docs: add github sponsors badge and support link

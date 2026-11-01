@@ -12,12 +12,9 @@ Connect any MCP-compatible AI client to your live EasyEDA Pro session.
 ## Guides & Reference
 
 - [Practical Workflows](./workflows.md): copy-pasteable prompts for schematic review, circuit assertions, DRC rules, and manufacturing exports
-- [Tools Reference](./tools.md): all 32 MCP tools grouped by workflow
+- [Tools Reference](./tools.md): all 24 MCP tools grouped by workflow
 - [DRC Rule Editing](./drc-rules.md): inspect, preview, and update native PCB design rules
 - [Architecture](./architecture.md): server, WebSocket bridge, and extension internals
-- [Evolution Plan](./evolution-plan.md): ordered deliveries, review gates, and validation evidence
-- [Architecture Decision](./adr/0001-incremental-architecture.md): incremental module boundaries and compatibility
-- [Git Workflow](./git-workflow.md): branches, pull requests, and automated releases
 - [Safety Model](./safety.md): read-only defaults, confirmation gates, and confidence levels
 - [Troubleshooting](./troubleshooting.md): quick fixes by symptom
 - [Changelog](./changelog.md): release history

@@ -23,11 +23,3 @@ Closes #
 - [ ] `npm run setup:local` (if server or extension changed)
 - [ ] `npm run docs:build` (if docs changed)
 
-## Evolution delivery (when applicable)
-
-- Roadmap part and specification/ADR:
-- Compatibility and acceptance criteria:
-- Known limitations and deferred behavior changes:
-- [ ] This PR contains one part; the previous part is integrated into `develop` (0A preserves `ff4219d`).
-- [ ] Validation distinguishes local simulation from real-editor execution.
-- [ ] User review is complete before integration and the next part.

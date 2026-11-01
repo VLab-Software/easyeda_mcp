@@ -15,7 +15,7 @@
 1. Branch from `develop`:
    ```bash
    git checkout develop && git pull origin develop
-   git checkout -b feature/<phase>-<part>
+   git checkout -b feature/<short-name>
    ```
 2. Implement changes, tests, and documentation updates *(do not bump version numbers in feature PRs)*.
 3. Use conventional prefixes in commit/PR titles so automated SemVer calculation picks the right bump level:
@@ -23,9 +23,7 @@
    - `fix: ...` / `docs: ...` / `chore: ...` -> **`patch`** bump (`1.2.0` -> `1.2.1`)
    - `feature!: ...` or `BREAKING CHANGE:` in commit body -> **`major`** bump (`1.2.0` -> `2.0.0`)
 4. Validate locally (`npm run setup:local`, `npm test`, `npm run typecheck`, `npm run typecheck:extension`, `npm run docs:build`).
-5. Open a pull request against **`develop`**. For the [evolution plan](./evolution-plan.md), wait for user review and green `CI` before integration; start the next part only after the preceding PR is integrated.
-
-Each roadmap part has its own branch and PR. Phase 0A preserves the existing foundation commit `ff4219d` as its ancestor; all later parts start from updated `develop`. Preserve existing branches, keep refactors separate from features and SDK migrations, and do not switch branches in a checkout used by another worker.
+5. Open a pull request against **`develop`** and merge once `CI` is green.
 
 ## Automated Release Flow (`develop -> master`)
 

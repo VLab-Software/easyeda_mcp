@@ -45,9 +45,6 @@ export default defineConfig({
         items: [
           { text: "Documentation Home", link: "/" },
           { text: "Repository Docs Index", link: "/README" },
-          { text: "Evolution Plan", link: "/evolution-plan" },
-          { text: "Architecture Decision", link: "/adr/0001-incremental-architecture" },
-          { text: "Git Workflow", link: "/git-workflow" },
           { text: "GitHub Repository", link: "https://github.com/VLab-Software/easyeda_mcp" }
         ]
       }
