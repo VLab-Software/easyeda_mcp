@@ -1,5 +1,6 @@
 import { apiError, ensureApi, numeric, optionalCall, sanitize, simplifyPrimitive, toArray } from "../helpers.js";
 import { assertDocumentTargetMatch, extractDocumentIdentity } from "../identity.js";
+import { getBoardOutlineSummary } from "../mutation/pcbOutlineMutations.js";
 import type { EasyEdaApi, RpcHandler } from "../types.js";
 
 function getProp(obj: any, getterName: string, propNames: string[]): any {
@@ -472,6 +473,14 @@ export function createPcbHandlers(api: () => EasyEdaApi): Record<string, RpcHand
     };
   }
 
+  async function getBoardOutline(params: Record<string, any> = {}): Promise<Record<string, unknown>> {
+    return (await getBoardOutlineSummary(api, {
+      expectedTarget: params.target,
+      includeSegments: params.includeSegments,
+      includeRaw: params.includeRaw
+    })) as unknown as Record<string, unknown>;
+  }
+
   return {
     runDrc,
     getPcbLayers,
@@ -479,6 +488,7 @@ export function createPcbHandlers(api: () => EasyEdaApi): Record<string, RpcHand
     listPcbComponents,
     getPcbPads,
     getPcbPadsTool: getPcbPads,
-    highlightNet
+    highlightNet,
+    getBoardOutline
   };
 }

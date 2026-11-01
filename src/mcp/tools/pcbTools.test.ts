@@ -24,6 +24,8 @@ describe("pcbTools", () => {
       "easyeda_list_pcb_components",
       "easyeda_get_pcb_pads",
       "easyeda_prepare_pcb_component",
+      "easyeda_get_board_outline",
+      "easyeda_prepare_board_outline",
       "easyeda_highlight_net"
     ]);
   });
@@ -124,6 +126,105 @@ describe("pcbTools", () => {
       mutationId: "mut-pcb-123",
       confirmation: "CONFIRM pcb:move mut-pcb-123",
       action: "move"
+    });
+
+    await client.close();
+  });
+
+  it("invokes easyeda_get_board_outline", async () => {
+    const bridge = {
+      endpoint: "ws://127.0.0.1:8765",
+      getStatus: vi.fn((): EditorStatus => ({ connected: true, updatedAt: "2026-11-01T00:00:00.000Z" })),
+      call: vi.fn(async () => ({
+        exists: true,
+        segmentCount: 4,
+        bounds: { minX: 0, minY: 0, maxX: 100, maxY: 80, width: 100, height: 80 },
+        isClosed: true,
+        perimeter: 360
+      }))
+    };
+
+    const server = new McpServer({ name: "test", version: "1.0.0" });
+    registerPcbTools(server, bridge as any);
+    const client = new Client({ name: "test-client", version: "1.0.0" });
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
+
+    const result = await client.callTool({
+      name: "easyeda_get_board_outline",
+      arguments: {
+        includeSegments: true
+      }
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(bridge.call).toHaveBeenCalledWith(
+      "getBoardOutline",
+      expect.objectContaining({
+        includeSegments: true
+      }),
+      30_000
+    );
+    expect(result.structuredContent).toMatchObject({
+      result: {
+        exists: true,
+        segmentCount: 4,
+        isClosed: true
+      }
+    });
+
+    await client.close();
+  });
+
+  it("invokes easyeda_prepare_board_outline for setting a rectangular outline", async () => {
+    const bridge = {
+      endpoint: "ws://127.0.0.1:8765",
+      getStatus: vi.fn((): EditorStatus => ({ connected: true, updatedAt: "2026-11-01T00:00:00.000Z" })),
+      call: vi.fn(async () => ({
+        mutationId: "mut-outline-456",
+        confirmation: "CONFIRM pcb:setBoardOutline mut-outline-456",
+        action: "setBoardOutline",
+        preview: {
+          impact: "Sets rectangular board outline 100x80mm at (0, 0).",
+          changedKeys: ["bounds", "width", "height"],
+          requestedAfter: { bounds: { width: 100, height: 80 } }
+        },
+        expiresAt: "2026-11-01T12:05:00.000Z"
+      }))
+    };
+
+    const server = new McpServer({ name: "test", version: "1.0.0" });
+    registerPcbTools(server, bridge as any);
+    const client = new Client({ name: "test-client", version: "1.0.0" });
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
+
+    const result = await client.callTool({
+      name: "easyeda_prepare_board_outline",
+      arguments: {
+        action: "set_rectangle",
+        x: 0,
+        y: 0,
+        width: 100,
+        height: 80
+      }
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(bridge.call).toHaveBeenCalledWith(
+      "prepareBoardOutline",
+      expect.objectContaining({
+        action: "set_rectangle",
+        x: 0,
+        y: 0,
+        width: 100,
+        height: 80
+      }),
+      30_000
+    );
+    expect(result.structuredContent).toMatchObject({
+      mutationId: "mut-outline-456",
+      confirmation: "CONFIRM pcb:setBoardOutline mut-outline-456"
     });
 
     await client.close();
