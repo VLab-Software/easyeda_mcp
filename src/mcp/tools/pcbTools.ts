@@ -497,4 +497,108 @@ export function registerPcbTools(server: McpServer, bridge: EditorClient): void 
     },
     summary: "Updated EasyEDA Pro PCB net highlighting."
   });
+
+  registerReadTool(server, bridge, {
+    name: "easyeda_get_copper_zones",
+    title: "Get PCB copper zones",
+    description:
+      "Lists and inspects copper zones (copper pours/areas) on the active PCB layout with net, layer, clearance, fillType, vertices, and bounding box.",
+    method: "getCopperZones",
+    inputSchema: {
+      net: z.string().min(1).optional().describe("Optional filter by net name (e.g. 'GND', 'VCC')."),
+      layer: z
+        .union([z.string(), z.number()])
+        .optional()
+        .describe("Optional filter by layer name or layer ID (e.g. 1, 'TopLayer', 2, 'BottomLayer')."),
+      primitiveId: z.string().min(1).optional().describe("Optional filter by copper zone primitive ID."),
+      limit: z.number().int().positive().max(500).default(100).describe("Maximum number of copper zones to return."),
+      includeRaw: z.boolean().default(false).describe("Include raw underlying primitive data."),
+      target: DocumentTargetSchema.optional(),
+      timeoutMs: DefaultTimeoutSchema.default(30_000)
+    },
+    summary: "Fetched EasyEDA Pro PCB copper zones."
+  });
+
+  registerReadTool(server, bridge, {
+    name: "easyeda_get_keepouts",
+    title: "Get PCB keepouts",
+    description:
+      "Lists and inspects keepout areas on the active PCB layout with layer, keepoutType, vertices, and bounding box.",
+    method: "getKeepouts",
+    inputSchema: {
+      layer: z
+        .union([z.string(), z.number()])
+        .optional()
+        .describe("Optional filter by layer name or layer ID (e.g. 1, 'TopLayer', 2, 'BottomLayer', or 'AllLayers')."),
+      primitiveId: z.string().min(1).optional().describe("Optional filter by keepout primitive ID."),
+      limit: z.number().int().positive().max(500).default(100).describe("Maximum number of keepouts to return."),
+      includeRaw: z.boolean().default(false).describe("Include raw underlying primitive data."),
+      target: DocumentTargetSchema.optional(),
+      timeoutMs: DefaultTimeoutSchema.default(30_000)
+    },
+    summary: "Fetched EasyEDA Pro PCB keepout areas."
+  });
+
+  server.registerTool(
+    "easyeda_prepare_copper_keepout",
+    {
+      title: "Prepare PCB copper zone or keepout mutation",
+      description:
+        "Prepares creating, modifying, deleting, or recalculating/rebuilding copper zones and keepouts on the active PCB canvas with safety preview and exact confirmation phrase. Does not modify the PCB until confirmed.",
+      inputSchema: {
+        entity: z.enum(["copperZone", "keepout"]).describe("Entity type to mutate: 'copperZone' or 'keepout'."),
+        action: z
+          .enum(["create", "modify", "delete", "rebuild"])
+          .describe("Action: 'create', 'modify', 'delete', or 'rebuild' (rebuild applies to copperZone)."),
+        zoneId: z.string().min(1).optional().describe("Primitive ID of copper zone to modify, delete, or rebuild."),
+        keepoutId: z.string().min(1).optional().describe("Primitive ID of keepout to modify or delete."),
+        net: z.string().min(1).optional().describe("Net name for copper zone creation (e.g. 'GND', 'VCC')."),
+        layer: z.union([z.string(), z.number()]).optional().describe("Placement layer (default: 1 / TopLayer)."),
+        points: z
+          .array(z.object({ x: z.number(), y: z.number() }))
+          .optional()
+          .describe("Array of boundary vertices ({ x, y } in mm). Minimum 3 vertices."),
+        x: z.number().optional().describe("Shortcut start X coordinate in mm for rectangular area."),
+        y: z.number().optional().describe("Shortcut start Y coordinate in mm for rectangular area."),
+        width: z.number().positive().optional().describe("Shortcut width in mm for rectangular area."),
+        height: z.number().positive().optional().describe("Shortcut height in mm for rectangular area."),
+        clearance: z.number().positive().optional().describe("Clearance spacing in mm (for copper zones)."),
+        fillType: z.string().optional().describe("Fill style for copper zones: 'solid', 'grid', or 'none'."),
+        keepoutType: z.string().optional().describe("Keepout restriction type: 'all', 'track', 'via', 'copper', etc."),
+        properties: z
+          .record(z.string(), z.unknown())
+          .optional()
+          .describe("Property modifications dictionary (for modify action)."),
+        target: DocumentTargetSchema.optional().describe("Expected active PCB target."),
+        timeoutMs: DefaultTimeoutSchema.default(30_000)
+      },
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: false,
+        openWorldHint: false
+      }
+    },
+    async (params) => {
+      try {
+        const timeoutMs = params.timeoutMs ?? 30_000;
+        const result = (await bridge.call("prepareCopperKeepout", params, timeoutMs)) as Record<string, unknown>;
+
+        const mutationId = String(result.mutationId ?? "");
+        const confirmation = String(result.confirmation ?? "");
+        const preview = (result.preview as { impact?: string; scope?: string }) ?? {};
+        const summary = [
+          `Prepared PCB ${params.entity} ${params.action} mutation:`,
+          `Impact: ${preview.impact ?? "none"}`,
+          `Scope: ${preview.scope ?? "active document"}`,
+          `Confirmation phrase required: "${confirmation}"`,
+          `Review the preview and run easyeda_confirmed_action with action="mutation", params={ mutationId: "${mutationId}" }, and the exact confirmation string.`
+        ].join("\n");
+
+        return ok(summary, result);
+      } catch (error) {
+        return fail(error);
+      }
+    }
+  );
 }
