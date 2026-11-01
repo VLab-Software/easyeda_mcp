@@ -9,12 +9,14 @@ describe("Extension RPC Dispatcher", () => {
     };
     const dispatch = createDispatcher(handlers, (msg) => sent.push(msg));
 
-    await dispatch(JSON.stringify({
-      kind: "call",
-      requestId: "req-1",
-      method: "testMethod",
-      params: { value: 21 }
-    }));
+    await dispatch(
+      JSON.stringify({
+        kind: "call",
+        requestId: "req-1",
+        method: "testMethod",
+        params: { value: 21 }
+      })
+    );
 
     expect(sent).toEqual([
       {
@@ -29,12 +31,14 @@ describe("Extension RPC Dispatcher", () => {
     const sent: unknown[] = [];
     const dispatch = createDispatcher({}, (msg) => sent.push(msg));
 
-    await dispatch(JSON.stringify({
-      kind: "call",
-      requestId: "req-2",
-      method: "missingMethod",
-      params: {}
-    }));
+    await dispatch(
+      JSON.stringify({
+        kind: "call",
+        requestId: "req-2",
+        method: "missingMethod",
+        params: {}
+      })
+    );
 
     expect(sent).toHaveLength(1);
     expect(sent[0]).toMatchObject({

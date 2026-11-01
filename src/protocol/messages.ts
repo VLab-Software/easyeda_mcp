@@ -79,11 +79,7 @@ export type BridgeErrorMessage = {
 };
 
 export type ClientToServerMessage =
-  | BridgeHelloMessage
-  | BridgeStatusMessage
-  | BridgeEventMessage
-  | BridgeResultMessage
-  | BridgeErrorMessage;
+  BridgeHelloMessage | BridgeStatusMessage | BridgeEventMessage | BridgeResultMessage | BridgeErrorMessage;
 
 export type ServerToClientMessage = BridgeCallMessage;
 
@@ -136,7 +132,9 @@ export function evaluateProtocolCompatibility(actualProtocolVersion?: string): P
   };
 }
 
-export function createDisconnectedStatus(message = "EasyEDA Pro extension is not connected. Open EasyEDA Pro, install the extension, and enable external interaction permission."): EditorStatus {
+export function createDisconnectedStatus(
+  message = "EasyEDA Pro extension is not connected. Open EasyEDA Pro, install the extension, and enable external interaction permission."
+): EditorStatus {
   return {
     connected: false,
     connectionState: "disconnected",

@@ -10,14 +10,7 @@ import {
   type RawSchematicData,
   type SchematicSnapshot
 } from "../../../src/schematic/analysis.js";
-import {
-  ensureApi,
-  optionalCall,
-  sanitize,
-  simplifyPrimitive,
-  stringOrUndefined,
-  toArray
-} from "../helpers.js";
+import { ensureApi, optionalCall, sanitize, simplifyPrimitive, stringOrUndefined, toArray } from "../helpers.js";
 import type { EasyEdaApi, RpcHandler } from "../types.js";
 import { getPcbComponents, getPcbNetNames } from "./pcbHandlers.js";
 
@@ -189,7 +182,9 @@ export function createSchematicHandlers(api: () => EasyEdaApi): Record<string, R
     const eda = api();
     const query = String(params.query ?? "").toLowerCase();
     const limit = Number(params.limit ?? 20);
-    const names = toArray(await getPcbNetNames(api)).filter((name) => String(name).toLowerCase().includes(query)).slice(0, limit);
+    const names = toArray(await getPcbNetNames(api))
+      .filter((name) => String(name).toLowerCase().includes(query))
+      .slice(0, limit);
     const nets = [];
     for (const name of names) {
       const detail = await optionalCall(() => (eda.pcb_Net?.getNet ? eda.pcb_Net.getNet(name) : undefined));

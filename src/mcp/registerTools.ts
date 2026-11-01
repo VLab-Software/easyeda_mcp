@@ -6,11 +6,7 @@ import { registerPcbTools } from "./tools/pcbTools.js";
 import { registerDrcTools } from "./tools/drcTools.js";
 import { registerExportTools } from "./tools/exportTools.js";
 import { registerActionTools } from "./tools/actionTools.js";
-import {
-  DefaultTimeoutSchema,
-  hasExplicitMutationConfirmation,
-  registerReadTool
-} from "./tools/common.js";
+import { DefaultTimeoutSchema, hasExplicitMutationConfirmation, registerReadTool } from "./tools/common.js";
 
 export { DefaultTimeoutSchema, hasExplicitMutationConfirmation, registerReadTool };
 

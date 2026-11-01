@@ -10,7 +10,8 @@ export function registerStatusTools(server: McpServer, bridge: EditorClient): vo
     "easyeda_live_status",
     {
       title: "EasyEDA Pro live status",
-      description: "Checks whether the EasyEDA Pro extension is connected and reports active document/capability information.",
+      description:
+        "Checks whether the EasyEDA Pro extension is connected and reports active document/capability information.",
       inputSchema: {},
       annotations: {
         readOnlyHint: true,
@@ -37,7 +38,8 @@ export function registerStatusTools(server: McpServer, bridge: EditorClient): vo
     "easyeda_doctor",
     {
       title: "EasyEDA Pro bridge diagnostics",
-      description: "Returns a structured diagnosis of the local MCP bridge, EasyEDA Pro extension connection state, protocol compatibility, active document context, and suggested next steps.",
+      description:
+        "Returns a structured diagnosis of the local MCP bridge, EasyEDA Pro extension connection state, protocol compatibility, active document context, and suggested next steps.",
       inputSchema: {},
       annotations: {
         readOnlyHint: true,
@@ -93,7 +95,8 @@ export function registerStatusTools(server: McpServer, bridge: EditorClient): vo
   registerReadTool(server, bridge, {
     name: "easyeda_get_context",
     title: "Get EasyEDA Pro editor context",
-    description: "Summarizes active project, active document, selection, and editor context from the open EasyEDA Pro instance.",
+    description:
+      "Summarizes active project, active document, selection, and editor context from the open EasyEDA Pro instance.",
     method: "getContext",
     inputSchema: {
       timeoutMs: DefaultTimeoutSchema
@@ -104,7 +107,8 @@ export function registerStatusTools(server: McpServer, bridge: EditorClient): vo
   registerReadTool(server, bridge, {
     name: "easyeda_get_selection",
     title: "Get current canvas selection",
-    description: "Returns components, pins, or primitives currently selected by the user on the active schematic or PCB canvas.",
+    description:
+      "Returns components, pins, or primitives currently selected by the user on the active schematic or PCB canvas.",
     method: "getSelection",
     inputSchema: {
       timeoutMs: DefaultTimeoutSchema

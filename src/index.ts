@@ -22,6 +22,8 @@ async function main(): Promise<void> {
 }
 
 main().catch((error) => {
-  console.error(`[easyeda-mcp] Fatal error: ${error instanceof Error ? error.stack ?? error.message : String(error)}`);
+  console.error(
+    `[easyeda-mcp] Fatal error: ${error instanceof Error ? (error.stack ?? error.message) : String(error)}`
+  );
   process.exit(1);
 });

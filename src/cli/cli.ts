@@ -63,11 +63,7 @@ export function handleCliArgs(
   return { handled: true, exitCode: 1 };
 }
 
-function runSetupCommand(
-  args: string[],
-  io: CliIo,
-  context: CliRunContext
-): { handled: true; exitCode: number } {
+function runSetupCommand(args: string[], io: CliIo, context: CliRunContext): { handled: true; exitCode: number } {
   const clients: ClientId[] = [];
   let all = false;
   let mode: "npx" | "local" = "npx";
@@ -109,7 +105,10 @@ function runSetupCommand(
         io.stderr("Missing value for --client. Supported clients: " + SUPPORTED_CLIENT_IDS.join(", "));
         return { handled: true, exitCode: 1 };
       }
-      for (const part of rawValue.split(",").map((item) => item.trim()).filter(Boolean)) {
+      for (const part of rawValue
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean)) {
         if (!isClientId(part)) {
           io.stderr(`Unsupported client "${part}". Supported clients: ${SUPPORTED_CLIENT_IDS.join(", ")}`);
           return { handled: true, exitCode: 1 };

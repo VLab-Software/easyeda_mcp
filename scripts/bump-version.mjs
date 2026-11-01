@@ -56,8 +56,7 @@ export function detectBumpLevel(commits, requestedBump = "auto") {
   return hasMinor ? "minor" : "patch";
 }
 
-const CONVENTIONAL_PR_TITLE_RE =
-  /^(feat|feature|fix|docs|chore|refactor|perf|test|ci)(\([^)]+\))?(!)?: (\S.*)$/i;
+const CONVENTIONAL_PR_TITLE_RE = /^(feat|feature|fix|docs|chore|refactor|perf|test|ci)(\([^)]+\))?(!)?: (\S.*)$/i;
 const MASTER_RELEASE_PR_TITLE_RE = /^(release|merge|develop)\b/i;
 
 export function validatePrTitle(title, baseRef = "develop") {

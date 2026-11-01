@@ -4,7 +4,6 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import {
-  applyVersionFiles,
   detectBumpLevel,
   incSemver,
   prependChangelogSection,
@@ -108,7 +107,9 @@ describe("bump-version automation script", () => {
     });
 
     expect(JSON.parse(fs.readFileSync(path.join(repo, "package.json"), "utf8")).version).toBe("1.3.0");
-    expect(JSON.parse(fs.readFileSync(path.join(repo, "package-lock.json"), "utf8")).packages[""].version).toBe("1.3.0");
+    expect(JSON.parse(fs.readFileSync(path.join(repo, "package-lock.json"), "utf8")).packages[""].version).toBe(
+      "1.3.0"
+    );
     expect(JSON.parse(fs.readFileSync(path.join(repo, "server.json"), "utf8")).packages[0].version).toBe("1.3.0");
     expect(JSON.parse(fs.readFileSync(path.join(repo, "extension", "extension.json"), "utf8")).version).toBe("0.2.0");
     expect(fs.readFileSync(path.join(repo, "docs", "changelog.md"), "utf8")).toContain(
@@ -169,7 +170,11 @@ describe("bump-version automation script", () => {
     const updated = prependChangelogSection("# Changelog\n\n## `1.2.0` (Extension `0.2.0`)\n\n- Old\n", {
       serverVersion: "1.2.1",
       extensionVersion: "0.2.0",
-      subjects: ["Merge pull request #18 from VLab-Software/develop", "chore(release): v1.2.0", "fix: handle empty port"]
+      subjects: [
+        "Merge pull request #18 from VLab-Software/develop",
+        "chore(release): v1.2.0",
+        "fix: handle empty port"
+      ]
     });
     expect(updated).toContain("## `1.2.1` (Extension `0.2.0`)\n\n- fix: handle empty port\n\n## `1.2.0`");
     expect(updated).not.toContain("Merge pull request");

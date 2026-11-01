@@ -1,5 +1,7 @@
 export class BridgeUnavailableError extends Error {
-  constructor(message = "EasyEDA Pro extension is not connected. Open EasyEDA Pro, install the extension, and enable external interaction permission.") {
+  constructor(
+    message = "EasyEDA Pro extension is not connected. Open EasyEDA Pro, install the extension, and enable external interaction permission."
+  ) {
     super(message);
     this.name = "BridgeUnavailableError";
   }

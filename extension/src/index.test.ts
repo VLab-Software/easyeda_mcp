@@ -48,9 +48,16 @@ describe("EasyEDA extension bridge handlers", () => {
 
     vi.stubGlobal("eda", {
       sys_WebSocket: {
-        register: vi.fn((_id: string, _uri: string, onMessage: WebSocketRegistration["onMessage"], onOpen: WebSocketRegistration["onOpen"]) => {
-          registration = { onMessage, onOpen };
-        }),
+        register: vi.fn(
+          (
+            _id: string,
+            _uri: string,
+            onMessage: WebSocketRegistration["onMessage"],
+            onOpen: WebSocketRegistration["onOpen"]
+          ) => {
+            registration = { onMessage, onOpen };
+          }
+        ),
         send: vi.fn((id: string, message: string) => {
           sentMessages.push({ id, message });
         })
@@ -70,31 +77,23 @@ describe("EasyEDA extension bridge handlers", () => {
           type: "schematic",
           name: "Power Supply.Schematic"
         })),
-        getSelectedPrimitives: vi.fn(async () => [
-          { id: "$u5", designator: "U5", type: "component", layer: 1 }
-        ])
+        getSelectedPrimitives: vi.fn(async () => [{ id: "$u5", designator: "U5", type: "component", layer: 1 }])
       },
       dmt_EditorControl: {
         getSplitScreenTree: vi.fn(async () => []),
         zoomToRegion: vi.fn(async () => undefined)
       },
       sch_PrimitiveComponent: {
-        getAll: vi.fn(async () => [component("U5", "$u5", "TP4057"), component("R7", "$r7", "2k"), component("C4", "$c4", "4.7uF")]),
+        getAll: vi.fn(async () => [
+          component("U5", "$u5", "TP4057"),
+          component("R7", "$r7", "2k"),
+          component("C4", "$c4", "4.7uF")
+        ]),
         getAllPinsByPrimitiveId: vi.fn(async (primitiveId: string) => {
           const pinsByPrimitive: Record<string, unknown[]> = {
-            $u5: [
-              pin("1", "BAT", 60, 0),
-              pin("2", "VCC", 20, 0),
-              pin("6", "PROG", 90, 20)
-            ],
-            $r7: [
-              pin("1", "1", 90, 20),
-              pin("2", "2", 90, 40)
-            ],
-            $c4: [
-              pin("1", "1", 20, 0),
-              pin("2", "2", 20, 20)
-            ]
+            $u5: [pin("1", "BAT", 60, 0), pin("2", "VCC", 20, 0), pin("6", "PROG", 90, 20)],
+            $r7: [pin("1", "1", 90, 20), pin("2", "2", 90, 40)],
+            $c4: [pin("1", "1", 20, 0), pin("2", "2", 20, 20)]
           };
           return pinsByPrimitive[primitiveId] ?? [];
         })
@@ -104,7 +103,10 @@ describe("EasyEDA extension bridge handlers", () => {
           wire("VBUS", [[0, 0, 20, 0]]),
           wire("VBAT_LIPO", [[60, 0, 80, 0]]),
           wire(undefined, [[90, 20, 100, 20]]),
-          wire("GND", [[20, 20, 20, 40], [20, 40, 90, 40]])
+          wire("GND", [
+            [20, 20, 20, 40],
+            [20, 40, 90, 40]
+          ])
         ])
       },
       sch_PrimitiveText: {
@@ -129,15 +131,49 @@ describe("EasyEDA extension bridge handlers", () => {
       },
       pcb_Layer: {
         getAllLayers: vi.fn(async () => [
-          { id: 1, name: "TopLayer", type: "signal", color: "#ff0000", visible: true, isSignal: true, thickness: 0.035 },
-          { id: 2, name: "BottomLayer", type: "signal", color: "#0000ff", visible: true, isSignal: true, thickness: 0.035 },
+          {
+            id: 1,
+            name: "TopLayer",
+            type: "signal",
+            color: "#ff0000",
+            visible: true,
+            isSignal: true,
+            thickness: 0.035
+          },
+          {
+            id: 2,
+            name: "BottomLayer",
+            type: "signal",
+            color: "#0000ff",
+            visible: true,
+            isSignal: true,
+            thickness: 0.035
+          },
           { id: 3, name: "TopSilkscreen", type: "silkscreen", color: "#ffffff", visible: true, isSignal: false }
         ])
       },
       pcb_PrimitiveComponent: {
         getAll: vi.fn(async () => [
-          { primitiveId: "$pcb-u1", designator: "U1", footprint: "SOP-8", value: "TP4056", x: 10, y: 20, rotation: 0, layer: 1 },
-          { primitiveId: "$pcb-c1", designator: "C1", footprint: "0603", value: "10uF", x: 15, y: 25, rotation: 90, layer: 2 }
+          {
+            primitiveId: "$pcb-u1",
+            designator: "U1",
+            footprint: "SOP-8",
+            value: "TP4056",
+            x: 10,
+            y: 20,
+            rotation: 0,
+            layer: 1
+          },
+          {
+            primitiveId: "$pcb-c1",
+            designator: "C1",
+            footprint: "0603",
+            value: "10uF",
+            x: 15,
+            y: 25,
+            rotation: 90,
+            layer: 2
+          }
         ])
       },
       pcb_Net: {
@@ -147,8 +183,16 @@ describe("EasyEDA extension bridge handlers", () => {
         unhighlightAllNets: vi.fn(async () => undefined)
       },
       lib_Device: {
-        search: vi.fn(async (query: string) => [
-          { uuid: "dev-c1523", name: "10uF 0805", lcscCode: "C1523", package: "0805", manufacturer: "Samsung", inStock: 50000, isJlcBasic: true }
+        search: vi.fn(async (_query: string) => [
+          {
+            uuid: "dev-c1523",
+            name: "10uF 0805",
+            lcscCode: "C1523",
+            package: "0805",
+            manufacturer: "Samsung",
+            inStock: 50000,
+            isJlcBasic: true
+          }
         ])
       },
       sys_FileSystem: {
@@ -181,7 +225,12 @@ describe("EasyEDA extension bridge handlers", () => {
     });
   });
 
-  it.each([[1, "schematic"], [2, "symbol"], [3, "pcb"], [4, "footprint"]])("infers type %s as %s from official numeric documentType", async (documentType, expected) => {
+  it.each([
+    [1, "schematic"],
+    [2, "symbol"],
+    [3, "pcb"],
+    [4, "footprint"]
+  ])("infers type %s as %s from official numeric documentType", async (documentType, expected) => {
     vi.stubGlobal("eda", {
       ...(globalThis as unknown as { eda: Record<string, unknown> }).eda,
       dmt_SelectControl: {
@@ -205,21 +254,54 @@ describe("EasyEDA extension bridge handlers", () => {
     const overwrite = vi.fn(async () => true);
     vi.stubGlobal("eda", {
       ...(globalThis as unknown as { eda: Record<string, unknown> }).eda,
-      dmt_SelectControl: { getCurrentDocumentInfo: async () => ({ documentType: 3, uuid: "pcb", parentProjectUuid: "project", tabId: "pcb@project" }) },
-      pcb_Drc: { getCurrentRuleConfiguration: async () => ({ name: "Default", config: { testRule: 10 } }), overwriteCurrentRuleConfiguration: overwrite }
+      dmt_SelectControl: {
+        getCurrentDocumentInfo: async () => ({
+          documentType: 3,
+          uuid: "pcb",
+          parentProjectUuid: "project",
+          tabId: "pcb@project"
+        })
+      },
+      pcb_Drc: {
+        getCurrentRuleConfiguration: async () => ({ name: "Default", config: { testRule: 10 } }),
+        overwriteCurrentRuleConfiguration: overwrite
+      }
     });
     const extension = await import("./index.js");
-    extension.connect(); await registration.onOpen?.();
-    await registration.onMessage?.({ data: JSON.stringify({ kind: "call", requestId: "prepare-drc", method: "prepareDrcEdit",
-      params: { operation: { type: "updateCurrentConfiguration", config: { testRule: 20 } } } }) } as MessageEvent<string>);
+    extension.connect();
+    await registration.onOpen?.();
+    await registration.onMessage?.({
+      data: JSON.stringify({
+        kind: "call",
+        requestId: "prepare-drc",
+        method: "prepareDrcEdit",
+        params: { operation: { type: "updateCurrentConfiguration", config: { testRule: 20 } } }
+      })
+    } as MessageEvent<string>);
     const edit = JSON.parse(sentMessages.at(-1)!.message).result;
     expect(edit.status).toBe("prepared");
-    await registration.onMessage?.({ data: JSON.stringify({ kind: "call", requestId: "apply-drc", method: "confirmedAction",
-      params: { action: "editDrcRules", confirmation: "confirmo", params: { editId: edit.editId } } }) } as MessageEvent<string>);
-    expect(JSON.parse(sentMessages.at(-1)!.message)).toMatchObject({ kind: "error", error: { code: "confirmation_required" } });
+    await registration.onMessage?.({
+      data: JSON.stringify({
+        kind: "call",
+        requestId: "apply-drc",
+        method: "confirmedAction",
+        params: { action: "editDrcRules", confirmation: "confirmo", params: { editId: edit.editId } }
+      })
+    } as MessageEvent<string>);
+    expect(JSON.parse(sentMessages.at(-1)!.message)).toMatchObject({
+      kind: "error",
+      error: { code: "confirmation_required" }
+    });
     expect(overwrite).not.toHaveBeenCalled();
     extension.reconnect();
-    await registration.onMessage?.({ data: JSON.stringify({ kind: "call", requestId: "query-drc", method: "getDrcEditResult", params: { editId: edit.editId } }) } as MessageEvent<string>);
+    await registration.onMessage?.({
+      data: JSON.stringify({
+        kind: "call",
+        requestId: "query-drc",
+        method: "getDrcEditResult",
+        params: { editId: edit.editId }
+      })
+    } as MessageEvent<string>);
     expect(JSON.parse(sentMessages.at(-1)!.message).result.status).toBe("invalidated");
   });
 

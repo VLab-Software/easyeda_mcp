@@ -2,11 +2,7 @@ declare const eda: EasyEdaApi;
 
 import { getBridgeConfig, getBridgeUri } from "./bridgeConfig.js";
 import { createBridgeConnection, type BridgeConnection } from "./connection.js";
-import {
-  detectCapabilities,
-  formatDiagnostics,
-  formatStatusSummary
-} from "./diagnostics.js";
+import { detectCapabilities, formatDiagnostics, formatStatusSummary } from "./diagnostics.js";
 import { createDispatcher } from "./dispatcher.js";
 import { DrcRules } from "./drcRules.js";
 import { createActionHandlers } from "./handlers/actionHandlers.js";

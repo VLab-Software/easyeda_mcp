@@ -109,9 +109,7 @@ export type SchematicFinding = {
   evidence: Record<string, unknown>;
 };
 
-export type EndpointRef =
-  | { component: string; pin?: string; pinName?: string }
-  | { net: string };
+export type EndpointRef = { component: string; pin?: string; pinName?: string } | { net: string };
 
 export type PassiveKind = "resistor" | "capacitor" | "inductor" | "diode" | "led" | "passive";
 

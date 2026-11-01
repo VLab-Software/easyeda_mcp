@@ -10,11 +10,7 @@
   },
   "license": "MIT",
   "categories": "Other",
-  "keywords": [
-    "MCP",
-    "automation",
-    "assistant"
-  ],
+  "keywords": ["MCP", "automation", "assistant"],
   "activationEvents": {},
   "entry": "./dist/index",
   "dependentExtensions": {},

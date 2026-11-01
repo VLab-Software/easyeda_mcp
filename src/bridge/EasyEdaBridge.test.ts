@@ -22,14 +22,16 @@ describe("EasyEdaBridge", () => {
     const client = await connectClient(bridge.endpoint);
     client.on("message", (data) => {
       const message = JSON.parse(data.toString());
-      client.send(JSON.stringify({
-        kind: "result",
-        requestId: message.requestId,
-        result: {
-          method: message.method,
-          params: message.params
-        }
-      }));
+      client.send(
+        JSON.stringify({
+          kind: "result",
+          requestId: message.requestId,
+          result: {
+            method: message.method,
+            params: message.params
+          }
+        })
+      );
     });
 
     const result = await bridge.call("findComponent", { query: "U1" });
@@ -44,19 +46,21 @@ describe("EasyEdaBridge", () => {
   it("updates status from hello messages", async () => {
     const bridge = await startBridge();
     const client = await connectClient(bridge.endpoint);
-    client.send(JSON.stringify({
-      kind: "hello",
-      client: "easyeda-pro-extension",
-      version: "0.1.0",
-      protocolVersion: "0.1.0",
-      capabilities: {
-        websocket: true,
-        pcbDocument: true
-      },
-      status: {
-        documentName: "main pcb"
-      }
-    }));
+    client.send(
+      JSON.stringify({
+        kind: "hello",
+        client: "easyeda-pro-extension",
+        version: "0.1.0",
+        protocolVersion: "0.1.0",
+        capabilities: {
+          websocket: true,
+          pcbDocument: true
+        },
+        status: {
+          documentName: "main pcb"
+        }
+      })
+    );
 
     await wait(20);
 
@@ -71,15 +75,17 @@ describe("EasyEdaBridge", () => {
   it("blocks calls when the extension protocol is incompatible", async () => {
     const bridge = await startBridge();
     const client = await connectClient(bridge.endpoint);
-    client.send(JSON.stringify({
-      kind: "hello",
-      client: "easyeda-pro-extension",
-      version: "0.1.0",
-      protocolVersion: "9.9.9",
-      capabilities: {
-        websocket: true
-      }
-    }));
+    client.send(
+      JSON.stringify({
+        kind: "hello",
+        client: "easyeda-pro-extension",
+        version: "0.1.0",
+        protocolVersion: "9.9.9",
+        capabilities: {
+          websocket: true
+        }
+      })
+    );
 
     await wait(20);
 
@@ -92,14 +98,16 @@ describe("EasyEdaBridge", () => {
     const client = await connectClient(bridge.endpoint);
     client.on("message", (data) => {
       const message = JSON.parse(data.toString());
-      client.send(JSON.stringify({
-        kind: "error",
-        requestId: message.requestId,
-        error: {
-          code: "api_unavailable",
-          message: "missing EasyEDA API"
-        }
-      }));
+      client.send(
+        JSON.stringify({
+          kind: "error",
+          requestId: message.requestId,
+          error: {
+            code: "api_unavailable",
+            message: "missing EasyEDA API"
+          }
+        })
+      );
     });
 
     await expect(bridge.call("zoomBoard")).rejects.toBeInstanceOf(BridgeRpcError);
@@ -112,11 +120,13 @@ describe("EasyEdaBridge", () => {
     const newClient = await connectClient(bridge.endpoint);
     newClient.on("message", (data) => {
       const message = JSON.parse(data.toString());
-      newClient.send(JSON.stringify({
-        kind: "result",
-        requestId: message.requestId,
-        result: "new-client"
-      }));
+      newClient.send(
+        JSON.stringify({
+          kind: "result",
+          requestId: message.requestId,
+          result: "new-client"
+        })
+      );
     });
 
     await wait(20);
@@ -136,11 +146,13 @@ describe("EasyEdaBridge", () => {
     const newClient = await connectClient(bridge.endpoint);
     newClient.on("message", (data) => {
       const message = JSON.parse(data.toString());
-      newClient.send(JSON.stringify({
-        kind: "result",
-        requestId: message.requestId,
-        result: "new-client"
-      }));
+      newClient.send(
+        JSON.stringify({
+          kind: "result",
+          requestId: message.requestId,
+          result: "new-client"
+        })
+      );
     });
 
     await expect(pendingCall).rejects.toBeInstanceOf(BridgeUnavailableError);

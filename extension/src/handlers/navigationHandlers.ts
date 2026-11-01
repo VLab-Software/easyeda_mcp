@@ -1,10 +1,4 @@
-import {
-  apiError,
-  ensureApi,
-  isNumber,
-  normalizeBBox,
-  optionalCall
-} from "../helpers.js";
+import { apiError, ensureApi, isNumber, normalizeBBox, optionalCall } from "../helpers.js";
 import type { EasyEdaApi, RpcHandler } from "../types.js";
 
 export async function zoomToRegion(
@@ -46,7 +40,9 @@ export function createNavigationHandlers(
     }
 
     const primitiveApi = first.source === "pcb" ? eda.pcb_Primitive : eda.sch_Primitive;
-    const bbox = await optionalCall(() => (primitiveApi?.getPrimitivesBBox ? primitiveApi.getPrimitivesBBox([primitiveId]) : undefined));
+    const bbox = await optionalCall(() =>
+      primitiveApi?.getPrimitivesBBox ? primitiveApi.getPrimitivesBBox([primitiveId]) : undefined
+    );
     const region = normalizeBBox(bbox);
     if (region) {
       await zoomToRegion(api, region.left, region.right, region.top, region.bottom);

@@ -29,7 +29,10 @@ import type {
   VerifyConnectionsResult
 } from "./types.js";
 
-export function findSuspiciousSimilarPowerNets(snapshot: SchematicSnapshot, allowedNames: Set<string>): SchematicFinding[] {
+export function findSuspiciousSimilarPowerNets(
+  snapshot: SchematicSnapshot,
+  allowedNames: Set<string>
+): SchematicFinding[] {
   const powerNets = snapshot.nets
     .filter((net) => allowedNames.size === 0 || allowedNames.has(net.name))
     .filter((net) => looksLikePowerNet(net.name));
@@ -51,7 +54,10 @@ export function findSuspiciousSimilarPowerNets(snapshot: SchematicSnapshot, allo
   return findings;
 }
 
-export function findPowerNetsWithoutCapacitors(snapshot: SchematicSnapshot, allowedNames: Set<string>): SchematicFinding[] {
+export function findPowerNetsWithoutCapacitors(
+  snapshot: SchematicSnapshot,
+  allowedNames: Set<string>
+): SchematicFinding[] {
   const capacitorsByNet = new Map<string, number>();
   for (const pin of snapshot.pins) {
     if (pin.net && pin.componentDesignator?.toUpperCase().startsWith("C")) {
@@ -222,8 +228,14 @@ export function resolveEndpoint(snapshot: SchematicSnapshot, ref: EndpointRef): 
     const nodeIds = net?.nodeIds.length
       ? net.nodeIds
       : unique([
-          ...snapshot.pins.filter((pin) => sameText(pin.net, ref.net)).map((pin) => pin.nodeId).filter(isPresent),
-          ...snapshot.wires.filter((wire) => sameText(wire.net, ref.net)).map((wire) => wire.nodeId).filter(isPresent)
+          ...snapshot.pins
+            .filter((pin) => sameText(pin.net, ref.net))
+            .map((pin) => pin.nodeId)
+            .filter(isPresent),
+          ...snapshot.wires
+            .filter((wire) => sameText(wire.net, ref.net))
+            .map((wire) => wire.nodeId)
+            .filter(isPresent)
         ]);
     return {
       ref,
@@ -242,8 +254,7 @@ export function resolveEndpoint(snapshot: SchematicSnapshot, ref: EndpointRef): 
   const pins = snapshot.pins
     .filter(
       (pin) =>
-        pin.componentPrimitiveId === component.primitiveId ||
-        sameText(pin.componentDesignator, component.designator)
+        pin.componentPrimitiveId === component.primitiveId || sameText(pin.componentDesignator, component.designator)
     )
     .filter((pin) => !ref.pin || sameText(pin.pinNumber, ref.pin))
     .filter((pin) => !ref.pinName || sameText(pin.pinName, ref.pinName));
@@ -253,7 +264,8 @@ export function resolveEndpoint(snapshot: SchematicSnapshot, ref: EndpointRef): 
     pins,
     components: [component],
     nets: unique(pins.map((pin) => pin.net).filter(isPresent)),
-    reason: pins.length > 0 ? "Resolved endpoint by component pin." : "Component matched, but no matching pin was found."
+    reason:
+      pins.length > 0 ? "Resolved endpoint by component pin." : "Component matched, but no matching pin was found."
   };
 }
 
@@ -270,7 +282,8 @@ export function edgeMatchesConstraint(edge: PassiveEdge, constraint: PassiveCons
     }
   }
   if (constraint.value) {
-    const haystack = `${edge.component.value ?? ""} ${edge.component.name ?? ""} ${JSON.stringify(edge.component.raw ?? {})}`.toLowerCase();
+    const haystack =
+      `${edge.component.value ?? ""} ${edge.component.name ?? ""} ${JSON.stringify(edge.component.raw ?? {})}`.toLowerCase();
     if (!haystack.includes(constraint.value.toLowerCase())) {
       return false;
     }
@@ -310,7 +323,10 @@ export function findPassivePath(
     for (const edge of graph.adjacency.get(current.nodeId) ?? []) {
       const nextNodeId = edge.fromNodeId === current.nodeId ? edge.toNodeId : edge.fromNodeId;
       const nextPath = [...current.path, edge];
-      if (targets.has(nextNodeId) && (!constraint || nextPath.some((item) => edgeMatchesConstraint(item, constraint)))) {
+      if (
+        targets.has(nextNodeId) &&
+        (!constraint || nextPath.some((item) => edgeMatchesConstraint(item, constraint)))
+      ) {
         return nextPath.map(edgeToPathStep);
       }
       const visitKey = `${nextNodeId}:${nextPath.map((item) => item.component.primitiveId).join(">")}`;
@@ -405,7 +421,9 @@ export function verifyConnectionCheck(
           ? `Pin ${formatPin(matchingPins[0])} is on net ${check.net}.`
           : `No matched pin is on net ${check.net}.`,
       evidence: endpointEvidence(
-        matchingPins.length > 0 ? "Pin net or node matches the expected net." : "Pin node did not match the expected net node.",
+        matchingPins.length > 0
+          ? "Pin net or node matches the expected net."
+          : "Pin node did not match the expected net node.",
         [endpoint, netEndpoint]
       ).evidence
     };
@@ -422,7 +440,10 @@ export function verifyConnectionCheck(
       id: check.id,
       type: check.type,
       status: common.length > 0 ? "pass" : "fail",
-      message: common.length > 0 ? "Endpoints are on the same electrical node." : "Endpoints are not on the same electrical node.",
+      message:
+        common.length > 0
+          ? "Endpoints are on the same electrical node."
+          : "Endpoints are not on the same electrical node.",
       evidence: endpointEvidence(
         common.length > 0 ? "Both endpoints share a nodeId." : "No nodeId is shared by the endpoints.",
         [left, right],
@@ -498,7 +519,9 @@ export function verifyConnectionCheck(
         : `No matching decoupling capacitor to ${check.referenceNet} was found.`,
       evidence: {
         ...endpointEvidence(
-          path ? "Found a capacitor path to the reference net." : "No capacitor path matched the requested reference net.",
+          path
+            ? "Found a capacitor path to the reference net."
+            : "No capacitor path matched the requested reference net.",
           [power, reference]
         ).evidence,
         path: path ?? undefined

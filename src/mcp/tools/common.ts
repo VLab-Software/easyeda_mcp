@@ -22,11 +22,7 @@ export type ReadToolConfig = {
   summary: string;
 };
 
-export function registerReadTool(
-  server: McpServer,
-  bridge: EditorClient,
-  config: ReadToolConfig
-): void {
+export function registerReadTool(server: McpServer, bridge: EditorClient, config: ReadToolConfig): void {
   server.registerTool(
     config.name,
     {

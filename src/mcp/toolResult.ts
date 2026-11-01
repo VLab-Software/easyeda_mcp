@@ -1,4 +1,9 @@
-import { BridgeProtocolCompatibilityError, BridgeRpcError, BridgeTimeoutError, BridgeUnavailableError } from "../bridge/errors.js";
+import {
+  BridgeProtocolCompatibilityError,
+  BridgeRpcError,
+  BridgeTimeoutError,
+  BridgeUnavailableError
+} from "../bridge/errors.js";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 
 export type ToolResult = CallToolResult;

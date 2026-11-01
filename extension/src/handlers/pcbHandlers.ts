@@ -1,12 +1,4 @@
-import {
-  apiError,
-  ensureApi,
-  numeric,
-  optionalCall,
-  sanitize,
-  simplifyPrimitive,
-  toArray
-} from "../helpers.js";
+import { apiError, ensureApi, numeric, optionalCall, sanitize, simplifyPrimitive, toArray } from "../helpers.js";
 import type { EasyEdaApi, RpcHandler } from "../types.js";
 
 export async function getPcbComponents(api: () => EasyEdaApi): Promise<unknown[]> {
@@ -27,7 +19,10 @@ export function createPcbHandlers(api: () => EasyEdaApi): Record<string, RpcHand
   async function runDrc(params: Record<string, any>): Promise<Record<string, unknown>> {
     const eda = api();
     const documentInfo = await optionalCall(() => eda.dmt_SelectControl?.getCurrentDocumentInfo?.());
-    if (documentInfo && ![3, "pcb"].includes(documentInfo?.documentType ?? documentInfo?.doctype ?? documentInfo?.type)) {
+    if (
+      documentInfo &&
+      ![3, "pcb"].includes(documentInfo?.documentType ?? documentInfo?.doctype ?? documentInfo?.type)
+    ) {
       throw apiError("wrong_document", "Open a PCB document before running DRC checks.");
     }
     ensureApi("pcb_Drc", "check", eda);
@@ -98,7 +93,9 @@ export function createPcbHandlers(api: () => EasyEdaApi): Record<string, RpcHand
         copperThickness: layer.copperThickness ?? layer.thickness
       };
     });
-    const copperLayers = layers.filter((l: any) => l && (l.isSignal || ["signal", "copper", "plane"].includes(String(l.type).toLowerCase())));
+    const copperLayers = layers.filter(
+      (l: any) => l && (l.isSignal || ["signal", "copper", "plane"].includes(String(l.type).toLowerCase()))
+    );
     return {
       layerCount: layers.length,
       copperLayerCount: copperLayers.length,
@@ -110,7 +107,7 @@ export function createPcbHandlers(api: () => EasyEdaApi): Record<string, RpcHand
   async function getRoutingStatus(params: Record<string, any>): Promise<Record<string, unknown>> {
     const eda = api();
     const netNames = await getPcbNetNames(api);
-    const names = netNames.map(n => String(n)).filter(Boolean);
+    const names = netNames.map((n) => String(n)).filter(Boolean);
     const includeLengths = Boolean(params.includeNetLengths);
     let netLengths: Record<string, number> | undefined;
 
@@ -173,7 +170,9 @@ export function createPcbHandlers(api: () => EasyEdaApi): Record<string, RpcHand
   }
 
   async function listPcbComponents(params: Record<string, any>): Promise<Record<string, unknown>> {
-    const query = String(params.query ?? "").trim().toLowerCase();
+    const query = String(params.query ?? "")
+      .trim()
+      .toLowerCase();
     const layerFilter = String(params.layer ?? "all").toLowerCase();
     const limit = Math.max(1, Math.min(500, Number(params.limit ?? 100)));
     const includeRaw = Boolean(params.includeRaw);
@@ -181,9 +180,17 @@ export function createPcbHandlers(api: () => EasyEdaApi): Record<string, RpcHand
     const rawComponents = await getPcbComponents(api);
     const all = toArray(rawComponents).map((item: any) => {
       const simplified = simplifyPrimitive(item);
-      const layerId = item?.layer ?? item?.layerId ?? (item?.layer === 1 ? "TopLayer" : item?.layer === 2 ? "BottomLayer" : undefined);
+      const layerId =
+        item?.layer ??
+        item?.layerId ??
+        (item?.layer === 1 ? "TopLayer" : item?.layer === 2 ? "BottomLayer" : undefined);
       const layerStr = String(layerId ?? "").toLowerCase();
-      const side = (layerStr.includes("top") || layerId === 1) ? "top" : (layerStr.includes("bot") || layerId === 2) ? "bottom" : "unknown";
+      const side =
+        layerStr.includes("top") || layerId === 1
+          ? "top"
+          : layerStr.includes("bot") || layerId === 2
+            ? "bottom"
+            : "unknown";
       const rotation = numeric(item?.rotation ?? item?.angle ?? 0) ?? 0;
       return {
         primitiveId: simplified.primitiveId,
@@ -201,15 +208,17 @@ export function createPcbHandlers(api: () => EasyEdaApi): Record<string, RpcHand
 
     let filtered = all;
     if (layerFilter === "top") {
-      filtered = filtered.filter(c => c.side === "top");
+      filtered = filtered.filter((c) => c.side === "top");
     } else if (layerFilter === "bottom") {
-      filtered = filtered.filter(c => c.side === "bottom");
+      filtered = filtered.filter((c) => c.side === "bottom");
     }
 
     if (query) {
-      filtered = filtered.filter(c =>
-        [c.designator, c.footprint, c.value, c.primitiveId].some(field =>
-          String(field ?? "").toLowerCase().includes(query)
+      filtered = filtered.filter((c) =>
+        [c.designator, c.footprint, c.value, c.primitiveId].some((field) =>
+          String(field ?? "")
+            .toLowerCase()
+            .includes(query)
         )
       );
     }

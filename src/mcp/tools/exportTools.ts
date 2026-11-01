@@ -99,7 +99,8 @@ export function registerExportTools(server: McpServer, bridge: EditorClient): vo
   registerReadTool(server, bridge, {
     name: "easyeda_export_cpl",
     title: "Export PCB Component Pick and Place (CPL)",
-    description: "Exports the Pick and Place / Centroid (CPL) file from the active EasyEDA Pro PCB for SMT assembly (e.g. JLCPCB).",
+    description:
+      "Exports the Pick and Place / Centroid (CPL) file from the active EasyEDA Pro PCB for SMT assembly (e.g. JLCPCB).",
     method: "exportCpl",
     inputSchema: {
       fileName: z.string().min(1).optional().describe("Optional output file name without extension."),
@@ -113,10 +114,14 @@ export function registerExportTools(server: McpServer, bridge: EditorClient): vo
   registerReadTool(server, bridge, {
     name: "easyeda_search_library",
     title: "Search component library",
-    description: "Searches the EasyEDA / LCSC component catalog by keyword, LCSC part number (e.g. C1523), or manufacturer part number.",
+    description:
+      "Searches the EasyEDA / LCSC component catalog by keyword, LCSC part number (e.g. C1523), or manufacturer part number.",
     method: "searchLibrary",
     inputSchema: {
-      query: z.string().min(1).describe("Keyword, part number, or LCSC part code (e.g., 'C1523', 'ESP32', '0402 10k')."),
+      query: z
+        .string()
+        .min(1)
+        .describe("Keyword, part number, or LCSC part code (e.g., 'C1523', 'ESP32', '0402 10k')."),
       limit: z.number().int().positive().max(100).default(20),
       timeoutMs: DefaultTimeoutSchema.default(30_000)
     },

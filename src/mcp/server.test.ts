@@ -64,10 +64,7 @@ describe("EasyEDA MCP server", () => {
     clients.push(client);
 
     const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
-    await Promise.all([
-      server.connect(serverTransport),
-      client.connect(clientTransport)
-    ]);
+    await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
 
     const tools = await client.listTools();
     const toolNames = tools.tools.map((tool) => tool.name);
@@ -93,7 +90,9 @@ describe("EasyEDA MCP server", () => {
     });
 
     expect(result.isError).toBe(true);
-    expect(result).toMatchObject({ content: [{ type: "text", text: expect.stringContaining("EasyEDA Pro extension is not connected") }] });
+    expect(result).toMatchObject({
+      content: [{ type: "text", text: expect.stringContaining("EasyEDA Pro extension is not connected") }]
+    });
     const doctor = await client.callTool({ name: "easyeda_doctor", arguments: {} });
     expect(doctor).toMatchObject({ structuredContent: { doctor: { server: client.getServerVersion() } } });
   });

@@ -1,0 +1,10 @@
+dist
+extension/dist
+build
+node_modules
+docs
+*.md
+.github/**/*.md
+package-lock.json
+*.eext
+*.mcpb
