@@ -1,6 +1,6 @@
 # Tools Reference
 
-EasyEDA Pro MCP exposes **59 tools** across 8 categories. All inspection, tracing, navigation, and export tools are read-only (`readOnlyHint: true`).
+EasyEDA Pro MCP exposes **62 tools** across 8 categories. All inspection, tracing, navigation, and export tools are read-only (`readOnlyHint: true`).
 
 ## Tool Catalog
 
@@ -14,8 +14,8 @@ EasyEDA Pro MCP exposes **59 tools** across 8 categories. All inspection, tracin
   - [`easyeda_schematic_snapshot`](#easyeda_schematic_snapshot) · [`easyeda_get_schematic_nets`](#easyeda_get_schematic_nets) · [`easyeda_list_schematic_components`](#easyeda_list_schematic_components) · [`easyeda_get_component_pins`](#easyeda_get_component_pins) · [`easyeda_find_component`](#easyeda_find_component) · [`easyeda_find_net`](#easyeda_find_net) · [`easyeda_search_library`](#easyeda_search_library)
 - **[Circuit Tracing & Verification](#circuit-tracing-verification)** (6 tools)
   - [`easyeda_run_schematic_erc`](#easyeda_run_schematic_erc) · [`easyeda_trace_net`](#easyeda_trace_net) · [`easyeda_trace_component`](#easyeda_trace_component) · [`easyeda_find_unconnected_pins`](#easyeda_find_unconnected_pins) · [`easyeda_validate_schematic_area`](#easyeda_validate_schematic_area) · [`easyeda_verify_connections`](#easyeda_verify_connections)
-- **[PCB Layout & DRC Rules](#pcb-layout-drc-rules)** (27 tools)
-  - [`easyeda_run_drc`](#easyeda_run_drc) · [`easyeda_get_pcb_layers`](#easyeda_get_pcb_layers) · [`easyeda_get_routing_status`](#easyeda_get_routing_status) · [`easyeda_list_pcb_components`](#easyeda_list_pcb_components) · [`easyeda_get_pcb_pads`](#easyeda_get_pcb_pads) · [`easyeda_prepare_pcb_component`](#easyeda_prepare_pcb_component) · [`easyeda_get_board_outline`](#easyeda_get_board_outline) · [`easyeda_prepare_board_outline`](#easyeda_prepare_board_outline) · [`easyeda_prepare_pcb_routing`](#easyeda_prepare_pcb_routing) · [`easyeda_prepare_pcb_layout`](#easyeda_prepare_pcb_layout) · [`easyeda_get_pcb_tracks`](#easyeda_get_pcb_tracks) · [`easyeda_get_pcb_vias`](#easyeda_get_pcb_vias) · [`easyeda_prepare_pcb_track_via`](#easyeda_prepare_pcb_track_via) · [`easyeda_highlight_net`](#easyeda_highlight_net) · [`easyeda_get_copper_zones`](#easyeda_get_copper_zones) · [`easyeda_get_keepouts`](#easyeda_get_keepouts) · [`easyeda_prepare_copper_keepout`](#easyeda_prepare_copper_keepout) · [`easyeda_get_pcb_airwires`](#easyeda_get_pcb_airwires) · [`easyeda_get_pcb_placement_report`](#easyeda_get_pcb_placement_report) · [`easyeda_get_pcb_net_report`](#easyeda_get_pcb_net_report) · [`easyeda_get_pcb_net_classes`](#easyeda_get_pcb_net_classes) · [`easyeda_get_pcb_differential_pairs`](#easyeda_get_pcb_differential_pairs) · [`easyeda_get_pcb_length_groups`](#easyeda_get_pcb_length_groups) · [`easyeda_prepare_pcb_net_constraint`](#easyeda_prepare_pcb_net_constraint) · [`easyeda_get_drc_rules`](#easyeda_get_drc_rules) · [`easyeda_prepare_drc_edit`](#easyeda_prepare_drc_edit) · [`easyeda_get_drc_edit_result`](#easyeda_get_drc_edit_result)
+- **[PCB Layout & DRC Rules](#pcb-layout-drc-rules)** (30 tools)
+  - [`easyeda_run_drc`](#easyeda_run_drc) · [`easyeda_get_pcb_layers`](#easyeda_get_pcb_layers) · [`easyeda_get_routing_status`](#easyeda_get_routing_status) · [`easyeda_list_pcb_components`](#easyeda_list_pcb_components) · [`easyeda_get_pcb_pads`](#easyeda_get_pcb_pads) · [`easyeda_prepare_pcb_component`](#easyeda_prepare_pcb_component) · [`easyeda_get_board_outline`](#easyeda_get_board_outline) · [`easyeda_prepare_board_outline`](#easyeda_prepare_board_outline) · [`easyeda_prepare_pcb_routing`](#easyeda_prepare_pcb_routing) · [`easyeda_prepare_pcb_layout`](#easyeda_prepare_pcb_layout) · [`easyeda_get_pcb_tracks`](#easyeda_get_pcb_tracks) · [`easyeda_get_pcb_vias`](#easyeda_get_pcb_vias) · [`easyeda_prepare_pcb_track_via`](#easyeda_prepare_pcb_track_via) · [`easyeda_highlight_net`](#easyeda_highlight_net) · [`easyeda_get_copper_zones`](#easyeda_get_copper_zones) · [`easyeda_get_keepouts`](#easyeda_get_keepouts) · [`easyeda_prepare_copper_keepout`](#easyeda_prepare_copper_keepout) · [`easyeda_get_pcb_airwires`](#easyeda_get_pcb_airwires) · [`easyeda_get_pcb_placement_report`](#easyeda_get_pcb_placement_report) · [`easyeda_get_pcb_net_report`](#easyeda_get_pcb_net_report) · [`easyeda_get_pcb_net_classes`](#easyeda_get_pcb_net_classes) · [`easyeda_get_pcb_differential_pairs`](#easyeda_get_pcb_differential_pairs) · [`easyeda_get_pcb_length_groups`](#easyeda_get_pcb_length_groups) · [`easyeda_prepare_pcb_net_constraint`](#easyeda_prepare_pcb_net_constraint) · [`easyeda_get_pcb_3d_inspection`](#easyeda_get_pcb_3d_inspection) · [`easyeda_get_pcb_3d_view`](#easyeda_get_pcb_3d_view) · [`easyeda_prepare_pcb_external_import`](#easyeda_prepare_pcb_external_import) · [`easyeda_get_drc_rules`](#easyeda_get_drc_rules) · [`easyeda_prepare_drc_edit`](#easyeda_prepare_drc_edit) · [`easyeda_get_drc_edit_result`](#easyeda_get_drc_edit_result)
 - **[Navigation & Exports](#navigation-exports)** (8 tools)
   - [`easyeda_export_cpl`](#easyeda_export_cpl) · [`easyeda_export_bom`](#easyeda_export_bom) · [`easyeda_export_netlist`](#easyeda_export_netlist) · [`easyeda_export_gerber`](#easyeda_export_gerber) · [`easyeda_export_pdf`](#easyeda_export_pdf) · [`easyeda_navigate_component`](#easyeda_navigate_component) · [`easyeda_navigate_region`](#easyeda_navigate_region) · [`easyeda_zoom_board`](#easyeda_zoom_board)
 - **[Confirmation-Gated Actions](#confirmation-gated-actions)** (1 tool)
@@ -885,6 +885,54 @@ Returns `mutationId`, exact confirmation token `CONFIRM pcb:<action> <mutationId
 - **`targetLengthMm`** (`number`, _optional_): Target length in mm for length group.
 - **`properties`** (`object`, _optional_): Dictionary of properties to modify on existing constraint.
 - **`target`** (`object`, _optional_): Expected document target specification to assert against active canvas.
+- **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
+
+---
+
+### `easyeda_get_pcb_3d_inspection`
+
+**Scope:** PCB RPC (`readOnlyHint: true`, default timeout: `30000` ms)
+
+Inspects 3D component models, computes the complete vertical board envelope (substrate thickness, max component height on Top layer, max component depth on Bottom layer, and total required enclosure height), identifies missing STEP/OBJ 3D models with mechanical criticality ranking (`HIGH`, `MEDIUM`, `LOW`), checks component height violations against `maxHeightMm`, and performs 3D spatial collision / interference checking between components.
+
+**Parameters:**
+- **`maxHeightMm`** (`number`, _optional_): Maximum allowed component vertical height in mm. Flags any component exceeding this value.
+- **`enclosureHeightMm`** (`number`, _optional_): Available internal enclosure clearance in mm to evaluate `FIT`, `TIGHT`, or `EXCEEDED` status.
+- **`checkInterference`** (`boolean`, _optional_, default: `true`): Whether to check pairwise 3D bounding box spatial collisions between components.
+- **`target`** (`object`, _optional_): Expected document target specification.
+- **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
+
+---
+
+### `easyeda_get_pcb_3d_view`
+
+**Scope:** PCB RPC (`readOnlyHint: true`, default timeout: `30000` ms)
+
+Retrieves 3D camera angles and orientation metadata (`pitch`, `yaw`, `roll`, `distanceMm`), rendering layer visibility status, STEP/OBJ 3D export support, and editor shortcut guidance (`Alt+3`) to access the native 3D WebGL viewport in EasyEDA Pro.
+
+**Parameters:**
+- **`viewAngle`** (`"top" | "bottom" | "isometric_ne" | "isometric_sw" | "front" | "side"`, _optional_, default: `"isometric_ne"`): Camera orientation preset.
+- **`target`** (`object`, _optional_): Expected document target specification.
+- **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
+
+---
+
+### `easyeda_prepare_pcb_external_import`
+
+**Scope:** PCB RPC (`readOnlyHint: true`, default timeout: `30000` ms)
+
+Validates and stages external layout or routing geometries into a safe 2-phase mutation without modifying the active PCB until explicitly confirmed. Supports Specctra SES routing sessions (FreeRouting / Cadence), EasyEDA router JSON, EasyEDA layout JSON, and AutoCAD DXF 2D outlines and lines. Generates a strict confirmation token (`CONFIRM pcb:import_external <mutationId>`), geometry impact summary, and rollback information.
+
+**Parameters:**
+- **`format`** (`"specctra_ses" | "easyeda_router_json" | "easyeda_layout_json" | "dxf"`, **required**): External format to parse and import.
+- **`content`** (`string`, _optional_): Inline file or text content.
+- **`filePath`** (`string`, _optional_): Local filesystem path to the external file.
+- **`targetLayer`** (`number | string`, _optional_): Target layer ID or name (e.g., `10` or `"Border"` for DXF outlines).
+- **`defaultNet`** (`string`, _optional_): Default net name for unassigned routes.
+- **`layerMapping`** (`object`, _optional_): Dictionary mapping external layer identifiers to EasyEDA layer IDs.
+- **`netMapping`** (`object`, _optional_): Dictionary mapping external net names to project net names.
+- **`dryRunOnly`** (`boolean`, _optional_, default: `false`): When `true`, validates syntax and returns parsed geometry preview without staging a mutation.
+- **`target`** (`object`, _optional_): Expected document target specification.
 - **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
 
 ---

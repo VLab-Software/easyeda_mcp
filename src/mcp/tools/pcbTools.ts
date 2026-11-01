@@ -1,3 +1,4 @@
+import * as fs from "node:fs";
 import * as z from "zod/v4";
 import type { McpServer } from "@modelcontextprotocol/server";
 import type { EditorClient } from "../../editor/EditorClient.js";
@@ -759,6 +760,143 @@ export function registerPcbTools(server: McpServer, bridge: EditorClient): void 
         const preview = (result.preview as { impact?: string; scope?: string }) ?? {};
         const summary = [
           `Prepared PCB ${params.entity} ${params.action} mutation:`,
+          `Impact: ${preview.impact ?? "none"}`,
+          `Scope: ${preview.scope ?? "active document"}`,
+          `Confirmation phrase required: "${confirmation}"`,
+          `Review the preview and run easyeda_confirmed_action with action="mutation", params={ mutationId: "${mutationId}" }, and the exact confirmation string.`
+        ].join("\n");
+
+        return ok(summary, result);
+      } catch (error) {
+        return fail(error);
+      }
+    }
+  );
+
+  registerReadTool(server, bridge, {
+    name: "easyeda_get_pcb_3d_inspection",
+    title: "Inspect PCB 3D models and vertical clearance",
+    description:
+      "Inspects 3D models, vertical board envelope (substrate thickness, top/bottom max heights, total enclosure clearance), missing STEP/OBJ models ranked by criticality, and 3D spatial interference collisions between components on the active PCB.",
+    method: "getPcb3dInspection",
+    inputSchema: {
+      maxHeightMm: z
+        .number()
+        .positive()
+        .optional()
+        .describe("Maximum allowed vertical component height in mm for clearance check."),
+      enclosureHeightMm: z
+        .number()
+        .positive()
+        .optional()
+        .describe("Internal enclosure height available in mm to evaluate fit/tight/exceeded status."),
+      checkInterference: z
+        .boolean()
+        .default(true)
+        .describe("Check 3D spatial bounding box collisions between components."),
+      target: DocumentTargetSchema.optional(),
+      timeoutMs: DefaultTimeoutSchema.default(30_000)
+    },
+    summary: "Inspected EasyEDA Pro PCB 3D models and vertical clearance."
+  });
+
+  registerReadTool(server, bridge, {
+    name: "easyeda_get_pcb_3d_view",
+    title: "Get PCB 3D view and rendering status",
+    description:
+      "Retrieves 3D camera angles, rendering layer visibility, STEP/OBJ 3D export support, and shortcuts to open the native 3D WebGL viewport.",
+    method: "getPcb3dView",
+    inputSchema: {
+      viewAngle: z
+        .enum(["top", "bottom", "isometric_ne", "isometric_sw", "front", "side"])
+        .default("isometric_ne")
+        .describe("Camera angle preset for 3D inspection."),
+      target: DocumentTargetSchema.optional(),
+      timeoutMs: DefaultTimeoutSchema.default(30_000)
+    },
+    summary: "Fetched EasyEDA Pro PCB 3D view settings and rendering status."
+  });
+
+  server.registerTool(
+    "easyeda_prepare_pcb_external_import",
+    {
+      title: "Prepare PCB external layout or routing import",
+      description:
+        "Validates and stages external layout or routing files (Specctra SES, EasyEDA router JSON, EasyEDA layout JSON, DXF) with geometry validation, safety preview, and exact confirmation phrase. Does not modify the PCB until confirmed.",
+      inputSchema: {
+        format: z
+          .enum(["specctra_ses", "easyeda_router_json", "easyeda_layout_json", "dxf"])
+          .describe("External format to parse and import."),
+        content: z.string().optional().describe("Inline text or JSON content of the external file."),
+        filePath: z.string().optional().describe("Absolute or relative path to local external file to import."),
+        targetLayer: z
+          .union([z.number(), z.string()])
+          .optional()
+          .describe(
+            "Default or target PCB layer for imported geometries (default: 1 for Top, 10 for BoardOutline/DXF)."
+          ),
+        defaultNet: z.string().optional().describe("Default net name for imported routing traces."),
+        layerMapping: z
+          .record(z.string(), z.union([z.number(), z.string()]))
+          .optional()
+          .describe("Dictionary mapping external layer identifiers to EasyEDA layer IDs/names."),
+        netMapping: z
+          .record(z.string(), z.string())
+          .optional()
+          .describe("Dictionary mapping external net names to project net names."),
+        dryRunOnly: z
+          .boolean()
+          .default(false)
+          .describe("If true, validates and parses geometry without staging a mutation."),
+        target: DocumentTargetSchema.optional().describe("Expected active PCB target."),
+        timeoutMs: DefaultTimeoutSchema.default(30_000)
+      },
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: false,
+        openWorldHint: false
+      }
+    },
+    async (params) => {
+      try {
+        let content = params.content;
+        if (!content && params.filePath) {
+          try {
+            content = fs.readFileSync(params.filePath, "utf-8");
+          } catch (fileErr) {
+            return fail(new Error(`Failed to read external import file at "${params.filePath}": ${String(fileErr)}`));
+          }
+        }
+
+        if (!content) {
+          return fail(new Error("Either 'content' or 'filePath' must be provided for external import."));
+        }
+
+        const timeoutMs = params.timeoutMs ?? 30_000;
+        const payload = {
+          ...params,
+          content
+        };
+
+        const result = (await bridge.call("preparePcbExternalImport", payload, timeoutMs)) as Record<string, unknown>;
+
+        if (params.dryRunOnly || result.dryRun) {
+          const preview = (result.preview as { impact?: string; scope?: string }) ?? {};
+          const summary = [
+            `Validated external ${params.format} content:`,
+            `Status: Valid geometry`,
+            `Impact: ${preview.impact ?? "Dry run only (no changes staged)"}`,
+            `Scope: ${preview.scope ?? "active document"}`
+          ].join("\n");
+          return ok(summary, result);
+        }
+
+        const mutationId = String(result.mutationId ?? "");
+        const confirmation = String(result.confirmation ?? "");
+        const preview = (result.preview as { impact?: string; scope?: string }) ?? {};
+        const summary = [
+          `Prepared PCB external import mutation (${params.format}):`,
           `Impact: ${preview.impact ?? "none"}`,
           `Scope: ${preview.scope ?? "active document"}`,
           `Confirmation phrase required: "${confirmation}"`,

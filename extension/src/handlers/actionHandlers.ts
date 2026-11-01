@@ -5,6 +5,7 @@ import { extensionMutations } from "../mutation/mutationManager.js";
 import { executeBoardOutlineMutation } from "../mutation/pcbOutlineMutations.js";
 import { executePcbComponentMutation } from "../mutation/pcbComponentMutations.js";
 import { executePcbCopperKeepoutMutation } from "../mutation/pcbCopperKeepoutMutations.js";
+import { executePcbExternalImportMutation } from "../mutation/pcbExternalImportMutations.js";
 import { executePcbNetConstraintMutation } from "../mutation/pcbNetConstraintMutations.js";
 import {
   executePcbLayoutMutation,
@@ -84,6 +85,8 @@ export function createActionHandlers(
             ].includes(record.action)
           ) {
             res = await executePcbNetConstraintMutation(api, (record as any).operation ?? record, record.before);
+          } else if (record.action === "import_external") {
+            res = await executePcbExternalImportMutation(api, (record as any).operation ?? record, record.before);
           } else if (
             ["createTrack", "modifyTrack", "deleteTrack", "createVia", "modifyVia", "deleteVia"].includes(record.action)
           ) {
