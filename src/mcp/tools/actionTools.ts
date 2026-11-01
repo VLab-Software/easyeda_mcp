@@ -14,7 +14,19 @@ export function registerActionTools(server: McpServer, bridge: EditorClient): vo
       description:
         "Runs a mutating EasyEDA Pro action after human approval. For editDrcRules pass params:{editId} and the exact prepared confirmation. Saving the PCB remains separate.",
       inputSchema: {
-        action: z.enum(["save", "importChanges", "autoroute", "autolayout", "editDrcRules", "mutation"]),
+        action: z.enum([
+          "save",
+          "importChanges",
+          "autoroute",
+          "autolayout",
+          "nativeAutoRoute",
+          "nativeAutoLayout",
+          "unroute",
+          "importAutoRouteFile",
+          "importAutoLayoutFile",
+          "editDrcRules",
+          "mutation"
+        ]),
         confirmation: z
           .string()
           .describe(

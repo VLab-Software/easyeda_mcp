@@ -89,6 +89,13 @@ export function detectMethodCapabilities(api: () => EasyEdaApi): Record<string, 
     "pcb_Drc.getCurrentRuleConfiguration": Boolean(eda.pcb_Drc?.getCurrentRuleConfiguration),
     "pcb_Drc.overwriteCurrentRuleConfiguration": Boolean(eda.pcb_Drc?.overwriteCurrentRuleConfiguration),
     "pcb_Drc.check": Boolean(eda.pcb_Drc?.check),
+    "pcb_Document.autoRouting": Boolean(eda.pcb_Document?.autoRouting),
+    "pcb_Document.unRoute": Boolean(
+      eda.pcb_Document?.unRoute || eda.pcb_Document?.unroute || eda.pcb_Document?.clearRouting
+    ),
+    "pcb_Document.autoLayout": Boolean(eda.pcb_Document?.autoLayout || eda.pcb_Document?.autoPlace),
+    "pcb_Document.importAutoRouteJsonFile": Boolean(eda.pcb_Document?.importAutoRouteJsonFile),
+    "pcb_Document.importAutoLayoutJsonFile": Boolean(eda.pcb_Document?.importAutoLayoutJsonFile),
     "pcb_Layer.getAllLayers": Boolean(eda.pcb_Layer?.getAllLayers),
     "pcb_Net.getAllNetsName": Boolean(eda.pcb_Net?.getAllNetsName || eda.pcb_Net?.getAllNetName),
     "pcb_Net.highlightNet": Boolean(eda.pcb_Net?.highlightNet),

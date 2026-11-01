@@ -1,6 +1,6 @@
 # Tools Reference
 
-EasyEDA Pro MCP exposes **44 tools** across 8 categories. All inspection, tracing, navigation, and export tools are read-only (`readOnlyHint: true`).
+EasyEDA Pro MCP exposes **46 tools** across 8 categories. All inspection, tracing, navigation, and export tools are read-only (`readOnlyHint: true`).
 
 ## Tool Catalog
 
@@ -14,8 +14,8 @@ EasyEDA Pro MCP exposes **44 tools** across 8 categories. All inspection, tracin
   - [`easyeda_schematic_snapshot`](#easyeda_schematic_snapshot) · [`easyeda_get_schematic_nets`](#easyeda_get_schematic_nets) · [`easyeda_list_schematic_components`](#easyeda_list_schematic_components) · [`easyeda_get_component_pins`](#easyeda_get_component_pins) · [`easyeda_find_component`](#easyeda_find_component) · [`easyeda_find_net`](#easyeda_find_net) · [`easyeda_search_library`](#easyeda_search_library)
 - **[Circuit Tracing & Verification](#circuit-tracing-verification)** (6 tools)
   - [`easyeda_run_schematic_erc`](#easyeda_run_schematic_erc) · [`easyeda_trace_net`](#easyeda_trace_net) · [`easyeda_trace_component`](#easyeda_trace_component) · [`easyeda_find_unconnected_pins`](#easyeda_find_unconnected_pins) · [`easyeda_validate_schematic_area`](#easyeda_validate_schematic_area) · [`easyeda_verify_connections`](#easyeda_verify_connections)
-- **[PCB Layout & DRC Rules](#pcb-layout-drc-rules)** (12 tools)
-  - [`easyeda_run_drc`](#easyeda_run_drc) · [`easyeda_get_pcb_layers`](#easyeda_get_pcb_layers) · [`easyeda_get_routing_status`](#easyeda_get_routing_status) · [`easyeda_list_pcb_components`](#easyeda_list_pcb_components) · [`easyeda_get_pcb_pads`](#easyeda_get_pcb_pads) · [`easyeda_prepare_pcb_component`](#easyeda_prepare_pcb_component) · [`easyeda_get_board_outline`](#easyeda_get_board_outline) · [`easyeda_prepare_board_outline`](#easyeda_prepare_board_outline) · [`easyeda_highlight_net`](#easyeda_highlight_net) · [`easyeda_get_drc_rules`](#easyeda_get_drc_rules) · [`easyeda_prepare_drc_edit`](#easyeda_prepare_drc_edit) · [`easyeda_get_drc_edit_result`](#easyeda_get_drc_edit_result)
+- **[PCB Layout & DRC Rules](#pcb-layout-drc-rules)** (14 tools)
+  - [`easyeda_run_drc`](#easyeda_run_drc) · [`easyeda_get_pcb_layers`](#easyeda_get_pcb_layers) · [`easyeda_get_routing_status`](#easyeda_get_routing_status) · [`easyeda_list_pcb_components`](#easyeda_list_pcb_components) · [`easyeda_get_pcb_pads`](#easyeda_get_pcb_pads) · [`easyeda_prepare_pcb_component`](#easyeda_prepare_pcb_component) · [`easyeda_get_board_outline`](#easyeda_get_board_outline) · [`easyeda_prepare_board_outline`](#easyeda_prepare_board_outline) · [`easyeda_prepare_pcb_routing`](#easyeda_prepare_pcb_routing) · [`easyeda_prepare_pcb_layout`](#easyeda_prepare_pcb_layout) · [`easyeda_highlight_net`](#easyeda_highlight_net) · [`easyeda_get_drc_rules`](#easyeda_get_drc_rules) · [`easyeda_prepare_drc_edit`](#easyeda_prepare_drc_edit) · [`easyeda_get_drc_edit_result`](#easyeda_get_drc_edit_result)
 - **[Navigation & Exports](#navigation-exports)** (8 tools)
   - [`easyeda_export_cpl`](#easyeda_export_cpl) · [`easyeda_export_bom`](#easyeda_export_bom) · [`easyeda_export_netlist`](#easyeda_export_netlist) · [`easyeda_export_gerber`](#easyeda_export_gerber) · [`easyeda_export_pdf`](#easyeda_export_pdf) · [`easyeda_navigate_component`](#easyeda_navigate_component) · [`easyeda_navigate_region`](#easyeda_navigate_region) · [`easyeda_zoom_board`](#easyeda_zoom_board)
 - **[Confirmation-Gated Actions](#confirmation-gated-actions)** (1 tool)
@@ -551,6 +551,42 @@ Returns `mutationId`, exact confirmation token `CONFIRM pcb:<action> <mutationId
 
 ---
 
+### `easyeda_prepare_pcb_routing`
+
+**Scope:** PCB Mutation RPC (`readOnlyHint: false`, `destructiveHint: true`, default timeout: `30000` ms)
+
+Prepares native auto-routing or destructive unrouting of copper tracks and vias on the active PCB canvas. Supported actions:
+- `autoroute`: Routes traces natively for specified nets or all unrouted nets, preserving or rebuilding existing routes.
+- `unroute`: **Destructive operation** that clears and deletes routed tracks and vias for specified nets or across the entire board.
+
+Returns `mutationId`, exact confirmation token `CONFIRM pcb:<action> <mutationId>`, and structured `preview` with baseline routing metrics, target scope, and expected changes. Previews expire after 5 minutes and require execution via `easyeda_confirmed_action`.
+
+**Parameters:**
+- **`action`** (`"autoroute" | "unroute"`, **required**): The routing operation to stage.
+- **`nets`** (`string[]`, _optional_): Explicit list of net names to route or unroute (e.g. `["GND", "VCC"]`). If omitted, targets all nets.
+- **`ignoreNets`** (`string[]`, _optional_): List of net names to exclude from autorouting.
+- **`keepExistingRoutes`** (`boolean`, _optional_, default: `true`): Whether to preserve existing tracks during autorouting.
+- **`target`** (`object`, _optional_): Expected document target specification to assert against active canvas.
+- **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
+
+---
+
+### `easyeda_prepare_pcb_layout`
+
+**Scope:** PCB Mutation RPC (`readOnlyHint: false`, `destructiveHint: true`, default timeout: `30000` ms)
+
+Prepares native component auto-placement/auto-layout on the active PCB canvas within the board outline. Arranges components automatically based on schematic connectivity, spacing rules, and board dimensions without applying changes directly.
+
+Returns `mutationId`, exact confirmation token `CONFIRM pcb:autolayout <mutationId>`, and structured `preview`. Previews expire after 5 minutes and require execution via `easyeda_confirmed_action`.
+
+**Parameters:**
+- **`action`** (`"autolayout"`, _optional_, default: `"autolayout"`): The layout operation to stage.
+- **`components`** (`string[]`, _optional_): Explicit array of component designators to arrange (e.g. `["U1", "R1"]`). If omitted, arranges all unlocked components.
+- **`target`** (`object`, _optional_): Expected document target specification to assert against active canvas.
+- **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
+
+---
+
 ### `easyeda_highlight_net`
 
 **Scope:** PCB RPC (`readOnlyHint: true`, default timeout: `10000` ms)
@@ -717,11 +753,15 @@ Exports a PDF of the active schematic or PCB document.
 Executes a mutating EasyEDA Pro action only after human confirmation is verified.
 
 **Parameters:**
-- **`action`** (`"save" | "importChanges" | "autoroute" | "autolayout" | "editDrcRules"`, **required**): Target mutation to execute.
+- **`action`** (`"save" | "importChanges" | "autoroute" | "autolayout" | "nativeAutoRoute" | "nativeAutoLayout" | "unroute" | "importAutoRouteFile" | "importAutoLayoutFile" | "editDrcRules" | "mutation"`, **required**): Target mutation to execute.
+  - Native operations: `autoroute` (when without file) or `nativeAutoRoute`, `autolayout` (when without file) or `nativeAutoLayout`, and `unroute` (destructive track/via clearing).
+  - External file imports: `importAutoRouteFile` or `autoroute` with `params.file`, `importAutoLayoutFile` or `autolayout` with `params.file`.
+  - Mutation lifecycle: `mutation` (applies staged mutations with `params: { mutationId }`).
 - **`confirmation`** (`string`, **required**):
   - For **`editDrcRules`**: exact string `CONFIRM editDrcRules <editId>` matching the prepared UUID.
-  - For **`save`**, **`importChanges`**, **`autoroute`**, **`autolayout`**: explicit phrase containing `I confirm`, `confirmed`, `confirma`, or `confirmo`.
-- **`params`** (`object`, _optional_): Required for `editDrcRules` (`{ "editId": "<UUID>" }`).
+  - For **`mutation`**: exact token `CONFIRM <domain>:<action> <mutationId>`.
+  - For **`save`**, **`importChanges`**, **`autoroute`**, **`autolayout`**, **`unroute`**: explicit phrase containing `I confirm`, `confirmed`, `confirma`, or `confirmo`.
+- **`params`** (`object`, _optional_): Required for `editDrcRules` (`{ "editId": "<UUID>" }`) and `mutation` (`{ "mutationId": "<UUID>" }`).
 - **`timeoutMs`** (`number`, _optional_, default: `60000`): RPC timeout in ms.
 
 ::: code-group
