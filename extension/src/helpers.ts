@@ -31,8 +31,9 @@ export function normalizeBBox(value: unknown): { left: number; right: number; to
   return undefined;
 }
 
-export function ensureApi(objectName: string, methodName: string): void {
-  if (!eda[objectName]?.[methodName]) {
+export function ensureApi(objectName: string, methodName: string, api?: Record<string, any>): void {
+  const target = api ?? (typeof eda !== "undefined" ? eda : (globalThis as any).eda);
+  if (!target?.[objectName]?.[methodName]) {
     throw apiError("api_unavailable", `EasyEDA Pro API eda.${objectName}.${methodName} is unavailable in this context.`);
   }
 }
@@ -155,16 +156,18 @@ export function timestamp(): string {
 }
 
 export function log(level: "warn" | "error", message: string, details?: unknown): void {
-  if (eda.sys_Log?.[level]) {
-    eda.sys_Log[level](`[easyeda-mcp] ${message}`, details);
+  const edaGlobal = typeof eda !== "undefined" ? eda : (globalThis as any).eda;
+  if (edaGlobal?.sys_Log?.[level]) {
+    edaGlobal.sys_Log[level](`[easyeda-mcp] ${message}`, details);
     return;
   }
   console[level](`[easyeda-mcp] ${message}`, details);
 }
 
 export function showMessage(title: string, message: string): void {
-  if (eda.sys_Dialog?.showInformationMessage) {
-    eda.sys_Dialog.showInformationMessage(message, title);
+  const edaGlobal = typeof eda !== "undefined" ? eda : (globalThis as any).eda;
+  if (edaGlobal?.sys_Dialog?.showInformationMessage) {
+    edaGlobal.sys_Dialog.showInformationMessage(message, title);
     return;
   }
   log("warn", `${title}: ${message}`);
