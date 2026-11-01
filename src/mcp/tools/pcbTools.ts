@@ -1,6 +1,7 @@
 import * as z from "zod/v4";
 import type { McpServer } from "@modelcontextprotocol/server";
 import type { EditorClient } from "../../editor/EditorClient.js";
+import { ok, fail } from "../toolResult.js";
 import { DefaultTimeoutSchema, DocumentTargetSchema, registerReadTool } from "./common.js";
 
 export function registerPcbTools(server: McpServer, bridge: EditorClient): void {
@@ -92,6 +93,58 @@ export function registerPcbTools(server: McpServer, bridge: EditorClient): void 
     },
     summary: "Fetched EasyEDA Pro PCB pads."
   });
+
+  server.registerTool(
+    "easyeda_prepare_pcb_component",
+    {
+      title: "Prepare PCB Component Transform",
+      description:
+        "Prepares a component transformation on the PCB (move, rotate, flip, or delete) with preview, scope, expected coordinates, and exact confirmation phrase. Does not modify the PCB until confirmed.",
+      inputSchema: {
+        action: z.enum(["move", "rotate", "flip", "delete"]).describe("PCB component transform action to perform"),
+        component: z.string().min(1).describe("Target component designator (e.g. 'U1', 'R3') or primitive ID"),
+        x: z.number().optional().describe("Absolute X target coordinate in mm (for move)"),
+        y: z.number().optional().describe("Absolute Y target coordinate in mm (for move)"),
+        dx: z.number().optional().describe("Relative X delta offset in mm (for move)"),
+        dy: z.number().optional().describe("Relative Y delta offset in mm (for move)"),
+        rotation: z.number().optional().describe("Absolute rotation angle in degrees (for rotate)"),
+        dRotation: z.number().optional().describe("Relative rotation angle increment in degrees (for rotate)"),
+        layer: z.enum(["top", "bottom"]).optional().describe("Explicit target layer/side for flip"),
+        target: DocumentTargetSchema.optional().describe("Expected active PCB target"),
+        timeoutMs: DefaultTimeoutSchema.default(30_000)
+      },
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: false,
+        openWorldHint: false
+      }
+    },
+    async ({ action, component, x, y, dx, dy, rotation, dRotation, layer, target, timeoutMs }) => {
+      try {
+        const result = (await bridge.call(
+          "preparePcbComponent",
+          { action, component, x, y, dx, dy, rotation, dRotation, layer, target },
+          timeoutMs
+        )) as Record<string, unknown>;
+
+        const mutationId = String(result.mutationId ?? "");
+        const confirmation = String(result.confirmation ?? "");
+        const preview = (result.preview as { impact?: string; scope?: string }) ?? {};
+        const summary = [
+          `Prepared PCB component transformation '${action}':`,
+          `Impact: ${preview.impact ?? "none"}`,
+          `Scope: ${preview.scope ?? "active document"}`,
+          `Confirmation phrase required: "${confirmation}"`,
+          `Review the preview and run easyeda_confirmed_action with action="mutation", params={ mutationId: "${mutationId}" }, and the exact confirmation string.`
+        ].join("\n");
+
+        return ok(summary, result);
+      } catch (error) {
+        return fail(error);
+      }
+    }
+  );
 
   registerReadTool(server, bridge, {
     name: "easyeda_highlight_net",

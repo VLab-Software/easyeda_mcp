@@ -1,6 +1,6 @@
 # Tools Reference
 
-EasyEDA Pro MCP exposes **41 tools** across 8 categories. All inspection, tracing, navigation, and export tools are read-only (`readOnlyHint: true`).
+EasyEDA Pro MCP exposes **42 tools** across 8 categories. All inspection, tracing, navigation, and export tools are read-only (`readOnlyHint: true`).
 
 ## Tool Catalog
 
@@ -14,8 +14,8 @@ EasyEDA Pro MCP exposes **41 tools** across 8 categories. All inspection, tracin
   - [`easyeda_schematic_snapshot`](#easyeda_schematic_snapshot) · [`easyeda_get_schematic_nets`](#easyeda_get_schematic_nets) · [`easyeda_list_schematic_components`](#easyeda_list_schematic_components) · [`easyeda_get_component_pins`](#easyeda_get_component_pins) · [`easyeda_find_component`](#easyeda_find_component) · [`easyeda_find_net`](#easyeda_find_net) · [`easyeda_search_library`](#easyeda_search_library)
 - **[Circuit Tracing & Verification](#circuit-tracing-verification)** (6 tools)
   - [`easyeda_run_schematic_erc`](#easyeda_run_schematic_erc) · [`easyeda_trace_net`](#easyeda_trace_net) · [`easyeda_trace_component`](#easyeda_trace_component) · [`easyeda_find_unconnected_pins`](#easyeda_find_unconnected_pins) · [`easyeda_validate_schematic_area`](#easyeda_validate_schematic_area) · [`easyeda_verify_connections`](#easyeda_verify_connections)
-- **[PCB Layout & DRC Rules](#pcb-layout-drc-rules)** (9 tools)
-  - [`easyeda_run_drc`](#easyeda_run_drc) · [`easyeda_get_pcb_layers`](#easyeda_get_pcb_layers) · [`easyeda_get_routing_status`](#easyeda_get_routing_status) · [`easyeda_list_pcb_components`](#easyeda_list_pcb_components) · [`easyeda_get_pcb_pads`](#easyeda_get_pcb_pads) · [`easyeda_highlight_net`](#easyeda_highlight_net) · [`easyeda_get_drc_rules`](#easyeda_get_drc_rules) · [`easyeda_prepare_drc_edit`](#easyeda_prepare_drc_edit) · [`easyeda_get_drc_edit_result`](#easyeda_get_drc_edit_result)
+- **[PCB Layout & DRC Rules](#pcb-layout-drc-rules)** (10 tools)
+  - [`easyeda_run_drc`](#easyeda_run_drc) · [`easyeda_get_pcb_layers`](#easyeda_get_pcb_layers) · [`easyeda_get_routing_status`](#easyeda_get_routing_status) · [`easyeda_list_pcb_components`](#easyeda_list_pcb_components) · [`easyeda_get_pcb_pads`](#easyeda_get_pcb_pads) · [`easyeda_prepare_pcb_component`](#easyeda_prepare_pcb_component) · [`easyeda_highlight_net`](#easyeda_highlight_net) · [`easyeda_get_drc_rules`](#easyeda_get_drc_rules) · [`easyeda_prepare_drc_edit`](#easyeda_prepare_drc_edit) · [`easyeda_get_drc_edit_result`](#easyeda_get_drc_edit_result)
 - **[Navigation & Exports](#navigation-exports)** (8 tools)
   - [`easyeda_export_cpl`](#easyeda_export_cpl) · [`easyeda_export_bom`](#easyeda_export_bom) · [`easyeda_export_netlist`](#easyeda_export_netlist) · [`easyeda_export_gerber`](#easyeda_export_gerber) · [`easyeda_export_pdf`](#easyeda_export_pdf) · [`easyeda_navigate_component`](#easyeda_navigate_component) · [`easyeda_navigate_region`](#easyeda_navigate_region) · [`easyeda_zoom_board`](#easyeda_zoom_board)
 - **[Confirmation-Gated Actions](#confirmation-gated-actions)** (1 tool)
@@ -474,6 +474,33 @@ Inspects PCB pads across the board or for specific devices. Inspects pad number,
 - **`includeStandalonePads`** (`boolean`, _optional_, default: `true`): Include standalone / free canvas pads.
 - **`limit`** (`number`, _optional_, default: `200`, max: `1000`): Maximum pads returned.
 - **`includeRaw`** (`boolean`, _optional_, default: `false`): Include raw primitive fields.
+- **`target`** (`object`, _optional_): Expected document target specification to assert against active canvas.
+- **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
+
+---
+
+### `easyeda_prepare_pcb_component`
+
+**Scope:** PCB Mutation RPC (`readOnlyHint: false`, `destructiveHint: true`, default timeout: `30000` ms)
+
+Stages a component transformation on the active PCB canvas without applying it directly. Supported actions are:
+- `move`: Relocates a component using absolute `x`/`y` coordinates or relative `dx`/`dy` offsets.
+- `rotate`: Rotates a component using absolute `rotation` (degrees) or relative `dRotation` offset.
+- `flip`: Flips a component between top and bottom board layers, or sets an explicit `layer` (`"top"` | `"bottom"`).
+- `delete`: Deletes a footprint component from the PCB layout.
+
+Returns `mutationId`, exact confirmation token `CONFIRM pcb:<action> <mutationId>`, and structured `preview` with `impact`, `before`, `requestedAfter`, and `changedKeys`. Previews expire after 5 minutes and require execution via `easyeda_confirmed_action`.
+
+**Parameters:**
+- **`action`** (`"move" | "rotate" | "flip" | "delete"`, **required**): The transformation or removal action to stage.
+- **`component`** (`string`, **required**): Target component designator (e.g., `"R1"`, `"U2"`) or primitive ID.
+- **`x`** (`number`, _optional_): Absolute target X coordinate (used with `move`).
+- **`y`** (`number`, _optional_): Absolute target Y coordinate (used with `move`).
+- **`dx`** (`number`, _optional_): Relative X offset delta (used with `move`).
+- **`dy`** (`number`, _optional_): Relative Y offset delta (used with `move`).
+- **`rotation`** (`number`, _optional_): Absolute angle in degrees `[0, 360)` (used with `rotate`).
+- **`dRotation`** (`number`, _optional_): Relative rotation angle delta in degrees (used with `rotate`).
+- **`layer`** (`"top" | "bottom" | string`, _optional_): Target layer or side (used with `flip`).
 - **`target`** (`object`, _optional_): Expected document target specification to assert against active canvas.
 - **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
 

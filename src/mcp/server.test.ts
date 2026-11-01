@@ -32,7 +32,7 @@ describe("EasyEDA MCP server", () => {
     const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
     await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
 
-    expect((await client.listTools()).tools).toHaveLength(41);
+    expect((await client.listTools()).tools).toHaveLength(42);
     const live = await client.callTool({ name: "easyeda_live_status", arguments: {} });
     expect(live.structuredContent).toEqual({ status, bridgeEndpoint: editor.endpoint });
     const doctor = await client.callTool({ name: "easyeda_doctor", arguments: {} });

@@ -2,6 +2,7 @@ import type { DrcRules } from "../drcRules.js";
 import { apiError, ensureApi, optionalCall, pickString } from "../helpers.js";
 import { extractDocumentIdentity } from "../identity.js";
 import { extensionMutations } from "../mutation/mutationManager.js";
+import { executePcbComponentMutation } from "../mutation/pcbComponentMutations.js";
 import { executeSchematicComponentMutation } from "../mutation/schematicComponentMutations.js";
 import { executeSchematicWireMutation } from "../mutation/schematicWireMutations.js";
 import type { EasyEdaApi, RpcHandler } from "../types.js";
@@ -33,6 +34,14 @@ export function createActionHandlers(
           } else {
             res = await executeSchematicComponentMutation(record, api);
           }
+          resultReadback = res.readback;
+          return res.executed;
+        };
+        readbackFn = async () => resultReadback;
+      } else if (record.domain === "pcb") {
+        let resultReadback: Record<string, unknown> = {};
+        executeFn = async () => {
+          const res = await executePcbComponentMutation(api, (record as any).operation ?? record, record.before);
           resultReadback = res.readback;
           return res.executed;
         };
