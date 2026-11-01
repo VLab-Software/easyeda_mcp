@@ -1,6 +1,6 @@
 # Tools Reference
 
-EasyEDA Pro MCP exposes **37 tools** across 8 categories. All inspection, tracing, navigation, and export tools are read-only (`readOnlyHint: true`).
+EasyEDA Pro MCP exposes **38 tools** across 8 categories. All inspection, tracing, navigation, and export tools are read-only (`readOnlyHint: true`).
 
 ## Tool Catalog
 
@@ -8,8 +8,8 @@ EasyEDA Pro MCP exposes **37 tools** across 8 categories. All inspection, tracin
   - [`easyeda_doctor`](#easyeda_doctor) · [`easyeda_live_status`](#easyeda_live_status) · [`easyeda_get_context`](#easyeda_get_context) · [`easyeda_get_selection`](#easyeda_get_selection)
 - **[Document Management & Canvas View](#document-management-canvas-view)** (3 tools)
   - [`easyeda_list_documents`](#easyeda_list_documents) · [`easyeda_open_document`](#easyeda_open_document) · [`easyeda_render_document_view`](#easyeda_render_document_view)
-- **[Schematic Mutations & Lifecycle](#schematic-mutations-lifecycle)** (2 tools)
-  - [`easyeda_prepare_schematic_component`](#easyeda_prepare_schematic_component) · [`easyeda_get_mutation_result`](#easyeda_get_mutation_result)
+- **[Schematic Mutations & Lifecycle](#schematic-mutations-lifecycle)** (3 tools)
+  - [`easyeda_prepare_schematic_component`](#easyeda_prepare_schematic_component) · [`easyeda_prepare_schematic_wire`](#easyeda_prepare_schematic_wire) · [`easyeda_get_mutation_result`](#easyeda_get_mutation_result)
 - **[Search & Schematic Inspection](#search-schematic-inspection)** (6 tools)
   - [`easyeda_schematic_snapshot`](#easyeda_schematic_snapshot) · [`easyeda_list_schematic_components`](#easyeda_list_schematic_components) · [`easyeda_get_component_pins`](#easyeda_get_component_pins) · [`easyeda_find_component`](#easyeda_find_component) · [`easyeda_find_net`](#easyeda_find_net) · [`easyeda_search_library`](#easyeda_search_library)
 - **[Circuit Tracing & Verification](#circuit-tracing-verification)** (5 tools)
@@ -143,6 +143,28 @@ Prepares a typed schematic component mutation (`create`, `move`, `update`, `dele
 - **`subPartName`** (`string`, _optional_): Sub-part name for multi-part components.
 - **`addIntoBom`** (`boolean`, _optional_, default: `true`): Whether to include in BOM.
 - **`addIntoPcb`** (`boolean`, _optional_, default: `true`): Whether to forward to PCB.
+- **`target`** (`object`, _optional_): Expected document target specification.
+- **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
+
+---
+
+### `easyeda_prepare_schematic_wire`
+
+**Scope:** Editor RPC (`readOnlyHint: true`, `idempotentHint: false`, default timeout: `30000` ms)
+
+Prepares a typed schematic wire or net label mutation (`createWire`, `modifyWire`, `deleteWire`, `addNetLabel`) with coordinate normalization, affected pin/connection analysis, and exact confirmation phrase. Does not modify the schematic until confirmed via `easyeda_confirmed_action`.
+
+**Parameters:**
+- **`action`** (`"createWire" | "modifyWire" | "deleteWire" | "addNetLabel"`, **required**): Wire mutation action to perform.
+- **`wireId`** (`string`, _optional_): Primitive ID or primitive identifier for `modifyWire` or `deleteWire`.
+- **`coordinates`** (`array`, _optional_): Flat coordinate array `[x1, y1, x2, y2, ...]` or list of point objects `[{ x, y }, ...]` representing wire segments (minimum 2 points).
+- **`net`** (`string`, _optional_): Net name to associate with the wire or net label.
+- **`color`** (`string`, _optional_): Wire stroke color (e.g. `'#008800'`).
+- **`lineWidth`** (`number`, _optional_): Stroke width.
+- **`lineType`** (`number`, _optional_): Line style pattern.
+- **`x`**, **`y`** (`number`, _optional_): Coordinates for net label placement (`addNetLabel`).
+- **`rotation`** (`number`, _optional_): Rotation angle for net label or flag (`0`, `90`, `180`, `270`).
+- **`flagType`** (`string`, _optional_): Net flag style if placed as net flag (e.g. `'flag'`, `'gnd'`, `'power'`).
 - **`target`** (`object`, _optional_): Expected document target specification.
 - **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
 
