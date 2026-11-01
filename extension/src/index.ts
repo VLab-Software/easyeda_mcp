@@ -25,6 +25,7 @@ import { prepareSchematicComponentMutation } from "./mutation/schematicComponent
 import { compareSchematicPcb, prepareSchematicPcbSyncMutation } from "./mutation/schematicPcbSyncMutations.js";
 import { prepareSchematicBusMutation, prepareSchematicPortMutation } from "./mutation/schematicPortBusMutations.js";
 import { prepareSchematicWireMutation } from "./mutation/schematicWireMutations.js";
+import { evaluateSpiceFeasibility, generateSpiceNetlist } from "./reporting/spiceFeasibilityReport.js";
 import type { EasyEdaApi, RpcHandler } from "./types.js";
 
 const getApi = (): EasyEdaApi => (typeof eda !== "undefined" ? eda : (globalThis as any).eda);
@@ -61,6 +62,8 @@ const handlers: Record<string, RpcHandler> = {
   prepareSchematicBus: (params) => prepareSchematicBusMutation(getApi, params),
   prepareSchematicPcbSync: (params) => prepareSchematicPcbSyncMutation(getApi, params),
   compareSchematicPcb: (params) => compareSchematicPcb(getApi, params),
+  evaluateSpiceFeasibility: (params) => evaluateSpiceFeasibility(getApi, params),
+  generateSpiceNetlist: (params) => generateSpiceNetlist(getApi, exportHandlers.saveApiFile as any, params),
   ...contextHandlers,
   ...documentHandlers,
   ...schematicHandlers,

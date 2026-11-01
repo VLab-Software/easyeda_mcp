@@ -1,6 +1,6 @@
 # Tools Reference
 
-EasyEDA Pro MCP exposes **74 tools** across 8 categories. All inspection, tracing, navigation, and export tools are read-only (`readOnlyHint: true`).
+EasyEDA Pro MCP exposes **76 tools** across 9 categories. All inspection, tracing, navigation, and export tools are read-only (`readOnlyHint: true`).
 
 ## Tool Catalog
 
@@ -18,6 +18,8 @@ EasyEDA Pro MCP exposes **74 tools** across 8 categories. All inspection, tracin
   - [`easyeda_run_drc`](#easyeda_run_drc) · [`easyeda_get_pcb_layers`](#easyeda_get_pcb_layers) · [`easyeda_get_routing_status`](#easyeda_get_routing_status) · [`easyeda_list_pcb_components`](#easyeda_list_pcb_components) · [`easyeda_get_pcb_pads`](#easyeda_get_pcb_pads) · [`easyeda_prepare_pcb_component`](#easyeda_prepare_pcb_component) · [`easyeda_get_board_outline`](#easyeda_get_board_outline) · [`easyeda_prepare_board_outline`](#easyeda_prepare_board_outline) · [`easyeda_prepare_pcb_routing`](#easyeda_prepare_pcb_routing) · [`easyeda_prepare_pcb_layout`](#easyeda_prepare_pcb_layout) · [`easyeda_get_pcb_tracks`](#easyeda_get_pcb_tracks) · [`easyeda_get_pcb_vias`](#easyeda_get_pcb_vias) · [`easyeda_prepare_pcb_track_via`](#easyeda_prepare_pcb_track_via) · [`easyeda_highlight_net`](#easyeda_highlight_net) · [`easyeda_get_copper_zones`](#easyeda_get_copper_zones) · [`easyeda_get_keepouts`](#easyeda_get_keepouts) · [`easyeda_prepare_copper_keepout`](#easyeda_prepare_copper_keepout) · [`easyeda_get_pcb_airwires`](#easyeda_get_pcb_airwires) · [`easyeda_get_pcb_placement_report`](#easyeda_get_pcb_placement_report) · [`easyeda_get_pcb_net_report`](#easyeda_get_pcb_net_report) · [`easyeda_get_pcb_net_classes`](#easyeda_get_pcb_net_classes) · [`easyeda_get_pcb_differential_pairs`](#easyeda_get_pcb_differential_pairs) · [`easyeda_get_pcb_length_groups`](#easyeda_get_pcb_length_groups) · [`easyeda_prepare_pcb_net_constraint`](#easyeda_prepare_pcb_net_constraint) · [`easyeda_get_pcb_3d_inspection`](#easyeda_get_pcb_3d_inspection) · [`easyeda_get_pcb_3d_view`](#easyeda_get_pcb_3d_view) · [`easyeda_prepare_pcb_external_import`](#easyeda_prepare_pcb_external_import) · [`easyeda_get_drc_rules`](#easyeda_get_drc_rules) · [`easyeda_prepare_drc_edit`](#easyeda_prepare_drc_edit) · [`easyeda_get_drc_edit_result`](#easyeda_get_drc_edit_result)
 - **[Libraries, Navigation & Exports](#navigation-exports)** (15 tools)
   - [`easyeda_export_cpl`](#easyeda_export_cpl) · [`easyeda_export_bom`](#easyeda_export_bom) · [`easyeda_export_netlist`](#easyeda_export_netlist) · [`easyeda_export_gerber`](#easyeda_export_gerber) · [`easyeda_export_pdf`](#easyeda_export_pdf) · [`easyeda_export_image`](#easyeda_export_image) · [`easyeda_export_3d_model`](#easyeda_export_3d_model) · [`easyeda_export_project_archive`](#easyeda_export_project_archive) · [`easyeda_export_dxf`](#easyeda_export_dxf) · [`easyeda_navigate_component`](#easyeda_navigate_component) · [`easyeda_navigate_region`](#easyeda_navigate_region) · [`easyeda_zoom_board`](#easyeda_zoom_board) · [`easyeda_get_device_details`](#easyeda_get_device_details) · [`easyeda_compare_devices`](#easyeda_compare_devices) · [`easyeda_verify_pin_pad_mapping`](#easyeda_verify_pin_pad_mapping)
+- **[SPICE Simulation Feasibility](#spice-simulation-feasibility)** (2 tools)
+  - [`easyeda_evaluate_spice_support`](#easyeda_evaluate_spice_support) · [`easyeda_generate_spice_netlist`](#easyeda_generate_spice_netlist)
 - **[Confirmation-Gated Actions](#confirmation-gated-actions)** (1 tool)
   - [`easyeda_confirmed_action`](#easyeda_confirmed_action)
 
@@ -1285,6 +1287,40 @@ Validates 1-to-1 correspondence between schematic symbol pins and PCB footprint 
 **Parameters:**
 - **`designator`** (`string`, _optional_): Optional component designator to inspect (e.g., `"U1"`). If omitted, verifies all components on active canvas.
 - **`deviceUuid`** (`string`, _optional_): Optional library device UUID to verify.
+- **`target`** (`object`, _optional_): Expected document target specification.
+- **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
+
+---
+
+## SPICE Simulation Feasibility
+
+### `easyeda_evaluate_spice_support`
+
+**Scope:** Schematic Analysis RPC (`readOnlyHint: true`, default timeout: `30000` ms)
+
+Performs a feasibility study of analog circuit SPICE simulation on the active schematic. Inspects placed components, verifies Node 0 / Ground datum connectivity, checks for power/stimulus sources, audits SPICE model availability, calculates a simulation readiness score (`0`–`100%`), and documents platform constraints and limitations.
+
+**Parameters:**
+- **`groundNet`** (`string`, _optional_, default: `"GND"`): Net name expected as ground datum (mapped to SPICE node 0).
+- **`target`** (`object`, _optional_): Expected document target specification.
+- **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
+
+---
+
+### `easyeda_generate_spice_netlist`
+
+**Scope:** Netlist Export RPC (`readOnlyHint: true`, default timeout: `30000` ms)
+
+Generates a syntactically valid SPICE circuit netlist (`.cir` / `.sp`) from the active schematic with ground-to-0 normalization, primitive RLC elements, built-in semiconductor models, and configurable simulation directives (`.op`, `.tran`, `.ac`, `.dc`) for execution in external engines (ngspice, LTspice, Xyce).
+
+**Parameters:**
+- **`analysisType`** (`"op" | "tran" | "ac" | "dc"`, _optional_, default: `"op"`): Simulation analysis type directive.
+- **`analysisParams`** (`string`, _optional_): Directive parameters (e.g., `"1u 10m"` for `.tran`, or `"10 1 1Meg"` for `.ac`).
+- **`groundNet`** (`string`, _optional_, default: `"GND"`): Net name to map to SPICE datum node 0.
+- **`includeSubcircuits`** (`boolean`, _optional_, default: `true`): Whether to include X subcircuit cards for ICs.
+- **`includeDefaultModels`** (`boolean`, _optional_, default: `true`): Include built-in generic diode and BJT `.model` definitions.
+- **`fileName`** (`string`, _optional_): Optional output file name without extension.
+- **`destinationPath`** (`string`, _optional_): Optional destination directory or output file path.
 - **`target`** (`object`, _optional_): Expected document target specification.
 - **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
 
