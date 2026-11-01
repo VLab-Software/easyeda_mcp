@@ -6,6 +6,7 @@ export type MutationStatus = "prepared" | "running" | "applied" | "failed" | "ex
 export function canonicalJson(value: unknown, maxDepth = 40): string {
   function visit(item: unknown, depth: number): unknown {
     if (depth > maxDepth) throw new Error("JSON structure exceeds maximum depth");
+    if (item === undefined) return undefined;
     if (item === null || typeof item === "string" || typeof item === "boolean") return item;
     if (typeof item === "number" && Number.isFinite(item)) return item;
     if (Array.isArray(item)) return item.map((v) => visit(v, depth + 1));
@@ -17,11 +18,15 @@ export function canonicalJson(value: unknown, maxDepth = 40): string {
       if (["__proto__", "prototype", "constructor"].includes(key)) {
         throw new Error("Unsafe property name detected in mutation payload");
       }
-      result[key] = visit((item as Record<string, unknown>)[key], depth + 1);
+      const visited = visit((item as Record<string, unknown>)[key], depth + 1);
+      if (visited !== undefined) {
+        result[key] = visited;
+      }
     }
     return result;
   }
-  const text = JSON.stringify(visit(value, 0));
+  const normalized = visit(value, 0);
+  const text = JSON.stringify(normalized === undefined ? null : normalized);
   if (text.length > 2_000_000) throw new Error("Serialized mutation JSON exceeds 2,000,000 characters");
   return text;
 }

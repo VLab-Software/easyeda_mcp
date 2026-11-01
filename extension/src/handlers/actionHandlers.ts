@@ -2,6 +2,7 @@ import type { DrcRules } from "../drcRules.js";
 import { apiError, ensureApi, optionalCall, pickString } from "../helpers.js";
 import { extractDocumentIdentity } from "../identity.js";
 import { extensionMutations } from "../mutation/mutationManager.js";
+import { executeSchematicComponentMutation } from "../mutation/schematicComponentMutations.js";
 import type { EasyEdaApi, RpcHandler } from "../types.js";
 
 export function createActionHandlers(
@@ -18,13 +19,27 @@ export function createActionHandlers(
       const documentInfo = await optionalCall(() => eda.dmt_SelectControl?.getCurrentDocumentInfo?.());
       const currentTarget = extractDocumentIdentity(documentInfo);
       const record = mutations.get(params.params.mutationId);
+
+      let executeFn: () => Promise<boolean | void> = async () => true;
+      let readbackFn: () => Promise<unknown> = async () => record.before;
+
+      if (record.domain === "schematic") {
+        let resultReadback: Record<string, unknown> = {};
+        executeFn = async () => {
+          const res = await executeSchematicComponentMutation(record, api);
+          resultReadback = res.readback;
+          return res.executed;
+        };
+        readbackFn = async () => resultReadback;
+      }
+
       return mutations.apply({
         mutationId: params.params.mutationId,
         confirmation: String(params.confirmation ?? ""),
         currentTarget,
         currentBefore: record.before,
-        execute: async () => true,
-        readback: async () => record.before,
+        execute: executeFn,
+        readback: readbackFn,
         readbackTarget: currentTarget
       });
     }

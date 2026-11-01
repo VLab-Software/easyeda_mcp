@@ -1,6 +1,6 @@
 # Tools Reference
 
-EasyEDA Pro MCP exposes **35 tools** across 7 categories. All inspection, tracing, navigation, and export tools are read-only (`readOnlyHint: true`).
+EasyEDA Pro MCP exposes **37 tools** across 8 categories. All inspection, tracing, navigation, and export tools are read-only (`readOnlyHint: true`).
 
 ## Tool Catalog
 
@@ -8,6 +8,8 @@ EasyEDA Pro MCP exposes **35 tools** across 7 categories. All inspection, tracin
   - [`easyeda_doctor`](#easyeda_doctor) · [`easyeda_live_status`](#easyeda_live_status) · [`easyeda_get_context`](#easyeda_get_context) · [`easyeda_get_selection`](#easyeda_get_selection)
 - **[Document Management & Canvas View](#document-management-canvas-view)** (3 tools)
   - [`easyeda_list_documents`](#easyeda_list_documents) · [`easyeda_open_document`](#easyeda_open_document) · [`easyeda_render_document_view`](#easyeda_render_document_view)
+- **[Schematic Mutations & Lifecycle](#schematic-mutations-lifecycle)** (2 tools)
+  - [`easyeda_prepare_schematic_component`](#easyeda_prepare_schematic_component) · [`easyeda_get_mutation_result`](#easyeda_get_mutation_result)
 - **[Search & Schematic Inspection](#search-schematic-inspection)** (6 tools)
   - [`easyeda_schematic_snapshot`](#easyeda_schematic_snapshot) · [`easyeda_list_schematic_components`](#easyeda_list_schematic_components) · [`easyeda_get_component_pins`](#easyeda_get_component_pins) · [`easyeda_find_component`](#easyeda_find_component) · [`easyeda_find_net`](#easyeda_find_net) · [`easyeda_search_library`](#easyeda_search_library)
 - **[Circuit Tracing & Verification](#circuit-tracing-verification)** (5 tools)
@@ -115,6 +117,46 @@ Captures the visible canvas rendering viewport image in EasyEDA Pro (via `eda.dm
 2. Resolution and scale correspond directly to the current zoom level in the editor.
 3. Requires the editor canvas engine to have completed paint execution.
 :::
+
+---
+
+## Schematic Mutations & Lifecycle
+
+### `easyeda_prepare_schematic_component`
+
+**Scope:** Editor RPC (`readOnlyHint: true`, `idempotentHint: false`, default timeout: `30000` ms)
+
+Prepares a typed schematic component mutation (`create`, `move`, `update`, `delete`) with full preview, ID/designator resolution, and exact confirmation phrase. Does not modify the schematic until confirmed via `easyeda_confirmed_action`.
+
+**Parameters:**
+- **`action`** (`"create" | "move" | "update" | "delete"`, **required**): Mutation action to perform.
+- **`component`** (`string`, _optional_): Primitive ID or designator (e.g. `'R1'`, `'U2'`) for `move`, `update`, or `delete`.
+- **`device`** (`string | object`, _optional_): LCSC part code, device name, or device query for `create` (e.g. `'10k 0603'`, `'C1523'`, `'ESP32'`).
+- **`x`**, **`y`** (`number`, _optional_): Coordinates for placement or absolute move.
+- **`dx`**, **`dy`** (`number`, _optional_): Relative coordinate offsets for `move`.
+- **`properties`** (`object`, _optional_): Key-value properties map to update.
+- **`designator`** (`string`, _optional_): Designator to assign or update.
+- **`value`** (`string`, _optional_): Component value.
+- **`footprint`** (`string`, _optional_): Footprint package name.
+- **`rotation`** (`number`, _optional_): Rotation in degrees (`0`, `90`, `180`, `270`).
+- **`mirror`** (`boolean`, _optional_): Mirror state.
+- **`subPartName`** (`string`, _optional_): Sub-part name for multi-part components.
+- **`addIntoBom`** (`boolean`, _optional_, default: `true`): Whether to include in BOM.
+- **`addIntoPcb`** (`boolean`, _optional_, default: `true`): Whether to forward to PCB.
+- **`target`** (`object`, _optional_): Expected document target specification.
+- **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
+
+---
+
+### `easyeda_get_mutation_result`
+
+**Scope:** Editor RPC (`readOnlyHint: true`, `idempotentHint: true`, default timeout: `10000` ms)
+
+Queries the status, readback evidence, and verification of any prepared or applied mutation by `mutationId`. Safe and read-only; never automatically replays a mutation.
+
+**Parameters:**
+- **`mutationId`** (`string`, **required**): The `mutationId` returned during preparation.
+- **`timeoutMs`** (`number`, _optional_, default: `10000`): RPC timeout in ms.
 
 ---
 

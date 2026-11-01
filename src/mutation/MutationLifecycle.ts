@@ -11,7 +11,8 @@ export type PrepareMutationOptions<TOperation = Record<string, unknown>, TData =
   target: DocumentIdentity;
   operation: TOperation;
   before: TData;
-  requestedAfter: TData;
+  requestedAfter: unknown;
+  changedKeys?: string[];
   scope: string;
   impact?: string;
   ttlMs?: number;
@@ -64,8 +65,9 @@ export class MutationLifecycle {
     const operationCopy = copy(options.operation);
     const targetCopy = copy(options.target);
 
-    let changedKeys: string[] | undefined;
+    let changedKeys: string[] | undefined = options.changedKeys ? [...options.changedKeys] : undefined;
     if (
+      !changedKeys &&
       beforeCopy &&
       afterCopy &&
       typeof beforeCopy === "object" &&

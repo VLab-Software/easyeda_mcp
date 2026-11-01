@@ -97,6 +97,11 @@ export function detectMethodCapabilities(api: () => EasyEdaApi): Record<string, 
     "pcb_ManufactureData.getBomFile": Boolean(eda.pcb_ManufactureData?.getBomFile),
 
     // Schematic APIs
+    "sch_PrimitiveComponent.getAll": Boolean(eda.sch_PrimitiveComponent?.getAll),
+    "sch_PrimitiveComponent.get": Boolean(eda.sch_PrimitiveComponent?.get),
+    "sch_PrimitiveComponent.create": Boolean(eda.sch_PrimitiveComponent?.create),
+    "sch_PrimitiveComponent.modify": Boolean(eda.sch_PrimitiveComponent?.modify),
+    "sch_PrimitiveComponent.delete": Boolean(eda.sch_PrimitiveComponent?.delete),
     "sch_Document.getAllPrimitiveId": Boolean(eda.sch_Document?.getAllPrimitiveId),
     "sch_ManufactureData.getBomFile": Boolean(eda.sch_ManufactureData?.getBomFile),
 
