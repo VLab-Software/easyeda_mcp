@@ -3,7 +3,7 @@
 ## Delivery workflow
 
 - Read [the roadmap](docs/evolution-plan.md), [architecture decision](docs/adr/0001-incremental-architecture.md), and [Git workflow](docs/git-workflow.md) before changing the project.
-- Work on one roadmap part at a time. Create `codex/<phase>-<part>` before editing; open a PR against `develop`, then wait for user review and integration before starting the next part. Never merge to `master` as routine integration: it triggers publication.
+- Work on one roadmap part at a time. Create `feature/<phase>-<part>` before editing; use the project branch prefixes (`feature/`, `fix/`, `docs/`, `chore/`), never the agent name; open a PR against `develop`, then wait for user review and integration before starting the next part. Never merge to `master` as routine integration: it triggers publication.
 - Start subsequent parts from updated `develop`. Phase 0A is the documented exception: preserve the existing foundation commit `ff4219d` as its ancestor.
 - Preserve existing work and branches. If parallel work is explicitly requested, give each worker its own worktree and absolute working directory; never switch branches in a shared checkout.
 - Keep refactors, new features, and SDK/dependency migrations in separate PRs. Do not bump release versions in ordinary PRs.

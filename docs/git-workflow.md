@@ -8,14 +8,14 @@
 | --- | --- | --- |
 | **`develop`** | Integration branch for day-to-day features, fixes, and docs. Never publishes a release. | `CI` (PR & push validation) |
 | **`master`** | Production release branch. Every merge to `master` automatically cuts and publishes a new release. | `CI`, `Release` (auto-bump, tag, GitHub Release, npm, MCP Registry), `Deploy Docs` |
-| **`codex/*`, `feature/*`, `fix/*`, `docs/*`, `chore/*`** | Short-lived working branches created from `develop`. | `CI` (on Pull Request) |
+| **`feature/*`, `fix/*`, `docs/*`, `chore/*`** | Short-lived working branches created from `develop`. | `CI` (on Pull Request) |
 
 ## Day-to-Day Development Flow (`-> develop`)
 
 1. Branch from `develop`:
    ```bash
    git checkout develop && git pull origin develop
-   git checkout -b codex/<phase>-<part>
+   git checkout -b feature/<phase>-<part>
    ```
 2. Implement changes, tests, and documentation updates *(do not bump version numbers in feature PRs)*.
 3. Use conventional prefixes in commit/PR titles so automated SemVer calculation picks the right bump level:

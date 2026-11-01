@@ -20,7 +20,7 @@ The inherited foundation has 120 passing tests in 17 files and successful server
 ## Delivery rules
 
 1. Create a branch before editing. Work on one part, open one PR against `develop`, obtain user review, and integrate it before the next part begins.
-2. Use `codex/phase-<number>-<capability>`; phase 0 uses the names below. Preserve the pre-existing `feature/phase-0-sdd-foundation` branch and commit `ff4219d`. Phase 0A starts from that commit; later branches start from updated `develop` after the preceding PR is integrated.
+2. Use `feature/phase-<number>-<capability>`; phase 0 uses the names below. Preserve the pre-existing `feature/phase-0-sdd-foundation` branch and commit `ff4219d`. Phase 0A starts from that commit; later branches start from updated `develop` after the preceding PR is integrated.
 3. Every PR contains a purpose, proportional specification, compatibility/acceptance criteria, validation evidence, documentation, and known gaps. Do not combine refactoring, new features, and SDK migrations.
 4. Promote `develop` to `master` separately: that merge triggers automated publication. No manual version bump in ordinary parts. See [Git workflow](./git-workflow.md).
 5. Use the existing [tool specification template](https://github.com/VLab-Software/easyeda_mcp/blob/develop/specs/SPEC_TEMPLATE.md) for new or changed public interfaces. An ADR plus acceptance checklist is sufficient for behavior-preserving refactors.
@@ -31,11 +31,11 @@ Architecture direction and tradeoffs: [ADR 0001](./adr/0001-incremental-architec
 
 | Part / branch | Work | Acceptance |
 | --- | --- | --- |
-| 0A / `codex/phase-0a-governance` | Review the existing modularization, add repository instructions, this roadmap, and the architecture decision. | Baseline preserved; implementation gaps distinguished from target architecture; documentation linked and built; suite and both typechecks pass. |
-| 0B / `codex/phase-0b-contracts` | Share RPC types instead of duplicating them; expose the minimal calls/status editor interface and implement it in the bridge. | Tools no longer depend on the concrete bridge; RPC methods, aliases, payloads, and errors remain compatible; shared code stays browser-safe. |
-| 0C / `codex/phase-0c-extension` | Extract connection lifecycle, dispatch, API access, and domain handlers. Inject API access through factories; separate pure and editor-dependent helpers. | Manifest exports, reconnect behavior, timeouts, handlers, aliases, and DRC guards preserved; browser bundle and packages pass. |
-| 0D / `codex/phase-0d-schematic` | Extract types, normalization, connectivity, and checks behind the existing analysis facade. | Existing callers and fixture results remain compatible, including warnings, provenance, confidence, and inconclusive results. |
-| 0E / `codex/phase-0e-quality` | Add ESLint, format checking, cycle checks, and browser runtime dependency rules; wire checks into CI and reconcile remaining documentation claims. | Clean tree passes; controlled forbidden imports/cycles fail the checks; formatting is checked without CI rewriting files. |
+| 0A / `feature/phase-0a-governance` | Review the existing modularization, add repository instructions, this roadmap, and the architecture decision. | Baseline preserved; implementation gaps distinguished from target architecture; documentation linked and built; suite and both typechecks pass. |
+| 0B / `feature/phase-0b-contracts` | Share RPC types instead of duplicating them; expose the minimal calls/status editor interface and implement it in the bridge. | Tools no longer depend on the concrete bridge; RPC methods, aliases, payloads, and errors remain compatible; shared code stays browser-safe. |
+| 0C / `feature/phase-0c-extension` | Extract connection lifecycle, dispatch, API access, and domain handlers. Inject API access through factories; separate pure and editor-dependent helpers. | Manifest exports, reconnect behavior, timeouts, handlers, aliases, and DRC guards preserved; browser bundle and packages pass. |
+| 0D / `feature/phase-0d-schematic` | Extract types, normalization, connectivity, and checks behind the existing analysis facade. | Existing callers and fixture results remain compatible, including warnings, provenance, confidence, and inconclusive results. |
+| 0E / `feature/phase-0e-quality` | Add ESLint, format checking, cycle checks, and browser runtime dependency rules; wire checks into CI and reconcile remaining documentation claims. | Clean tree passes; controlled forbidden imports/cycles fail the checks; formatting is checked without CI rewriting files. |
 
 ### Review findings from the current foundation
 
@@ -49,7 +49,7 @@ Architecture direction and tradeoffs: [ADR 0001](./adr/0001-incremental-architec
 
 ## Phases 1-5: Capability backlog
 
-Finish phase 0 before beginning phase 1. Finish each part's specification and acceptance before coding it. Each semicolon-separated group in the following table is a separate branch/PR, in listed order. Use a concise capability suffix, such as `codex/phase-1-sdk-v2` or `codex/phase-2-schematic-components`.
+Finish phase 0 before beginning phase 1. Finish each part's specification and acceptance before coding it. Each semicolon-separated group in the following table is a separate branch/PR, in listed order. Use a concise capability suffix, such as `feature/phase-1-sdk-v2` or `feature/phase-2-schematic-components`.
 
 | Phase | Ordered parts | Acceptance gate |
 | --- | --- | --- |
@@ -65,7 +65,7 @@ The earlier recovered roadmap was compared before consolidation. Its priorities 
 
 ## Phase 0A local validation record
 
-Recorded 2026-11-01 on `codex/phase-0a-governance`, preserving `ff4219d`. The 0A additions change governance/documentation only; its PR also includes that inherited foundation commit because it is not yet in `develop`.
+Recorded 2026-11-01 on `feature/phase-0a-governance`, preserving `ff4219d`. The 0A additions change governance/documentation only; its PR also includes that inherited foundation commit because it is not yet in `develop`.
 
 - Implemented: repository instructions, ADR, consolidated roadmap, PR checklist, and documentation navigation; review/integration pending.
 - Validated in simulation: 120 tests in 17 files; both TypeScript checks; server/browser builds; `.eext` and `.mcpb` packaging; DRC smoke over stdio + WebSocket with 32 tools, exact confirmation, uncertain timeout, result queries, duplicate-dispatch protection, and stderr diagnostics.
