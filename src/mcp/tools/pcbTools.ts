@@ -601,4 +601,63 @@ export function registerPcbTools(server: McpServer, bridge: EditorClient): void 
       }
     }
   );
+
+  registerReadTool(server, bridge, {
+    name: "easyeda_get_pcb_airwires",
+    title: "Get PCB airwires and ratsnest connections",
+    description:
+      "Inspects unrouted ratsnest airwire lines on the active PCB layout with endpoints, coordinates, lengths, and inference method/tolerances.",
+    method: "getPcbAirwires",
+    inputSchema: {
+      net: z.string().min(1).optional().describe("Optional filter by net name (e.g. 'GND', 'VCC')."),
+      limit: z.number().int().positive().max(500).default(200).describe("Maximum number of airwires to return."),
+      padSnapTolerance: z.number().positive().optional().describe("Pad snap tolerance in mm (default: 0.1)."),
+      target: DocumentTargetSchema.optional(),
+      timeoutMs: DefaultTimeoutSchema.default(30_000)
+    },
+    summary: "Fetched EasyEDA Pro PCB airwires report."
+  });
+
+  registerReadTool(server, bridge, {
+    name: "easyeda_get_pcb_placement_report",
+    title: "Get PCB component placement and collision report",
+    description:
+      "Generates a comprehensive component placement report including density, bounding boxes, layer distribution, and collision/clearance warnings.",
+    method: "getPcbPlacementReport",
+    inputSchema: {
+      collisionTolerance: z
+        .number()
+        .positive()
+        .optional()
+        .describe("Clearance margin in mm to flag tight spacing or collision warnings (default: 0.2)."),
+      boardMarginTolerance: z
+        .number()
+        .positive()
+        .optional()
+        .describe("Tolerance in mm beyond board outline before considering component unplaced (default: 1.0)."),
+      target: DocumentTargetSchema.optional(),
+      timeoutMs: DefaultTimeoutSchema.default(30_000)
+    },
+    summary: "Generated EasyEDA Pro PCB placement report."
+  });
+
+  registerReadTool(server, bridge, {
+    name: "easyeda_get_pcb_net_report",
+    title: "Get PCB net and routing completion report",
+    description:
+      "Generates detailed physical metrics for nets on the active PCB (pad counts, track length, via count, copper zone coverage, and completion percentage).",
+    method: "getPcbNetReport",
+    inputSchema: {
+      net: z.string().min(1).optional().describe("Optional filter by specific net name."),
+      category: z.enum(["all", "power", "ground", "signal"]).optional().describe("Filter nets by electrical category."),
+      status: z
+        .enum(["all", "routed", "partially_routed", "unrouted"])
+        .optional()
+        .describe("Filter nets by routing status."),
+      limit: z.number().int().positive().max(500).default(200).describe("Maximum number of nets to return."),
+      target: DocumentTargetSchema.optional(),
+      timeoutMs: DefaultTimeoutSchema.default(30_000)
+    },
+    summary: "Generated EasyEDA Pro PCB net and routing report."
+  });
 }

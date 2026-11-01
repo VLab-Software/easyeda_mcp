@@ -16,6 +16,11 @@ import {
   preparePcbCopperKeepoutMutation
 } from "../mutation/pcbCopperKeepoutMutations.js";
 import { fetchPcbTracks, fetchPcbVias, preparePcbTrackViaMutation } from "../mutation/pcbTrackViaMutations.js";
+import {
+  generatePcbAirwiresReport,
+  generatePcbPlacementReport,
+  generatePcbNetReport
+} from "../reporting/pcbBoardReports.js";
 import type { EasyEdaApi, RpcHandler } from "../types.js";
 import {
   filterAndLimitViolations,
@@ -762,6 +767,9 @@ export function createPcbHandlers(api: () => EasyEdaApi): Record<string, RpcHand
     preparePcbTrackVia: (params: Record<string, any>) => preparePcbTrackViaMutation(api, params),
     getCopperZones,
     getKeepouts,
-    prepareCopperKeepout: (params: Record<string, any>) => preparePcbCopperKeepoutMutation(api, params)
+    prepareCopperKeepout: (params: Record<string, any>) => preparePcbCopperKeepoutMutation(api, params),
+    getPcbAirwires: (params: Record<string, any>) => generatePcbAirwiresReport(api, params),
+    getPcbPlacementReport: (params: Record<string, any>) => generatePcbPlacementReport(api, params),
+    getPcbNetReport: (params: Record<string, any>) => generatePcbNetReport(api, params)
   };
 }

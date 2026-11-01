@@ -34,7 +34,10 @@ describe("pcbTools", () => {
       "easyeda_highlight_net",
       "easyeda_get_copper_zones",
       "easyeda_get_keepouts",
-      "easyeda_prepare_copper_keepout"
+      "easyeda_prepare_copper_keepout",
+      "easyeda_get_pcb_airwires",
+      "easyeda_get_pcb_placement_report",
+      "easyeda_get_pcb_net_report"
     ]);
   });
 
@@ -727,6 +730,150 @@ describe("pcbTools", () => {
     expect(result.structuredContent).toMatchObject({
       mutationId: "mut-cop-100",
       confirmation: "CONFIRM pcb:rebuildCopper mut-cop-100"
+    });
+
+    await client.close();
+  });
+
+  it("invokes easyeda_get_pcb_airwires with net filter and returns airwire report", async () => {
+    const bridge = {
+      endpoint: "ws://127.0.0.1:8765",
+      getStatus: vi.fn((): EditorStatus => ({ connected: true, updatedAt: "2026-11-01T00:00:00.000Z" })),
+      call: vi.fn(async () => ({
+        method: "inferred_topology",
+        totalAirwires: 2,
+        totalAirwireLengthMm: 45.2,
+        unroutedNetsCount: 1,
+        airwiresByNet: { RESET: 2 },
+        airwires: [
+          {
+            id: "airwire-mst-1",
+            net: "RESET",
+            from: { componentDesignator: "U1", padNumber: "1", x: 10, y: 10 },
+            to: { componentDesignator: "R1", padNumber: "2", x: 20, y: 10 },
+            length: 10,
+            manhattanLength: 10
+          }
+        ]
+      }))
+    };
+
+    const server = new McpServer({ name: "test", version: "1.0.0" });
+    registerPcbTools(server, bridge as any);
+    const client = new Client({ name: "test-client", version: "1.0.0" });
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
+
+    const result = await client.callTool({
+      name: "easyeda_get_pcb_airwires",
+      arguments: {
+        net: "RESET"
+      }
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(bridge.call).toHaveBeenCalledWith(
+      "getPcbAirwires",
+      expect.objectContaining({
+        net: "RESET"
+      }),
+      30_000
+    );
+    expect(result.structuredContent).toMatchObject({
+      result: {
+        totalAirwires: 2,
+        unroutedNetsCount: 1
+      }
+    });
+
+    await client.close();
+  });
+
+  it("invokes easyeda_get_pcb_placement_report with collision tolerance", async () => {
+    const bridge = {
+      endpoint: "ws://127.0.0.1:8765",
+      getStatus: vi.fn((): EditorStatus => ({ connected: true, updatedAt: "2026-11-01T00:00:00.000Z" })),
+      call: vi.fn(async () => ({
+        method: "geometry_bounding_box",
+        totalComponents: 10,
+        placedComponentsCount: 10,
+        unplacedComponentsCount: 0,
+        collisionWarningsCount: 0,
+        layerDistribution: { top: 8, bottom: 2, unknown: 0 }
+      }))
+    };
+
+    const server = new McpServer({ name: "test", version: "1.0.0" });
+    registerPcbTools(server, bridge as any);
+    const client = new Client({ name: "test-client", version: "1.0.0" });
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
+
+    const result = await client.callTool({
+      name: "easyeda_get_pcb_placement_report",
+      arguments: {
+        collisionTolerance: 0.3
+      }
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(bridge.call).toHaveBeenCalledWith(
+      "getPcbPlacementReport",
+      expect.objectContaining({
+        collisionTolerance: 0.3
+      }),
+      30_000
+    );
+    expect(result.structuredContent).toMatchObject({
+      result: {
+        totalComponents: 10,
+        placedComponentsCount: 10
+      }
+    });
+
+    await client.close();
+  });
+
+  it("invokes easyeda_get_pcb_net_report with category filter", async () => {
+    const bridge = {
+      endpoint: "ws://127.0.0.1:8765",
+      getStatus: vi.fn((): EditorStatus => ({ connected: true, updatedAt: "2026-11-01T00:00:00.000Z" })),
+      call: vi.fn(async () => ({
+        method: "physical_extraction",
+        totalNets: 5,
+        routedNetsCount: 4,
+        unroutedNetsCount: 1,
+        overallRoutingCompletionPercent: 92.5,
+        categoryCounts: { power: 1, ground: 1, signal: 3 }
+      }))
+    };
+
+    const server = new McpServer({ name: "test", version: "1.0.0" });
+    registerPcbTools(server, bridge as any);
+    const client = new Client({ name: "test-client", version: "1.0.0" });
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
+
+    const result = await client.callTool({
+      name: "easyeda_get_pcb_net_report",
+      arguments: {
+        category: "power"
+      }
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(bridge.call).toHaveBeenCalledWith(
+      "getPcbNetReport",
+      expect.objectContaining({
+        category: "power"
+      }),
+      30_000
+    );
+    expect(result.structuredContent).toMatchObject({
+      result: {
+        totalNets: 5,
+        overallRoutingCompletionPercent: 92.5
+      }
     });
 
     await client.close();
