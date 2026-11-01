@@ -264,3 +264,50 @@ export type EndpointResolution = {
   nets: string[];
   reason?: string;
 };
+
+export interface SchematicErcViolation {
+  rule?: string;
+  code?: string;
+  message: string;
+  severity: "error" | "warning" | "info";
+  pageId?: string;
+  pageIndex?: number;
+  primitiveIds?: string[];
+  location?: Position;
+  raw?: unknown;
+}
+
+export interface SchematicErcResult {
+  available: boolean;
+  status: "passed" | "violations_found" | "inconclusive" | "unavailable";
+  source: DataSource;
+  target?: DocumentIdentity;
+  capturedAt: string;
+  reason?: string;
+  passed: boolean;
+  violationsCount: number;
+  errorsCount: number;
+  warningsCount: number;
+  violations: SchematicErcViolation[];
+  warnings: string[];
+  durationMs?: number;
+  rawResult?: unknown;
+  betaApi?: true;
+}
+
+export interface SchematicNativeNetsResult {
+  available: boolean;
+  status: "complete" | "inconclusive" | "unavailable";
+  source: DataSource;
+  target?: DocumentIdentity;
+  capturedAt: string;
+  reason?: string;
+  totalNets: number;
+  nets: string[];
+  byPage?: Array<{ pageId?: string; pageIndex?: number; nets: string[] }>;
+  confidence: Confidence | "none";
+  completeness: DataCompleteness;
+  warnings: string[];
+  rawResult?: unknown;
+  betaApi?: true;
+}

@@ -1,7 +1,7 @@
 import * as z from "zod/v4";
 import type { McpServer } from "@modelcontextprotocol/server";
 import type { EditorClient } from "../../editor/EditorClient.js";
-import { DefaultTimeoutSchema, registerReadTool } from "./common.js";
+import { DefaultTimeoutSchema, DocumentTargetSchema, registerReadTool } from "./common.js";
 
 export const EndpointRefSchema = z.union([
   z.object({
@@ -124,6 +124,23 @@ export function registerSchematicTools(server: McpServer, bridge: EditorClient):
   });
 
   registerReadTool(server, bridge, {
+    name: "easyeda_get_schematic_nets",
+    title: "Get Schematic Native Nets",
+    description:
+      "Queries native schematic nets from EasyEDA Pro per-sheet or project-wide. Distinguishes native net connectivity from geometric inferences.",
+    method: "getSchematicNets",
+    inputSchema: {
+      pageId: z.string().optional().describe("Filter by schematic sheet/page ID."),
+      pageIndex: z.number().int().optional().describe("Filter by schematic sheet/page index."),
+      allPages: z.boolean().default(true).describe("Query across all schematic sheets."),
+      includeRaw: z.boolean().default(false).describe("Include raw EasyEDA net data in the result."),
+      target: DocumentTargetSchema.optional().describe("Expected active schematic target."),
+      timeoutMs: DefaultTimeoutSchema.default(30_000)
+    },
+    summary: "Fetched EasyEDA Pro schematic native nets."
+  });
+
+  registerReadTool(server, bridge, {
     name: "easyeda_list_schematic_components",
     title: "List schematic components",
     description:
@@ -201,6 +218,20 @@ export function registerSchematicTools(server: McpServer, bridge: EditorClient):
       timeoutMs: DefaultTimeoutSchema.default(30_000)
     },
     summary: "Listed unconnected EasyEDA Pro pins."
+  });
+
+  registerReadTool(server, bridge, {
+    name: "easyeda_run_schematic_erc",
+    title: "Run Schematic Electrical Rules Check (ERC)",
+    description:
+      "Executes native EasyEDA Pro schematic Electrical Rules Check (ERC) on the active document, reporting rule violations, unconnected pins, and design errors.",
+    method: "runSchematicErc",
+    inputSchema: {
+      strict: z.boolean().default(true).describe("Enforce strict electrical rule checking."),
+      target: DocumentTargetSchema.optional().describe("Expected active schematic target."),
+      timeoutMs: DefaultTimeoutSchema.default(60_000)
+    },
+    summary: "Executed EasyEDA Pro schematic ERC check."
   });
 
   registerReadTool(server, bridge, {
