@@ -8,14 +8,14 @@
 | --- | --- | --- |
 | **`develop`** | Integration branch for day-to-day features, fixes, and docs. Never publishes a release. | `CI` (PR & push validation) |
 | **`master`** | Production release branch. Every merge to `master` automatically cuts and publishes a new release. | `CI`, `Release` (auto-bump, tag, GitHub Release, npm, MCP Registry), `Deploy Docs` |
-| **`feature/*`, `fix/*`, `docs/*`, `chore/*`** | Short-lived working branches created from `develop`. | `CI` (on Pull Request) |
+| **`codex/*`, `feature/*`, `fix/*`, `docs/*`, `chore/*`** | Short-lived working branches created from `develop`. | `CI` (on Pull Request) |
 
 ## Day-to-Day Development Flow (`-> develop`)
 
 1. Branch from `develop`:
    ```bash
    git checkout develop && git pull origin develop
-   git checkout -b feature/<short-name>
+   git checkout -b codex/<phase>-<part>
    ```
 2. Implement changes, tests, and documentation updates *(do not bump version numbers in feature PRs)*.
 3. Use conventional prefixes in commit/PR titles so automated SemVer calculation picks the right bump level:
@@ -23,7 +23,9 @@
    - `fix: ...` / `docs: ...` / `chore: ...` -> **`patch`** bump (`1.2.0` -> `1.2.1`)
    - `feature!: ...` or `BREAKING CHANGE:` in commit body -> **`major`** bump (`1.2.0` -> `2.0.0`)
 4. Validate locally (`npm run setup:local`, `npm test`, `npm run typecheck`, `npm run typecheck:extension`, `npm run docs:build`).
-5. Open a pull request against **`develop`** and merge once `CI` is green.
+5. Open a pull request against **`develop`**. For the [evolution plan](./evolution-plan.md), wait for user review and green `CI` before integration; start the next part only after the preceding PR is integrated.
+
+Each roadmap part has its own branch and PR. Phase 0A preserves the existing foundation commit `ff4219d` as its ancestor; all later parts start from updated `develop`. Preserve existing branches, keep refactors separate from features and SDK migrations, and do not switch branches in a checkout used by another worker.
 
 ## Automated Release Flow (`develop -> master`)
 

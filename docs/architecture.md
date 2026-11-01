@@ -13,10 +13,14 @@ flowchart LR
 ## Design Principles
 
 1. **Live editor source of truth**: queries run against the active schematic or PCB open in EasyEDA Pro rather than fragile offline file exports.
-2. **Read-first by default**: 31 of 32 tools are strictly non-destructive (`readOnlyHint: true`) and never alter editor or project state.
-3. **Two-phase confirmed mutations**: high-impact edits (such as PCB DRC rules and upcoming layout/schematic mutations) require an immutable preview, human approval of an exact confirmation token, target-identity checks, and native readback verification.
-4. **Actionable diagnostics**: every error returns a deterministic `errorCode` (`wrong_document`, `stale_edit`, `api_unavailable`, etc.) and remediation steps.
-5. **Spec-Driven & Domain-Modular**: all tools are governed by formal specs (`specs/*.md`) and organized into domain modules to preserve clean separation of concerns.
+2. **Read-first catalog**: 31 of 32 tools advertise `readOnlyHint: true`; this metadata is not a guarantee of zero side effects. Navigation can change the viewport and exports can write files.
+3. **Confirmed mutations**: DRC rule edits use immutable previews, exact confirmation, target/state checks, expiry, and native readback. Legacy save/import/route/layout actions use confirmation phrases but do not yet share the full DRC lifecycle.
+4. **Structured diagnostics**: failures expose an `error` code and message; some include remediation steps. Diagnostic coverage and runtime contract validation remain incremental.
+5. **Incremental specifications and modules**: MCP registration is organized by domain and a specification template exists. Individual specifications for historical tools, extension extraction, and automated dependency checks remain work in the [evolution plan](./evolution-plan.md).
+
+## Architecture direction
+
+[ADR 0001](./adr/0001-incremental-architecture.md) records the accepted dependency direction and compatibility constraints. It describes the target, not a completed migration: current registrars still depend on the concrete bridge, and the extension and schematic engine still concentrate multiple responsibilities. See the [roadmap](./evolution-plan.md) for the ordered parts and acceptance gates.
 
 ## Core Modules
 
