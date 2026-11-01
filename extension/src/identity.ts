@@ -89,6 +89,8 @@ export function detectMethodCapabilities(api: () => EasyEdaApi): Record<string, 
     "pcb_Drc.getCurrentRuleConfiguration": Boolean(eda.pcb_Drc?.getCurrentRuleConfiguration),
     "pcb_Drc.overwriteCurrentRuleConfiguration": Boolean(eda.pcb_Drc?.overwriteCurrentRuleConfiguration),
     "pcb_Drc.check": Boolean(eda.pcb_Drc?.check),
+    "pcb_Drc.getErrors": Boolean(eda.pcb_Drc?.getErrors || (eda.pcb_Drc as any)?.getDrcErrors),
+    "pcb_Drc.clearErrors": Boolean((eda.pcb_Drc as any)?.clearErrors),
     "pcb_Document.autoRouting": Boolean(eda.pcb_Document?.autoRouting),
     "pcb_Document.unRoute": Boolean(
       eda.pcb_Document?.unRoute || eda.pcb_Document?.unroute || eda.pcb_Document?.clearRouting
