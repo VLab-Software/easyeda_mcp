@@ -7,6 +7,7 @@ import { createDispatcher } from "./dispatcher.js";
 import { DrcRules } from "./drcRules.js";
 import { createActionHandlers } from "./handlers/actionHandlers.js";
 import { createContextHandlers } from "./handlers/contextHandlers.js";
+import { createDocumentHandlers } from "./handlers/documentHandlers.js";
 import { createExportHandlers } from "./handlers/exportHandlers.js";
 import { createNavigationHandlers } from "./handlers/navigationHandlers.js";
 import { createPcbHandlers } from "./handlers/pcbHandlers.js";
@@ -25,6 +26,7 @@ const schematicHandlers = createSchematicHandlers(getApi);
 const exportHandlers = createExportHandlers(getApi);
 const navigationHandlers = createNavigationHandlers(getApi, schematicHandlers.findComponent as any);
 const actionHandlers = createActionHandlers(getApi, drcRules);
+const documentHandlers = createDocumentHandlers(getApi);
 
 let bridgeConnection: BridgeConnection;
 
@@ -35,6 +37,7 @@ const handlers: Record<string, RpcHandler> = {
   prepareDrcEdit: (params) => drcRules.prepare(params),
   getDrcEditResult: (params) => drcRules.result(params),
   ...contextHandlers,
+  ...documentHandlers,
   ...schematicHandlers,
   ...navigationHandlers,
   ...exportHandlers,

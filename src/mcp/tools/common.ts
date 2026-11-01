@@ -6,6 +6,19 @@ import { ok, fail } from "../toolResult.js";
 
 export const DefaultTimeoutSchema = z.number().int().positive().max(120_000).default(10_000);
 
+export const DocumentTargetSchema = z.object({
+  projectId: z.string().optional(),
+  projectName: z.string().optional(),
+  documentId: z.string().optional(),
+  documentName: z.string().optional(),
+  documentType: z.enum(["schematic", "pcb", "symbol", "footprint", "unknown"]).optional(),
+  tabId: z.string().optional(),
+  pageId: z.string().optional(),
+  pageIndex: z.number().int().optional(),
+  fingerprint: z.string().optional(),
+  capturedAt: z.string().optional()
+});
+
 export const mutatingConfirmationRegex =
   /(?:^|[^a-z0-9_])(?:confirm|confirmed|confirma|confirmo|confirmar|confirmado)(?:$|[^a-z0-9_])/i;
 
