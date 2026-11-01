@@ -22,6 +22,7 @@ import { preparePcbNetConstraintMutation } from "./mutation/pcbNetConstraintMuta
 import { preparePcbLayoutMutation, preparePcbRoutingMutation } from "./mutation/pcbRoutingMutations.js";
 import { preparePcbTrackViaMutation } from "./mutation/pcbTrackViaMutations.js";
 import { prepareSchematicComponentMutation } from "./mutation/schematicComponentMutations.js";
+import { prepareSchematicBusMutation, prepareSchematicPortMutation } from "./mutation/schematicPortBusMutations.js";
 import { prepareSchematicWireMutation } from "./mutation/schematicWireMutations.js";
 import type { EasyEdaApi, RpcHandler } from "./types.js";
 
@@ -55,6 +56,8 @@ const handlers: Record<string, RpcHandler> = {
   preparePcbTrackVia: (params) => preparePcbTrackViaMutation(getApi, params),
   prepareSchematicComponent: (params) => prepareSchematicComponentMutation(getApi, params),
   prepareSchematicWire: (params) => prepareSchematicWireMutation(getApi, params),
+  prepareSchematicPort: (params) => prepareSchematicPortMutation(getApi, params),
+  prepareSchematicBus: (params) => prepareSchematicBusMutation(getApi, params),
   ...contextHandlers,
   ...documentHandlers,
   ...schematicHandlers,

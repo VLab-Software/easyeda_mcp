@@ -1,6 +1,6 @@
 # Tools Reference
 
-EasyEDA Pro MCP exposes **65 tools** across 8 categories. All inspection, tracing, navigation, and export tools are read-only (`readOnlyHint: true`).
+EasyEDA Pro MCP exposes **68 tools** across 8 categories. All inspection, tracing, navigation, and export tools are read-only (`readOnlyHint: true`).
 
 ## Tool Catalog
 
@@ -8,10 +8,10 @@ EasyEDA Pro MCP exposes **65 tools** across 8 categories. All inspection, tracin
   - [`easyeda_doctor`](#easyeda_doctor) · [`easyeda_live_status`](#easyeda_live_status) · [`easyeda_get_context`](#easyeda_get_context) · [`easyeda_get_selection`](#easyeda_get_selection)
 - **[Document Management & Canvas View](#document-management-canvas-view)** (3 tools)
   - [`easyeda_list_documents`](#easyeda_list_documents) · [`easyeda_open_document`](#easyeda_open_document) · [`easyeda_render_document_view`](#easyeda_render_document_view)
-- **[Schematic Mutations & Lifecycle](#schematic-mutations-lifecycle)** (3 tools)
-  - [`easyeda_prepare_schematic_component`](#easyeda_prepare_schematic_component) · [`easyeda_prepare_schematic_wire`](#easyeda_prepare_schematic_wire) · [`easyeda_get_mutation_result`](#easyeda_get_mutation_result)
-- **[Search & Schematic Inspection](#search-schematic-inspection)** (7 tools)
-  - [`easyeda_schematic_snapshot`](#easyeda_schematic_snapshot) · [`easyeda_get_schematic_nets`](#easyeda_get_schematic_nets) · [`easyeda_list_schematic_components`](#easyeda_list_schematic_components) · [`easyeda_get_component_pins`](#easyeda_get_component_pins) · [`easyeda_find_component`](#easyeda_find_component) · [`easyeda_find_net`](#easyeda_find_net) · [`easyeda_search_library`](#easyeda_search_library)
+- **[Schematic Mutations & Lifecycle](#schematic-mutations-lifecycle)** (5 tools)
+  - [`easyeda_prepare_schematic_component`](#easyeda_prepare_schematic_component) · [`easyeda_prepare_schematic_wire`](#easyeda_prepare_schematic_wire) · [`easyeda_prepare_schematic_port`](#easyeda_prepare_schematic_port) · [`easyeda_prepare_schematic_bus`](#easyeda_prepare_schematic_bus) · [`easyeda_get_mutation_result`](#easyeda_get_mutation_result)
+- **[Search & Schematic Inspection](#search-schematic-inspection)** (8 tools)
+  - [`easyeda_schematic_snapshot`](#easyeda_schematic_snapshot) · [`easyeda_get_schematic_nets`](#easyeda_get_schematic_nets) · [`easyeda_get_schematic_ports_buses`](#easyeda_get_schematic_ports_buses) · [`easyeda_list_schematic_components`](#easyeda_list_schematic_components) · [`easyeda_get_component_pins`](#easyeda_get_component_pins) · [`easyeda_find_component`](#easyeda_find_component) · [`easyeda_find_net`](#easyeda_find_net) · [`easyeda_search_library`](#easyeda_search_library)
 - **[Circuit Tracing & Verification](#circuit-tracing-verification)** (6 tools)
   - [`easyeda_run_schematic_erc`](#easyeda_run_schematic_erc) · [`easyeda_trace_net`](#easyeda_trace_net) · [`easyeda_trace_component`](#easyeda_trace_component) · [`easyeda_find_unconnected_pins`](#easyeda_find_unconnected_pins) · [`easyeda_validate_schematic_area`](#easyeda_validate_schematic_area) · [`easyeda_verify_connections`](#easyeda_verify_connections)
 - **[PCB Layout & DRC Rules](#pcb-layout-drc-rules)** (30 tools)
@@ -170,6 +170,52 @@ Prepares a typed schematic wire or net label mutation (`createWire`, `modifyWire
 
 ---
 
+### `easyeda_prepare_schematic_port`
+
+**Scope:** Editor RPC (`readOnlyHint: true`, `idempotentHint: false`, default timeout: `30000` ms)
+
+Prepares a typed schematic net port (hierarchical sheet or global connector) mutation (`createPort`, `modifyPort`, `deletePort`) with port type normalization (`input`, `output`, `bidirectional`, `unspecified`), coordinate validation, preview diff, and exact confirmation phrase. Does not modify the schematic until confirmed via `easyeda_confirmed_action`.
+
+**Parameters:**
+- **`action`** (`string`, **required**, enum: `createPort`, `modifyPort`, `deletePort`): Port mutation action to perform.
+- **`name`** (`string`, _optional_): Net name assigned to the port (e.g. `'TXD'`, `'CLK'`, `'RESET'`). Required for `createPort`.
+- **`portType`** (`string`, _optional_, enum: `input`, `output`, `bidirectional`, `unspecified`): Port signal direction.
+- **`x`** (`number`, _optional_): X coordinate for port placement. Required for `createPort`.
+- **`y`** (`number`, _optional_): Y coordinate for port placement. Required for `createPort`.
+- **`rotation`** (`number`, _optional_, default: `0`): Rotation angle in degrees (`0`, `90`, `180`, `270`).
+- **`color`** (`string`, _optional_): Optional color hex or name string.
+- **`portId`** (`string`, _optional_): Target port primitiveId for `modifyPort` or `deletePort`.
+- **`target`** (`object`, _optional_): Expected document target specification.
+- **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
+
+---
+
+### `easyeda_prepare_schematic_bus`
+
+**Scope:** Editor RPC (`readOnlyHint: true`, `idempotentHint: false`, default timeout: `30000` ms)
+
+Prepares a multi-bit bus polyline or diagonal bus entry tap mutation (`createBus`, `modifyBus`, `deleteBus`, `createBusEntry`, `deleteBusEntry`) with syntax parsing (`NAME[start..end]`, `NAME[start:end]`, `NAME[A,B,C]`), coordinate validation, connectivity diagnostics, preview diff, and exact confirmation phrase. Does not modify the schematic until confirmed via `easyeda_confirmed_action`.
+
+**Parameters:**
+- **`action`** (`string`, **required**, enum: `createBus`, `modifyBus`, `deleteBus`, `createBusEntry`, `deleteBusEntry`): Bus or bus entry action to perform.
+- **`name`** (`string`, _optional_): Bus name with syntax, e.g. `'DATA[0..7]'` or `'ADDR[15:0]'`. Required for `createBus`.
+- **`coordinates`** (`array of numbers`, _optional_): Flat polyline coordinates `[x1, y1, x2, y2, ...]` (at least 2 points / 4 numbers) for bus polyline.
+- **`lineWidth`** (`number`, _optional_): Bus stroke width.
+- **`color`** (`string`, _optional_): Bus stroke color string.
+- **`busId`** (`string`, _optional_): Target bus primitive ID for `modifyBus`, `deleteBus`, or attaching a bus entry.
+- **`entryId`** (`string`, _optional_): Target bus entry primitive ID for `deleteBusEntry`.
+- **`startX`** (`number`, _optional_): Start X coordinate for bus entry tap.
+- **`startY`** (`number`, _optional_): Start Y coordinate for bus entry tap.
+- **`endX`** (`number`, _optional_): End X coordinate for bus entry tap.
+- **`endY`** (`number`, _optional_): End Y coordinate for bus entry tap.
+- **`rotation`** (`number`, _optional_): Rotation angle for bus entry tap.
+- **`net`** (`string`, _optional_): Net name for tapped signal (e.g. `'DATA0'`). Validated against parent bus signals.
+- **`wireId`** (`string`, _optional_): Primitive ID of wire tapped by bus entry.
+- **`target`** (`object`, _optional_): Expected document target specification.
+- **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
+
+---
+
 ### `easyeda_get_mutation_result`
 
 **Scope:** Editor RPC (`readOnlyHint: true`, `idempotentHint: true`, default timeout: `10000` ms)
@@ -210,6 +256,22 @@ Queries native schematic nets from EasyEDA Pro per-sheet or project-wide via `ed
 - **`includeRaw`** (`boolean`, _optional_, default: `false`): Include raw net records from EasyEDA API.
 - **`target`** (`object`, _optional_): Expected document target specification to assert against active canvas.
 - **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
+
+---
+
+### `easyeda_get_schematic_ports_buses`
+
+**Scope:** Schematic RPC (`readOnlyHint: true`, `idempotentHint: true`, default timeout: `15000` ms)
+
+Inspects net ports (hierarchical/sheet connectors and global net flags), multi-bit buses (`sch_PrimitiveBus`), and diagonal bus entry taps (`sch_PrimitiveBusEntry`) in the active schematic. Parses bus name syntax (`NAME[start..end]`, `NAME[start:end]`, `NAME[A,B,C]`), expands signal sets, checks connectivity distances, and flags diagnostics for dangling taps, bus signal mismatches, and conflicting port directions.
+
+**Parameters:**
+- **`includePorts`** (`boolean`, _optional_, default: `true`): Whether to include net ports.
+- **`includeBuses`** (`boolean`, _optional_, default: `true`): Whether to include multi-bit buses.
+- **`includeBusEntries`** (`boolean`, _optional_, default: `true`): Whether to include bus entry taps.
+- **`includeRaw`** (`boolean`, _optional_, default: `false`): Include raw primitive records.
+- **`target`** (`object`, _optional_): Expected active schematic target to guard against document drift.
+- **`timeoutMs`** (`number`, _optional_, default: `15000`): RPC timeout in ms.
 
 ---
 

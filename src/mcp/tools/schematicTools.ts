@@ -277,4 +277,23 @@ export function registerSchematicTools(server: McpServer, bridge: EditorClient):
     },
     summary: "Verified EasyEDA Pro schematic connections."
   });
+
+  registerReadTool(server, bridge, {
+    name: "easyeda_get_schematic_ports_buses",
+    title: "Get schematic ports and buses",
+    description:
+      "Inspects net ports (hierarchical/global sheet connectors), multi-bit buses, and bus entry taps in the active schematic with connection validation and signal range diagnostics.",
+    method: "getSchematicPortsBuses",
+    inputSchema: {
+      target: DocumentTargetSchema.optional().describe(
+        "Expected active schematic target to guard against document drift"
+      ),
+      includePorts: z.boolean().default(true).describe("Whether to include net ports"),
+      includeBuses: z.boolean().default(true).describe("Whether to include multi-bit buses"),
+      includeBusEntries: z.boolean().default(true).describe("Whether to include bus entry taps"),
+      includeRaw: z.boolean().default(false).describe("Whether to include raw primitive records from the editor"),
+      timeoutMs: DefaultTimeoutSchema.default(15_000)
+    },
+    summary: "Fetched EasyEDA Pro schematic net ports and buses."
+  });
 }
