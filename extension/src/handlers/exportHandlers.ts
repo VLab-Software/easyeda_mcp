@@ -4,6 +4,13 @@ import {
   compareDevices as compareDevicesFn,
   verifyPinPadMapping as verifyPinPadMappingFn
 } from "../reporting/deviceLibraryReports.js";
+import {
+  export3dModel as export3dModelEnhancement,
+  exportDxf as exportDxfEnhancement,
+  exportImage as exportImageEnhancement,
+  exportProjectArchive as exportProjectArchiveEnhancement,
+  validateExportContent
+} from "../reporting/exportEnhancements.js";
 import type { EasyEdaApi, RpcHandler } from "../types.js";
 
 export function extractFile(value: unknown): unknown {
@@ -40,27 +47,36 @@ export async function saveApiFile(
   api: () => EasyEdaApi,
   file: unknown,
   fallbackFileName: string,
-  betaApi: boolean
+  betaApi: boolean,
+  destinationPath?: string,
+  explicitFormat?: string
 ): Promise<Record<string, unknown>> {
   const eda = api();
   const normalizedFile = extractFile(file);
+  const ext = fallbackFileName.split(".").pop() ?? "dat";
+  const format = explicitFormat ?? ext;
+
   if (!normalizedFile) {
+    const validation = validateExportContent(format, file, fallbackFileName, destinationPath);
     return {
       saved: false,
       file: sanitize(file),
       reason: "EasyEDA returned a non-File value; returning it without saving.",
-      betaApi
+      betaApi,
+      validation: sanitize(validation)
     };
   }
 
   ensureApi("sys_FileSystem", "saveFile", eda);
   const fileName = (normalizedFile as File).name || fallbackFileName;
+  const validation = validateExportContent(format, normalizedFile, fileName, destinationPath);
   const saveResult = await eda.sys_FileSystem.saveFile(normalizedFile, fileName);
   return {
     saved: true,
     fileName,
     saveResult: sanitize(saveResult),
-    betaApi
+    betaApi,
+    validation: sanitize(validation)
   };
 }
 
@@ -70,14 +86,14 @@ export function createExportHandlers(api: () => EasyEdaApi): Record<string, RpcH
     const format = params.format ?? "csv";
     const mfgApi = pickManufactureApi(api, params.scope, "getBomFile");
     const file = await mfgApi.getBomFile(fileName, format);
-    return saveApiFile(api, file, `${fileName}.${format}`, true);
+    return saveApiFile(api, file, `${fileName}.${format}`, true, params.destinationPath, format);
   }
 
   async function exportNetlist(params: Record<string, any>): Promise<Record<string, unknown>> {
     const fileName = params.fileName ?? `easyeda-netlist-${timestamp()}`;
     const mfgApi = pickManufactureApi(api, params.scope, "getNetlistFile");
     const file = await mfgApi.getNetlistFile(fileName, params.netlistType);
-    return saveApiFile(api, file, `${fileName}.net`, true);
+    return saveApiFile(api, file, `${fileName}.net`, true, params.destinationPath, "net");
   }
 
   async function exportGerber(params: Record<string, any>): Promise<Record<string, unknown>> {
@@ -85,7 +101,7 @@ export function createExportHandlers(api: () => EasyEdaApi): Record<string, RpcH
     ensureApi("pcb_ManufactureData", "getGerberFile", eda);
     const fileName = params.fileName ?? `easyeda-gerber-${timestamp()}`;
     const file = await eda.pcb_ManufactureData.getGerberFile(fileName);
-    return saveApiFile(api, file, `${fileName}.zip`, true);
+    return saveApiFile(api, file, `${fileName}.zip`, true, params.destinationPath, "zip");
   }
 
   async function exportPdf(params: Record<string, any>): Promise<Record<string, unknown>> {
@@ -96,11 +112,11 @@ export function createExportHandlers(api: () => EasyEdaApi): Record<string, RpcH
       (!eda.pcb_ManufactureData?.getPdfFile && eda.sch_ManufactureData?.getExportDocumentFile)
     ) {
       const file = await eda.sch_ManufactureData.getExportDocumentFile(fileName, "pdf");
-      return saveApiFile(api, file, `${fileName}.pdf`, true);
+      return saveApiFile(api, file, `${fileName}.pdf`, true, params.destinationPath, "pdf");
     }
     ensureApi("pcb_ManufactureData", "getPdfFile", eda);
     const file = await eda.pcb_ManufactureData.getPdfFile(fileName);
-    return saveApiFile(api, file, `${fileName}.pdf`, true);
+    return saveApiFile(api, file, `${fileName}.pdf`, true, params.destinationPath, "pdf");
   }
 
   async function exportCpl(params: Record<string, any>): Promise<Record<string, unknown>> {
@@ -110,7 +126,7 @@ export function createExportHandlers(api: () => EasyEdaApi): Record<string, RpcH
     const format = params.format ?? "csv";
     const unit = params.unit ?? "mm";
     const file = await eda.pcb_ManufactureData.getPickAndPlaceFile(fileName, format, unit);
-    return saveApiFile(api, file, `${fileName}.${format}`, true);
+    return saveApiFile(api, file, `${fileName}.${format}`, true, params.destinationPath, format);
   }
 
   async function searchLibrary(params: Record<string, any>): Promise<Record<string, unknown>> {
@@ -161,6 +177,30 @@ export function createExportHandlers(api: () => EasyEdaApi): Record<string, RpcH
     exportGerber,
     exportPdf,
     exportCpl,
+    exportImage: (params: Record<string, any>) =>
+      exportImageEnhancement(
+        api,
+        (file, name) => saveApiFile(api, file, name, true, params.destinationPath, params.format),
+        params
+      ),
+    export3dModel: (params: Record<string, any>) =>
+      export3dModelEnhancement(
+        api,
+        (file, name) => saveApiFile(api, file, name, true, params.destinationPath, params.format),
+        params
+      ),
+    exportProjectArchive: (params: Record<string, any>) =>
+      exportProjectArchiveEnhancement(
+        api,
+        (file, name) => saveApiFile(api, file, name, true, params.destinationPath, params.format),
+        params
+      ),
+    exportDxf: (params: Record<string, any>) =>
+      exportDxfEnhancement(
+        api,
+        (file, name) => saveApiFile(api, file, name, true, params.destinationPath, "dxf"),
+        params
+      ),
     searchLibrary,
     getDeviceDetails: (params: Record<string, any>) => fetchDeviceDetails(api, params as any),
     compareDevices: (params: Record<string, any>) => compareDevicesFn(api, params as any),
