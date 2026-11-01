@@ -1,6 +1,6 @@
 # Tools Reference
 
-EasyEDA Pro MCP exposes **38 tools** across 8 categories. All inspection, tracing, navigation, and export tools are read-only (`readOnlyHint: true`).
+EasyEDA Pro MCP exposes **40 tools** across 8 categories. All inspection, tracing, navigation, and export tools are read-only (`readOnlyHint: true`).
 
 ## Tool Catalog
 
@@ -10,10 +10,10 @@ EasyEDA Pro MCP exposes **38 tools** across 8 categories. All inspection, tracin
   - [`easyeda_list_documents`](#easyeda_list_documents) · [`easyeda_open_document`](#easyeda_open_document) · [`easyeda_render_document_view`](#easyeda_render_document_view)
 - **[Schematic Mutations & Lifecycle](#schematic-mutations-lifecycle)** (3 tools)
   - [`easyeda_prepare_schematic_component`](#easyeda_prepare_schematic_component) · [`easyeda_prepare_schematic_wire`](#easyeda_prepare_schematic_wire) · [`easyeda_get_mutation_result`](#easyeda_get_mutation_result)
-- **[Search & Schematic Inspection](#search-schematic-inspection)** (6 tools)
-  - [`easyeda_schematic_snapshot`](#easyeda_schematic_snapshot) · [`easyeda_list_schematic_components`](#easyeda_list_schematic_components) · [`easyeda_get_component_pins`](#easyeda_get_component_pins) · [`easyeda_find_component`](#easyeda_find_component) · [`easyeda_find_net`](#easyeda_find_net) · [`easyeda_search_library`](#easyeda_search_library)
-- **[Circuit Tracing & Verification](#circuit-tracing-verification)** (5 tools)
-  - [`easyeda_trace_net`](#easyeda_trace_net) · [`easyeda_trace_component`](#easyeda_trace_component) · [`easyeda_find_unconnected_pins`](#easyeda_find_unconnected_pins) · [`easyeda_validate_schematic_area`](#easyeda_validate_schematic_area) · [`easyeda_verify_connections`](#easyeda_verify_connections)
+- **[Search & Schematic Inspection](#search-schematic-inspection)** (7 tools)
+  - [`easyeda_schematic_snapshot`](#easyeda_schematic_snapshot) · [`easyeda_get_schematic_nets`](#easyeda_get_schematic_nets) · [`easyeda_list_schematic_components`](#easyeda_list_schematic_components) · [`easyeda_get_component_pins`](#easyeda_get_component_pins) · [`easyeda_find_component`](#easyeda_find_component) · [`easyeda_find_net`](#easyeda_find_net) · [`easyeda_search_library`](#easyeda_search_library)
+- **[Circuit Tracing & Verification](#circuit-tracing-verification)** (6 tools)
+  - [`easyeda_run_schematic_erc`](#easyeda_run_schematic_erc) · [`easyeda_trace_net`](#easyeda_trace_net) · [`easyeda_trace_component`](#easyeda_trace_component) · [`easyeda_find_unconnected_pins`](#easyeda_find_unconnected_pins) · [`easyeda_validate_schematic_area`](#easyeda_validate_schematic_area) · [`easyeda_verify_connections`](#easyeda_verify_connections)
 - **[PCB Layout & DRC Rules](#pcb-layout-drc-rules)** (8 tools)
   - [`easyeda_run_drc`](#easyeda_run_drc) · [`easyeda_get_pcb_layers`](#easyeda_get_pcb_layers) · [`easyeda_get_routing_status`](#easyeda_get_routing_status) · [`easyeda_list_pcb_components`](#easyeda_list_pcb_components) · [`easyeda_highlight_net`](#easyeda_highlight_net) · [`easyeda_get_drc_rules`](#easyeda_get_drc_rules) · [`easyeda_prepare_drc_edit`](#easyeda_prepare_drc_edit) · [`easyeda_get_drc_edit_result`](#easyeda_get_drc_edit_result)
 - **[Navigation & Exports](#navigation-exports)** (8 tools)
@@ -197,6 +197,22 @@ Builds a normalized snapshot of the active schematic: components, pins, wires, l
 
 ---
 
+### `easyeda_get_schematic_nets`
+
+**Scope:** Schematic RPC (`readOnlyHint: true`, `idempotentHint: true`, default timeout: `30000` ms)
+
+Queries native schematic nets from EasyEDA Pro per-sheet or project-wide via `eda.sch_Net`. Explicity reports whether native nets are available in the connected EasyEDA version, preserving clarity between native net declarations and heuristic geometric inferences. Empty or conflicting net data is explicitly marked as `inconclusive`.
+
+**Parameters:**
+- **`pageId`** (`string`, _optional_): Filter nets by specific schematic sheet/page ID.
+- **`pageIndex`** (`number`, _optional_): Filter nets by page index.
+- **`allPages`** (`boolean`, _optional_, default: `true`): Collect nets across all schematic sheets.
+- **`includeRaw`** (`boolean`, _optional_, default: `false`): Include raw net records from EasyEDA API.
+- **`target`** (`object`, _optional_): Expected document target specification to assert against active canvas.
+- **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
+
+---
+
 ### `easyeda_list_schematic_components`
 
 **Scope:** Schematic RPC (`readOnlyHint: true`, default timeout: `30000` ms)
@@ -266,6 +282,19 @@ Searches the official EasyEDA component catalog and JLCPCB/LCSC device database 
 ---
 
 ## Circuit Tracing & Verification
+
+### `easyeda_run_schematic_erc`
+
+**Scope:** Schematic RPC (`readOnlyHint: true`, `idempotentHint: false`, default timeout: `60000` ms)
+
+Executes the native EasyEDA Pro Electrical Rules Check (ERC) on the active schematic document via `eda.sch_Drc.check`. Reports exact rule violations, severity (`error` | `warning`), affected primitive IDs, and page numbers. When native ERC is unavailable in the connected EasyEDA version, reports capability as unavailable rather than masquerading geometric heuristics as native ERC.
+
+**Parameters:**
+- **`strict`** (`boolean`, _optional_, default: `true`): Enforce strict electrical rule checking mode.
+- **`target`** (`object`, _optional_): Expected document target specification to assert against active canvas.
+- **`timeoutMs`** (`number`, _optional_, default: `60000`): RPC timeout in ms.
+
+---
 
 ### `easyeda_trace_net`
 

@@ -111,6 +111,11 @@ export function detectMethodCapabilities(api: () => EasyEdaApi): Record<string, 
     "sch_PrimitiveAttribute.createNetLabel": Boolean(eda.sch_PrimitiveAttribute?.createNetLabel),
     "sch_Document.getAllPrimitiveId": Boolean(eda.sch_Document?.getAllPrimitiveId),
     "sch_ManufactureData.getBomFile": Boolean(eda.sch_ManufactureData?.getBomFile),
+    "sch_Net.getAllNetsName": Boolean(
+      eda.sch_Net?.getAllNetsName || eda.sch_Net?.getAllNetName || eda.sch_Net?.getAllNets
+    ),
+    "sch_Drc.check": Boolean(eda.sch_Drc?.check),
+    "sch_Netlist.getNetlist": Boolean(eda.sch_Netlist?.getNetlist),
 
     // Libraries & System
     "lib_Device.search": Boolean(eda.lib_Device?.search || eda.lib_Search?.search),
