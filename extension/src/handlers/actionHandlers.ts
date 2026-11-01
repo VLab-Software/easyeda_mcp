@@ -1,30 +1,57 @@
 import type { DrcRules } from "../drcRules.js";
 import { apiError, ensureApi, optionalCall, pickString } from "../helpers.js";
+import { extractDocumentIdentity } from "../identity.js";
+import { extensionMutations } from "../mutation/mutationManager.js";
 import type { EasyEdaApi, RpcHandler } from "../types.js";
 
-export function createActionHandlers(api: () => EasyEdaApi, drcRules: DrcRules): Record<string, RpcHandler> {
+export function createActionHandlers(
+  api: () => EasyEdaApi,
+  drcRules: DrcRules,
+  mutations = extensionMutations
+): Record<string, RpcHandler> {
   async function confirmedAction(params: Record<string, any>): Promise<Record<string, unknown>> {
     const eda = api();
     const action = String(params.action ?? "");
     if (action === "editDrcRules") return drcRules.apply(params.params, params.confirmation);
+
+    if (action === "mutation" && params.params?.mutationId) {
+      const documentInfo = await optionalCall(() => eda.dmt_SelectControl?.getCurrentDocumentInfo?.());
+      const currentTarget = extractDocumentIdentity(documentInfo);
+      const record = mutations.get(params.params.mutationId);
+      return mutations.apply({
+        mutationId: params.params.mutationId,
+        confirmation: String(params.confirmation ?? ""),
+        currentTarget,
+        currentBefore: record.before,
+        execute: async () => true,
+        readback: async () => record.before,
+        readbackTarget: currentTarget
+      });
+    }
+
     const documentInfo = await optionalCall(() => eda.dmt_SelectControl?.getCurrentDocumentInfo?.());
     const documentUuid = pickString(documentInfo, ["uuid", "documentUuid", "id"]);
 
     if (action === "save") {
       if (eda.pcb_Document?.save) {
         await eda.pcb_Document.save(documentUuid);
-        return { action, saved: true, documentUuid };
+        return { action, saved: true, documentUuid, target: extractDocumentIdentity(documentInfo) };
       }
       if (eda.sch_Document?.save) {
         await eda.sch_Document.save(documentUuid);
-        return { action, saved: true, documentUuid };
+        return { action, saved: true, documentUuid, target: extractDocumentIdentity(documentInfo) };
       }
     }
 
     if (action === "importChanges") {
       ensureApi("pcb_Document", "importChanges", eda);
       await eda.pcb_Document.importChanges(params.uuid ?? documentUuid);
-      return { action, imported: true, documentUuid: params.uuid ?? documentUuid };
+      return {
+        action,
+        imported: true,
+        documentUuid: params.uuid ?? documentUuid,
+        target: extractDocumentIdentity(documentInfo)
+      };
     }
 
     if (action === "autoroute") {
@@ -36,7 +63,7 @@ export function createActionHandlers(api: () => EasyEdaApi, drcRules: DrcRules):
         );
       }
       await eda.pcb_Document.importAutoRouteJsonFile(params.params.file);
-      return { action, imported: true, betaApi: true };
+      return { action, imported: true, betaApi: true, target: extractDocumentIdentity(documentInfo) };
     }
 
     if (action === "autolayout") {
@@ -48,13 +75,19 @@ export function createActionHandlers(api: () => EasyEdaApi, drcRules: DrcRules):
         );
       }
       await eda.pcb_Document.importAutoLayoutJsonFile(params.params.file);
-      return { action, imported: true, betaApi: true };
+      return { action, imported: true, betaApi: true, target: extractDocumentIdentity(documentInfo) };
     }
 
     throw apiError("unsupported_action", `Unsupported or unavailable confirmed action: ${action}.`);
   }
 
+  function getMutationResult(params: Record<string, any>): Record<string, unknown> {
+    const mutationId = String(params.mutationId ?? "");
+    return mutations.get(mutationId);
+  }
+
   return {
-    confirmedAction
+    confirmedAction,
+    getMutationResult
   };
 }
