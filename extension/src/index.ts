@@ -14,13 +14,15 @@ import {
 import {
   PROTOCOL_VERSION,
   evaluateProtocolCompatibility,
-  type ProtocolCompatibility
+  type ProtocolCompatibility,
+  type BridgeCallMessage,
+  type BridgeErrorMessage,
+  type BridgeResultMessage
 } from "../../src/protocol/messages.js";
 import { getBridgeConfig, getBridgeUri } from "./bridgeConfig.js";
 import { DrcRules } from "./drcRules.js";
 import { EXTENSION_VERSION } from "../../src/version.js";
 import {
-  type BridgeErrorMessage,
   simplifyPrimitive,
   normalizeBBox,
   ensureApi,
@@ -41,20 +43,6 @@ import {
 } from "./helpers.js";
 
 type EasyEdaApi = Record<string, any>;
-
-type BridgeCallMessage = {
-  kind: "call";
-  requestId: string;
-  method: string;
-  params?: Record<string, any>;
-  timeoutMs?: number;
-};
-
-type BridgeResultMessage = {
-  kind: "result";
-  requestId: string;
-  result: unknown;
-};
 
 const WS_ID = "easyeda-mcp-bridge";
 
@@ -246,18 +234,18 @@ async function handleMessage(raw: string): Promise<void> {
     if (!handler) {
       throw apiError("unknown_method", `Unsupported MCP bridge method: ${message.method}`);
     }
-    const result = await handler(message.params ?? {});
+    const result = await handler((message.params ?? {}) as Record<string, unknown>);
     send({
       kind: "result",
       requestId: message.requestId,
       result
-    });
+    } satisfies BridgeResultMessage);
   } catch (error) {
     send({
       kind: "error",
       requestId: message.requestId,
       error: normalizeError(error)
-    });
+    } satisfies BridgeErrorMessage);
   }
 }
 

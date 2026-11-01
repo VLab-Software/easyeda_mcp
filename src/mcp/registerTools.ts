@@ -1,5 +1,5 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import type { EasyEdaBridge } from "../bridge/EasyEdaBridge.js";
+import type { EditorClient } from "../editor/EditorClient.js";
 import { registerStatusTools } from "./tools/statusTools.js";
 import { registerSchematicTools } from "./tools/schematicTools.js";
 import { registerPcbTools } from "./tools/pcbTools.js";
@@ -14,7 +14,7 @@ import {
 
 export { DefaultTimeoutSchema, hasExplicitMutationConfirmation, registerReadTool };
 
-export function registerEasyEdaTools(server: McpServer, bridge: EasyEdaBridge): void {
+export function registerEasyEdaTools(server: McpServer, bridge: EditorClient): void {
   registerStatusTools(server, bridge);
   registerSchematicTools(server, bridge);
   registerPcbTools(server, bridge);

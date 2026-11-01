@@ -1,9 +1,9 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import type { EasyEdaBridge } from "../../bridge/EasyEdaBridge.js";
+import type { EditorClient } from "../../editor/EditorClient.js";
 import { DrcScopeSchema, DrcOperationSchema, DrcEditQuerySchema } from "../../drc/contracts.js";
 import { DefaultTimeoutSchema, registerReadTool } from "./common.js";
 
-export function registerDrcTools(server: McpServer, bridge: EasyEdaBridge): void {
+export function registerDrcTools(server: McpServer, bridge: EditorClient): void {
   registerReadTool(server, bridge, {
     name: "easyeda_get_drc_rules",
     title: "Read native PCB design rules",

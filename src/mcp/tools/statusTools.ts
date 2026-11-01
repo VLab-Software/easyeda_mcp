@@ -1,11 +1,11 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import type { EasyEdaBridge } from "../../bridge/EasyEdaBridge.js";
+import type { EditorClient } from "../../editor/EditorClient.js";
 import { PROTOCOL_VERSION } from "../../protocol/messages.js";
 import { MCP_SERVER_NAME, MCP_SERVER_VERSION } from "../../version.js";
 import { ok } from "../toolResult.js";
 import { DefaultTimeoutSchema, doctorNextSteps, registerReadTool } from "./common.js";
 
-export function registerStatusTools(server: McpServer, bridge: EasyEdaBridge): void {
+export function registerStatusTools(server: McpServer, bridge: EditorClient): void {
   server.registerTool(
     "easyeda_live_status",
     {

@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { WebSocketServer, WebSocket } from "ws";
+import type { EditorClient } from "../editor/EditorClient.js";
 import {
   type BridgeCallMessage,
   type ClientToServerMessage,
@@ -23,7 +24,7 @@ export type EasyEdaBridgeOptions = {
   logger?: Pick<Console, "error" | "warn" | "info">;
 };
 
-export class EasyEdaBridge {
+export class EasyEdaBridge implements EditorClient {
   private readonly host: string;
   private readonly port: number;
   private readonly logger: Pick<Console, "error" | "warn" | "info">;
