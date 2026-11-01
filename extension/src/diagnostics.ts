@@ -1,6 +1,7 @@
 import type { BridgeErrorMessage, ProtocolCompatibility } from "../../src/protocol/messages.js";
 import { getBridgeUri, type ExtensionBridgeConfig } from "./bridgeConfig.js";
-import { inferDocumentType, optionalCall, pickString } from "./helpers.js";
+import { optionalCall } from "./helpers.js";
+import { detectMethodCapabilities, extractDocumentIdentity } from "./identity.js";
 import type { EasyEdaApi } from "./types.js";
 
 export function detectCapabilities(
@@ -9,6 +10,7 @@ export function detectCapabilities(
 ): Record<string, unknown> {
   const eda = api();
   return {
+    methods: detectMethodCapabilities(api),
     drcRules: drcCapabilities ? drcCapabilities() : {},
     drcCheck: Boolean(eda.pcb_Drc?.check),
     pcbLayers: Boolean(eda.pcb_Layer?.getAllLayers),
@@ -102,6 +104,7 @@ export async function collectDiagnostics(
 ): Promise<Record<string, unknown>> {
   const eda = api();
   const documentInfo = await optionalCall(() => eda.dmt_SelectControl?.getCurrentDocumentInfo?.());
+  const documentIdentity = extractDocumentIdentity(documentInfo);
   return {
     bridge: {
       uri: getBridgeUri(bridgeConfig),
@@ -123,9 +126,10 @@ export async function collectDiagnostics(
     },
     activeDocument: {
       available: Boolean(documentInfo),
-      type: inferDocumentType(documentInfo),
-      projectName: pickString(documentInfo, ["projectName", "project", "parentName"]),
-      documentName: pickString(documentInfo, ["name", "title", "documentName"])
+      identity: documentIdentity,
+      type: documentIdentity.documentType,
+      projectName: documentIdentity.projectName,
+      documentName: documentIdentity.documentName
     },
     nextSteps: diagnosticHints(state.lastError, bridgeConfig)
   };

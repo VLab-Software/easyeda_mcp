@@ -11,17 +11,8 @@ import {
   diagnosticHints,
   isPermissionLikeError
 } from "./diagnostics.js";
-import {
-  apiError,
-  ensureApi,
-  inferDocumentType,
-  log,
-  normalizeError,
-  optionalCall,
-  pickString,
-  sanitize,
-  showMessage
-} from "./helpers.js";
+import { apiError, ensureApi, log, normalizeError, optionalCall, sanitize, showMessage } from "./helpers.js";
+import { extractDocumentIdentity } from "./identity.js";
 import type { EasyEdaApi } from "./types.js";
 
 export const WS_ID = "easyeda-mcp-bridge";
@@ -106,6 +97,7 @@ export function createBridgeConnection(options: BridgeConnectionOptions): Bridge
 
   async function getStatus(): Promise<Record<string, unknown>> {
     const documentInfo = await optionalCall(() => api().dmt_SelectControl?.getCurrentDocumentInfo?.());
+    const documentIdentity = extractDocumentIdentity(documentInfo);
     return {
       connected: connectionState.phase === "connected",
       connectionState: connectionState.phase,
@@ -113,9 +105,10 @@ export function createBridgeConnection(options: BridgeConnectionOptions): Bridge
       protocolVersion: PROTOCOL_VERSION,
       compatibility: connectionState.compatibility,
       capabilities: getCapabilities(),
-      activeDocumentType: inferDocumentType(documentInfo),
-      projectName: pickString(documentInfo, ["projectName", "project", "parentName"]),
-      documentName: pickString(documentInfo, ["name", "title", "documentName"]),
+      documentIdentity,
+      activeDocumentType: documentIdentity.documentType,
+      projectName: documentIdentity.projectName,
+      documentName: documentIdentity.documentName,
       message: connectionState.lastError?.message,
       documentInfo: sanitize(documentInfo),
       updatedAt: new Date().toISOString()

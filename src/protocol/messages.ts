@@ -1,3 +1,6 @@
+export * from "./identity.js";
+import type { DocumentIdentity } from "./identity.js";
+
 export const PROTOCOL_VERSION = "0.1.0";
 
 export type ProtocolCompatibility = {
@@ -25,6 +28,7 @@ export type EditorStatus = {
   compatibility?: ProtocolCompatibility;
   capabilities?: Partial<BridgeCapabilities>;
   activeDocumentType?: "pcb" | "schematic" | "symbol" | "footprint" | "unknown";
+  documentIdentity?: DocumentIdentity;
   projectName?: string;
   documentName?: string;
   documentInfo?: unknown;
