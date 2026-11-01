@@ -18,9 +18,9 @@
 - Treat untrusted API data as `unknown` until narrowed. Keep compatibility handling at the editor boundary; do not spread new `any` or unsafe casts into domain code.
 - Diagnostic logging in the server must go to stderr. Never write logs to MCP stdout.
 
-## Specifications and editor operations
+## Editor operations
 
-- Use `specs/SPEC_TEMPLATE.md` for new tools or changed public behavior. Refactors may use a compatibility/acceptance checklist in the PR instead of one spec per unchanged tool.
+- Describe new tools, changed public behavior, and compatibility/acceptance criteria in the PR. Keep planning and specifications in the chat/PR rather than adding template files.
 - Before implementing a capability, document native methods and verified availability, input/output contracts, side effects, failure modes, and acceptance criteria. Proposed tool names are not proof of editor API support.
 - For new mutation flows: prepare a bounded preview, bind it to exact document/page identity and state, obtain approval for the exact operation, apply once, read back, and save separately. Do not promise automatic rollback or automatically replay an uncertain mutation.
 - Preserve existing DRC confirmation, stale-state, connection-generation, expiry, and readback guards. Legacy confirmed actions do not yet provide equivalent guarantees; do not describe them as if they do.
