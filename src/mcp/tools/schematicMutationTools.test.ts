@@ -30,6 +30,7 @@ describe("Schematic Mutation MCP Tools", () => {
     expect(names).toContain("easyeda_prepare_schematic_wire");
     expect(names).toContain("easyeda_prepare_schematic_port");
     expect(names).toContain("easyeda_prepare_schematic_bus");
+    expect(names).toContain("easyeda_prepare_schematic_pcb_sync");
     expect(names).toContain("easyeda_get_mutation_result");
   });
 
@@ -347,6 +348,46 @@ describe("Schematic Mutation MCP Tools", () => {
         name: "DATA[0..7]",
         coordinates: [100, 200, 300, 200],
         lineWidth: 3
+      }),
+      30_000
+    );
+    expect(result.structuredContent).toMatchObject({
+      mutationId,
+      confirmation
+    });
+  });
+
+  it("prepares a sync mutation via easyeda_prepare_schematic_pcb_sync", async () => {
+    const mutationId = "mut-sync-pcb-123";
+    const confirmation = `CONFIRM sync:syncToPcb ${mutationId}`;
+    const bridge = {
+      endpoint: "ws://127.0.0.1:8765",
+      getStatus: (): EditorStatus => ({ connected: true, updatedAt: new Date().toISOString() }),
+      call: vi.fn(async () => ({
+        mutationId,
+        confirmation,
+        action: "syncToPcb",
+        preview: {
+          impact: "Pushes 2 unplaced components to PCB.",
+          scope: "pcb:doc-pcb-1"
+        },
+        expiresAt: new Date(Date.now() + 300_000).toISOString()
+      }))
+    };
+    const client = await makeClient(bridge);
+
+    const result = await client.callTool({
+      name: "easyeda_prepare_schematic_pcb_sync",
+      arguments: {
+        action: "syncToPcb"
+      }
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(bridge.call).toHaveBeenCalledWith(
+      "prepareSchematicPcbSync",
+      expect.objectContaining({
+        action: "syncToPcb"
       }),
       30_000
     );

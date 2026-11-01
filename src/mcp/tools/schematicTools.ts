@@ -296,4 +296,18 @@ export function registerSchematicTools(server: McpServer, bridge: EditorClient):
     },
     summary: "Fetched EasyEDA Pro schematic net ports and buses."
   });
+
+  registerReadTool(server, bridge, {
+    name: "easyeda_compare_schematic_pcb",
+    title: "Compare schematic and PCB",
+    description:
+      "Performs cross-domain discrepancy analysis between Schematic and PCB in EasyEDA Pro. Detects unplaced components, untracked PCB parts, footprint mismatches, pin/pad count discrepancies, unrouted nets, and overall synchronicity score.",
+    method: "compareSchematicPcb",
+    inputSchema: {
+      schematicTarget: DocumentTargetSchema.optional().describe("Expected schematic document target"),
+      pcbTarget: DocumentTargetSchema.optional().describe("Expected PCB document target"),
+      timeoutMs: DefaultTimeoutSchema.default(30_000)
+    },
+    summary: "Compared EasyEDA Pro schematic and PCB synchronicity."
+  });
 }

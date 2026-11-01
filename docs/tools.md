@@ -1,6 +1,6 @@
 # Tools Reference
 
-EasyEDA Pro MCP exposes **68 tools** across 8 categories. All inspection, tracing, navigation, and export tools are read-only (`readOnlyHint: true`).
+EasyEDA Pro MCP exposes **70 tools** across 8 categories. All inspection, tracing, navigation, and export tools are read-only (`readOnlyHint: true`).
 
 ## Tool Catalog
 
@@ -8,10 +8,10 @@ EasyEDA Pro MCP exposes **68 tools** across 8 categories. All inspection, tracin
   - [`easyeda_doctor`](#easyeda_doctor) · [`easyeda_live_status`](#easyeda_live_status) · [`easyeda_get_context`](#easyeda_get_context) · [`easyeda_get_selection`](#easyeda_get_selection)
 - **[Document Management & Canvas View](#document-management-canvas-view)** (3 tools)
   - [`easyeda_list_documents`](#easyeda_list_documents) · [`easyeda_open_document`](#easyeda_open_document) · [`easyeda_render_document_view`](#easyeda_render_document_view)
-- **[Schematic Mutations & Lifecycle](#schematic-mutations-lifecycle)** (5 tools)
-  - [`easyeda_prepare_schematic_component`](#easyeda_prepare_schematic_component) · [`easyeda_prepare_schematic_wire`](#easyeda_prepare_schematic_wire) · [`easyeda_prepare_schematic_port`](#easyeda_prepare_schematic_port) · [`easyeda_prepare_schematic_bus`](#easyeda_prepare_schematic_bus) · [`easyeda_get_mutation_result`](#easyeda_get_mutation_result)
-- **[Search & Schematic Inspection](#search-schematic-inspection)** (8 tools)
-  - [`easyeda_schematic_snapshot`](#easyeda_schematic_snapshot) · [`easyeda_get_schematic_nets`](#easyeda_get_schematic_nets) · [`easyeda_get_schematic_ports_buses`](#easyeda_get_schematic_ports_buses) · [`easyeda_list_schematic_components`](#easyeda_list_schematic_components) · [`easyeda_get_component_pins`](#easyeda_get_component_pins) · [`easyeda_find_component`](#easyeda_find_component) · [`easyeda_find_net`](#easyeda_find_net) · [`easyeda_search_library`](#easyeda_search_library)
+- **[Schematic Mutations & Lifecycle](#schematic-mutations-lifecycle)** (6 tools)
+  - [`easyeda_prepare_schematic_component`](#easyeda_prepare_schematic_component) · [`easyeda_prepare_schematic_wire`](#easyeda_prepare_schematic_wire) · [`easyeda_prepare_schematic_port`](#easyeda_prepare_schematic_port) · [`easyeda_prepare_schematic_bus`](#easyeda_prepare_schematic_bus) · [`easyeda_prepare_schematic_pcb_sync`](#easyeda_prepare_schematic_pcb_sync) · [`easyeda_get_mutation_result`](#easyeda_get_mutation_result)
+- **[Search & Schematic Inspection](#search-schematic-inspection)** (9 tools)
+  - [`easyeda_schematic_snapshot`](#easyeda_schematic_snapshot) · [`easyeda_get_schematic_nets`](#easyeda_get_schematic_nets) · [`easyeda_get_schematic_ports_buses`](#easyeda_get_schematic_ports_buses) · [`easyeda_compare_schematic_pcb`](#easyeda_compare_schematic_pcb) · [`easyeda_list_schematic_components`](#easyeda_list_schematic_components) · [`easyeda_get_component_pins`](#easyeda_get_component_pins) · [`easyeda_find_component`](#easyeda_find_component) · [`easyeda_find_net`](#easyeda_find_net) · [`easyeda_search_library`](#easyeda_search_library)
 - **[Circuit Tracing & Verification](#circuit-tracing-verification)** (6 tools)
   - [`easyeda_run_schematic_erc`](#easyeda_run_schematic_erc) · [`easyeda_trace_net`](#easyeda_trace_net) · [`easyeda_trace_component`](#easyeda_trace_component) · [`easyeda_find_unconnected_pins`](#easyeda_find_unconnected_pins) · [`easyeda_validate_schematic_area`](#easyeda_validate_schematic_area) · [`easyeda_verify_connections`](#easyeda_verify_connections)
 - **[PCB Layout & DRC Rules](#pcb-layout-drc-rules)** (30 tools)
@@ -216,6 +216,24 @@ Prepares a multi-bit bus polyline or diagonal bus entry tap mutation (`createBus
 
 ---
 
+### `easyeda_prepare_schematic_pcb_sync`
+
+**Scope:** Editor RPC (`readOnlyHint: true`, `idempotentHint: false`, default timeout: `30000` ms)
+
+Prepares a synchronization or board creation mutation between Schematic and PCB in EasyEDA Pro (`syncToPcb`, `syncToSchematic`, `createPcbFromSchematic`) with cross-domain discrepancy preview, before/after score evaluation, and exact confirmation phrase. Does not write until confirmed via `easyeda_confirmed_action`.
+
+**Parameters:**
+- **`action`** (`string`, **required**, enum: `syncToPcb`, `syncToSchematic`, `createPcbFromSchematic`): Synchronization or board creation action to perform.
+- **`boardName`** (`string`, _optional_): Document title for newly created PCB document (`createPcbFromSchematic`).
+- **`layerCount`** (`number`, _optional_, default: `2`): Copper layer count for new board (`1` to `32`).
+- **`width`** (`number`, _optional_, default: `100`): Board outline width in mm.
+- **`height`** (`number`, _optional_, default: `80`): Board outline height in mm.
+- **`schematicTarget`** (`object`, _optional_): Expected schematic document target to guard against drift.
+- **`pcbTarget`** (`object`, _optional_): Expected PCB document target to guard against drift.
+- **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
+
+---
+
 ### `easyeda_get_mutation_result`
 
 **Scope:** Editor RPC (`readOnlyHint: true`, `idempotentHint: true`, default timeout: `10000` ms)
@@ -272,6 +290,19 @@ Inspects net ports (hierarchical/sheet connectors and global net flags), multi-b
 - **`includeRaw`** (`boolean`, _optional_, default: `false`): Include raw primitive records.
 - **`target`** (`object`, _optional_): Expected active schematic target to guard against document drift.
 - **`timeoutMs`** (`number`, _optional_, default: `15000`): RPC timeout in ms.
+
+---
+
+### `easyeda_compare_schematic_pcb`
+
+**Scope:** Project / Cross-Domain RPC (`readOnlyHint: true`, `idempotentHint: true`, default timeout: `30000` ms)
+
+Performs comprehensive cross-domain differential analysis between Schematic and PCB documents. Identifies unplaced schematic components, untracked PCB parts, package/footprint mismatches, pin/pad count discrepancies, unrouted nets, and overall project synchronicity score (`syncScore`, 0–100%). Generates prioritized recommendations for syncing or board generation.
+
+**Parameters:**
+- **`schematicTarget`** (`object`, _optional_): Expected schematic document target.
+- **`pcbTarget`** (`object`, _optional_): Expected PCB document target.
+- **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
 
 ---
 

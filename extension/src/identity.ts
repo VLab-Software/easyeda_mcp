@@ -98,6 +98,15 @@ export function detectMethodCapabilities(api: () => EasyEdaApi): Record<string, 
     "pcb_Document.autoLayout": Boolean(eda.pcb_Document?.autoLayout || eda.pcb_Document?.autoPlace),
     "pcb_Document.importAutoRouteJsonFile": Boolean(eda.pcb_Document?.importAutoRouteJsonFile),
     "pcb_Document.importAutoLayoutJsonFile": Boolean(eda.pcb_Document?.importAutoLayoutJsonFile),
+    "pcb_Document.importChanges": Boolean(eda.pcb_Document?.importChanges || (eda.sch_Document as any)?.updatePcb),
+    "pcb_Document.createBoard": Boolean(
+      (eda.pcb_Document as any)?.create ||
+      (eda.sch_Document as any)?.createPcb ||
+      (eda.dmt_Document as any)?.createBoard
+    ),
+    "pcb_Document.updateSchematic": Boolean(
+      (eda.pcb_Document as any)?.updateSchematic || (eda.sch_Document as any)?.backAnnotate
+    ),
     "pcb_Layer.getAllLayers": Boolean(eda.pcb_Layer?.getAllLayers),
     "pcb_Net.getAllNetsName": Boolean(eda.pcb_Net?.getAllNetsName || eda.pcb_Net?.getAllNetName),
     "pcb_Net.highlightNet": Boolean(eda.pcb_Net?.highlightNet),
