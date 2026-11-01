@@ -6,6 +6,7 @@ import { registerPcbTools } from "./tools/pcbTools.js";
 import { registerDrcTools } from "./tools/drcTools.js";
 import { registerExportTools } from "./tools/exportTools.js";
 import { registerDocumentTools } from "./tools/documentTools.js";
+import { registerSchematicMutationTools } from "./tools/schematicMutationTools.js";
 import { registerActionTools } from "./tools/actionTools.js";
 import { DefaultTimeoutSchema, hasExplicitMutationConfirmation, registerReadTool } from "./tools/common.js";
 
@@ -18,5 +19,6 @@ export function registerEasyEdaTools(server: McpServer, bridge: EditorClient): v
   registerDrcTools(server, bridge);
   registerExportTools(server, bridge);
   registerDocumentTools(server, bridge);
+  registerSchematicMutationTools(server, bridge);
   registerActionTools(server, bridge);
 }
