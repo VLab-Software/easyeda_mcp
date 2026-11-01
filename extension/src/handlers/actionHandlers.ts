@@ -4,6 +4,7 @@ import { extractDocumentIdentity } from "../identity.js";
 import { extensionMutations } from "../mutation/mutationManager.js";
 import { executeBoardOutlineMutation } from "../mutation/pcbOutlineMutations.js";
 import { executePcbComponentMutation } from "../mutation/pcbComponentMutations.js";
+import { executePcbCopperKeepoutMutation } from "../mutation/pcbCopperKeepoutMutations.js";
 import {
   executePcbLayoutMutation,
   executePcbRoutingMutation,
@@ -56,6 +57,18 @@ export function createActionHandlers(
             res = await executePcbLayoutMutation(api, (record as any).operation ?? record, record.before);
           } else if (["setBoardOutline", "clearBoardOutline", "modifyBoardOutline"].includes(record.action)) {
             res = await executeBoardOutlineMutation(api, (record as any).operation ?? record, record.before);
+          } else if (
+            [
+              "createCopperZone",
+              "modifyCopperZone",
+              "deleteCopperZone",
+              "rebuildCopper",
+              "createKeepout",
+              "modifyKeepout",
+              "deleteKeepout"
+            ].includes(record.action)
+          ) {
+            res = await executePcbCopperKeepoutMutation(api, (record as any).operation ?? record, record.before);
           } else if (
             ["createTrack", "modifyTrack", "deleteTrack", "createVia", "modifyVia", "deleteVia"].includes(record.action)
           ) {

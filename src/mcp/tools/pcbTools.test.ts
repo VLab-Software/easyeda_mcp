@@ -31,7 +31,10 @@ describe("pcbTools", () => {
       "easyeda_get_pcb_tracks",
       "easyeda_get_pcb_vias",
       "easyeda_prepare_pcb_track_via",
-      "easyeda_highlight_net"
+      "easyeda_highlight_net",
+      "easyeda_get_copper_zones",
+      "easyeda_get_keepouts",
+      "easyeda_prepare_copper_keepout"
     ]);
   });
 
@@ -564,6 +567,166 @@ describe("pcbTools", () => {
     expect(result.structuredContent).toMatchObject({
       mutationId: "mut-trk-99",
       confirmation: "CONFIRM pcb:createTrack mut-trk-99"
+    });
+
+    await client.close();
+  });
+
+  it("invokes easyeda_get_copper_zones with filters and returns normalized zones", async () => {
+    const bridge = {
+      endpoint: "ws://127.0.0.1:8765",
+      getStatus: vi.fn((): EditorStatus => ({ connected: true, updatedAt: "2026-11-01T00:00:00.000Z" })),
+      call: vi.fn(async () => ({
+        totalZones: 1,
+        count: 1,
+        zones: [
+          {
+            primitiveId: "zone_1",
+            net: "GND",
+            layer: 1,
+            clearance: 0.254,
+            fillType: "solid",
+            isPoured: true,
+            vertexCount: 4,
+            points: [
+              { x: 0, y: 0 },
+              { x: 50, y: 0 },
+              { x: 50, y: 50 },
+              { x: 0, y: 50 }
+            ],
+            bounds: { minX: 0, minY: 0, maxX: 50, maxY: 50, width: 50, height: 50 }
+          }
+        ]
+      }))
+    };
+
+    const server = new McpServer({ name: "test", version: "1.0.0" });
+    registerPcbTools(server, bridge as any);
+    const client = new Client({ name: "test-client", version: "1.0.0" });
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
+
+    const result = await client.callTool({
+      name: "easyeda_get_copper_zones",
+      arguments: {
+        net: "GND"
+      }
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(bridge.call).toHaveBeenCalledWith(
+      "getCopperZones",
+      expect.objectContaining({
+        net: "GND"
+      }),
+      30_000
+    );
+    expect(result.structuredContent).toMatchObject({
+      result: {
+        totalZones: 1,
+        count: 1
+      }
+    });
+
+    await client.close();
+  });
+
+  it("invokes easyeda_get_keepouts with layer filter and returns keepout areas", async () => {
+    const bridge = {
+      endpoint: "ws://127.0.0.1:8765",
+      getStatus: vi.fn((): EditorStatus => ({ connected: true, updatedAt: "2026-11-01T00:00:00.000Z" })),
+      call: vi.fn(async () => ({
+        totalKeepouts: 1,
+        count: 1,
+        keepouts: [
+          {
+            primitiveId: "kp_1",
+            layer: "AllLayers",
+            keepoutType: "all",
+            vertexCount: 4,
+            points: [
+              { x: 10, y: 10 },
+              { x: 20, y: 10 },
+              { x: 20, y: 20 },
+              { x: 10, y: 20 }
+            ],
+            bounds: { minX: 10, minY: 10, maxX: 20, maxY: 20, width: 10, height: 10 }
+          }
+        ]
+      }))
+    };
+
+    const server = new McpServer({ name: "test", version: "1.0.0" });
+    registerPcbTools(server, bridge as any);
+    const client = new Client({ name: "test-client", version: "1.0.0" });
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
+
+    const result = await client.callTool({
+      name: "easyeda_get_keepouts",
+      arguments: {
+        layer: "AllLayers"
+      }
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(bridge.call).toHaveBeenCalledWith(
+      "getKeepouts",
+      expect.objectContaining({
+        layer: "AllLayers"
+      }),
+      30_000
+    );
+    expect(result.structuredContent).toMatchObject({
+      result: {
+        totalKeepouts: 1,
+        count: 1
+      }
+    });
+
+    await client.close();
+  });
+
+  it("invokes easyeda_prepare_copper_keepout to stage a copper rebuild mutation", async () => {
+    const bridge = {
+      endpoint: "ws://127.0.0.1:8765",
+      getStatus: vi.fn((): EditorStatus => ({ connected: true, updatedAt: "2026-11-01T00:00:00.000Z" })),
+      call: vi.fn(async () => ({
+        mutationId: "mut-cop-100",
+        confirmation: "CONFIRM pcb:rebuildCopper mut-cop-100",
+        preview: {
+          impact: "Rebuilds all copper zones across PCB.",
+          scope: "copperZone:rebuild:all"
+        }
+      }))
+    };
+
+    const server = new McpServer({ name: "test", version: "1.0.0" });
+    registerPcbTools(server, bridge as any);
+    const client = new Client({ name: "test-client", version: "1.0.0" });
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
+
+    const result = await client.callTool({
+      name: "easyeda_prepare_copper_keepout",
+      arguments: {
+        entity: "copperZone",
+        action: "rebuild"
+      }
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(bridge.call).toHaveBeenCalledWith(
+      "prepareCopperKeepout",
+      expect.objectContaining({
+        entity: "copperZone",
+        action: "rebuild"
+      }),
+      30_000
+    );
+    expect(result.structuredContent).toMatchObject({
+      mutationId: "mut-cop-100",
+      confirmation: "CONFIRM pcb:rebuildCopper mut-cop-100"
     });
 
     await client.close();

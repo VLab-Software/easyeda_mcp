@@ -16,6 +16,7 @@ import { log, showMessage } from "./helpers.js";
 import { extensionMutations } from "./mutation/mutationManager.js";
 import { prepareBoardOutlineMutation } from "./mutation/pcbOutlineMutations.js";
 import { preparePcbComponentMutation } from "./mutation/pcbComponentMutations.js";
+import { preparePcbCopperKeepoutMutation } from "./mutation/pcbCopperKeepoutMutations.js";
 import { preparePcbLayoutMutation, preparePcbRoutingMutation } from "./mutation/pcbRoutingMutations.js";
 import { preparePcbTrackViaMutation } from "./mutation/pcbTrackViaMutations.js";
 import { prepareSchematicComponentMutation } from "./mutation/schematicComponentMutations.js";
@@ -43,6 +44,7 @@ const handlers: Record<string, RpcHandler> = {
   prepareDrcEdit: (params) => drcRules.prepare(params),
   getDrcEditResult: (params) => drcRules.result(params),
   prepareBoardOutline: (params) => prepareBoardOutlineMutation(getApi, params),
+  prepareCopperKeepout: (params) => preparePcbCopperKeepoutMutation(getApi, params),
   preparePcbComponent: (params) => preparePcbComponentMutation(getApi, params),
   preparePcbLayout: (params) => preparePcbLayoutMutation(getApi, params),
   preparePcbRouting: (params) => preparePcbRoutingMutation(getApi, params),

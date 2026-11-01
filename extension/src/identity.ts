@@ -123,6 +123,20 @@ export function detectMethodCapabilities(api: () => EasyEdaApi): Record<string, 
     "pcb_PrimitiveArc.getAll": Boolean(eda.pcb_PrimitiveArc?.getAll),
     "pcb_PrimitivePolyline.getAll": Boolean(eda.pcb_PrimitivePolyline?.getAll),
     "pcb_PrimitiveRegion.getAll": Boolean(eda.pcb_PrimitiveRegion?.getAll),
+    "pcb_PrimitiveCopperArea.getAll": Boolean((eda as any).pcb_PrimitiveCopperArea?.getAll),
+    "pcb_PrimitiveCopperArea.create": Boolean((eda as any).pcb_PrimitiveCopperArea?.create),
+    "pcb_PrimitiveCopperArea.modify": Boolean((eda as any).pcb_PrimitiveCopperArea?.modify),
+    "pcb_PrimitiveCopperArea.delete": Boolean((eda as any).pcb_PrimitiveCopperArea?.delete),
+    "pcb_PrimitiveCopperArea.rebuild": Boolean(
+      (eda as any).pcb_PrimitiveCopperArea?.rebuild || (eda as any).pcb_PrimitiveCopperArea?.rebuildAll
+    ),
+    "pcb_PrimitiveKeepout.getAll": Boolean((eda as any).pcb_PrimitiveKeepout?.getAll),
+    "pcb_PrimitiveKeepout.create": Boolean((eda as any).pcb_PrimitiveKeepout?.create),
+    "pcb_PrimitiveKeepout.modify": Boolean((eda as any).pcb_PrimitiveKeepout?.modify),
+    "pcb_PrimitiveKeepout.delete": Boolean((eda as any).pcb_PrimitiveKeepout?.delete),
+    "pcb_Document.rebuildCopper": Boolean(
+      (eda.pcb_Document as any)?.rebuildAllCopperArea || (eda.pcb_Document as any)?.rebuildCopperArea
+    ),
     "pcb_ManufactureData.getPickAndPlaceFile": Boolean(eda.pcb_ManufactureData?.getPickAndPlaceFile),
     "pcb_ManufactureData.getGerberFile": Boolean(eda.pcb_ManufactureData?.getGerberFile),
     "pcb_ManufactureData.getBomFile": Boolean(eda.pcb_ManufactureData?.getBomFile),
