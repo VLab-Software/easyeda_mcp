@@ -1,6 +1,6 @@
 # Tools Reference
 
-EasyEDA Pro MCP exposes **40 tools** across 8 categories. All inspection, tracing, navigation, and export tools are read-only (`readOnlyHint: true`).
+EasyEDA Pro MCP exposes **41 tools** across 8 categories. All inspection, tracing, navigation, and export tools are read-only (`readOnlyHint: true`).
 
 ## Tool Catalog
 
@@ -14,8 +14,8 @@ EasyEDA Pro MCP exposes **40 tools** across 8 categories. All inspection, tracin
   - [`easyeda_schematic_snapshot`](#easyeda_schematic_snapshot) · [`easyeda_get_schematic_nets`](#easyeda_get_schematic_nets) · [`easyeda_list_schematic_components`](#easyeda_list_schematic_components) · [`easyeda_get_component_pins`](#easyeda_get_component_pins) · [`easyeda_find_component`](#easyeda_find_component) · [`easyeda_find_net`](#easyeda_find_net) · [`easyeda_search_library`](#easyeda_search_library)
 - **[Circuit Tracing & Verification](#circuit-tracing-verification)** (6 tools)
   - [`easyeda_run_schematic_erc`](#easyeda_run_schematic_erc) · [`easyeda_trace_net`](#easyeda_trace_net) · [`easyeda_trace_component`](#easyeda_trace_component) · [`easyeda_find_unconnected_pins`](#easyeda_find_unconnected_pins) · [`easyeda_validate_schematic_area`](#easyeda_validate_schematic_area) · [`easyeda_verify_connections`](#easyeda_verify_connections)
-- **[PCB Layout & DRC Rules](#pcb-layout-drc-rules)** (8 tools)
-  - [`easyeda_run_drc`](#easyeda_run_drc) · [`easyeda_get_pcb_layers`](#easyeda_get_pcb_layers) · [`easyeda_get_routing_status`](#easyeda_get_routing_status) · [`easyeda_list_pcb_components`](#easyeda_list_pcb_components) · [`easyeda_highlight_net`](#easyeda_highlight_net) · [`easyeda_get_drc_rules`](#easyeda_get_drc_rules) · [`easyeda_prepare_drc_edit`](#easyeda_prepare_drc_edit) · [`easyeda_get_drc_edit_result`](#easyeda_get_drc_edit_result)
+- **[PCB Layout & DRC Rules](#pcb-layout-drc-rules)** (9 tools)
+  - [`easyeda_run_drc`](#easyeda_run_drc) · [`easyeda_get_pcb_layers`](#easyeda_get_pcb_layers) · [`easyeda_get_routing_status`](#easyeda_get_routing_status) · [`easyeda_list_pcb_components`](#easyeda_list_pcb_components) · [`easyeda_get_pcb_pads`](#easyeda_get_pcb_pads) · [`easyeda_highlight_net`](#easyeda_highlight_net) · [`easyeda_get_drc_rules`](#easyeda_get_drc_rules) · [`easyeda_prepare_drc_edit`](#easyeda_prepare_drc_edit) · [`easyeda_get_drc_edit_result`](#easyeda_get_drc_edit_result)
 - **[Navigation & Exports](#navigation-exports)** (8 tools)
   - [`easyeda_export_cpl`](#easyeda_export_cpl) · [`easyeda_export_bom`](#easyeda_export_bom) · [`easyeda_export_netlist`](#easyeda_export_netlist) · [`easyeda_export_gerber`](#easyeda_export_gerber) · [`easyeda_export_pdf`](#easyeda_export_pdf) · [`easyeda_navigate_component`](#easyeda_navigate_component) · [`easyeda_navigate_region`](#easyeda_navigate_region) · [`easyeda_zoom_board`](#easyeda_zoom_board)
 - **[Confirmation-Gated Actions](#confirmation-gated-actions)** (1 tool)
@@ -445,13 +445,36 @@ Analyzes the physical routing progress of the active PCB, calculating the comple
 
 **Scope:** PCB RPC (`readOnlyHint: true`, default timeout: `30000` ms)
 
-Lists normalized components placed on the active PCB layout with designator, footprint, placement layer, coordinates (`x`, `y` in mm), rotation angle, and side (`top` / `bottom`).
+Lists normalized components placed on the active PCB layout with designator, footprint, placement layer, coordinates (`x`, `y` in mm), rotation angle, lock state, and side (`top` / `bottom`). Supports optional inclusion of pad summaries and custom properties.
 
 **Parameters:**
 - **`query`** (`string`, _optional_): Filter by designator, footprint, value, or primitive ID.
 - **`layer`** (`"all" | "top" | "bottom"`, _optional_, default: `"all"`): Filter components by placement side.
 - **`limit`** (`number`, _optional_, default: `100`, max: `500`): Maximum components returned.
+- **`includePads`** (`boolean`, _optional_, default: `false`): Include normalized pad details and pin counts for each component.
+- **`includeProperties`** (`boolean`, _optional_, default: `false`): Include custom properties and component attributes.
 - **`includeRaw`** (`boolean`, _optional_, default: `false`): Include raw primitive fields.
+- **`target`** (`object`, _optional_): Expected document target specification to assert against active canvas.
+- **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
+
+---
+
+### `easyeda_get_pcb_pads`
+
+**Scope:** PCB RPC (`readOnlyHint: true`, `idempotentHint: true`, default timeout: `30000` ms)
+
+Inspects PCB pads across the board or for specific devices. Inspects pad number, assigned net, physical coordinates (`x`, `y`), layer, side (`top`, `bottom`, `multi`), shape, width, height, hole diameter, and through-hole classification. Can filter by component, net, layer, or pad number.
+
+**Parameters:**
+- **`component`** (`string`, _optional_): Filter pads by parent component designator (e.g., `"U1"`, `"C5"`) or primitive ID.
+- **`net`** (`string`, _optional_): Filter pads by assigned net name (e.g., `"GND"`, `"VCC"`).
+- **`layer`** (`"all" | "top" | "bottom" | "multi"`, _optional_, default: `"all"`): Filter by layer or multi-layer through-hole.
+- **`padNumber`** (`string`, _optional_): Filter pads by specific pin/pad number (e.g., `"1"`, `"A1"`).
+- **`includeComponentPads`** (`boolean`, _optional_, default: `true`): Include pads belonging to footprint devices.
+- **`includeStandalonePads`** (`boolean`, _optional_, default: `true`): Include standalone / free canvas pads.
+- **`limit`** (`number`, _optional_, default: `200`, max: `1000`): Maximum pads returned.
+- **`includeRaw`** (`boolean`, _optional_, default: `false`): Include raw primitive fields.
+- **`target`** (`object`, _optional_): Expected document target specification to assert against active canvas.
 - **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
 
 ---

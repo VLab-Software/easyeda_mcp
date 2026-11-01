@@ -1,7 +1,7 @@
 import * as z from "zod/v4";
 import type { McpServer } from "@modelcontextprotocol/server";
 import type { EditorClient } from "../../editor/EditorClient.js";
-import { DefaultTimeoutSchema, registerReadTool } from "./common.js";
+import { DefaultTimeoutSchema, DocumentTargetSchema, registerReadTool } from "./common.js";
 
 export function registerPcbTools(server: McpServer, bridge: EditorClient): void {
   registerReadTool(server, bridge, {
@@ -56,10 +56,41 @@ export function registerPcbTools(server: McpServer, bridge: EditorClient): void 
         .describe("Optional text filter against component designator, footprint, or value."),
       layer: z.enum(["all", "top", "bottom"]).default("all").describe("Filter components by placement layer."),
       limit: z.number().int().positive().max(500).default(100),
+      includePads: z.boolean().optional().describe("Include normalized pad details for each component."),
+      includeProperties: z.boolean().optional().describe("Include custom properties and attributes."),
       includeRaw: z.boolean().default(false),
+      target: DocumentTargetSchema.optional().describe("Expected active PCB target."),
       timeoutMs: DefaultTimeoutSchema.default(30_000)
     },
     summary: "Listed EasyEDA Pro PCB components."
+  });
+
+  registerReadTool(server, bridge, {
+    name: "easyeda_get_pcb_pads",
+    title: "Get PCB pads and pin connections",
+    description:
+      "Inspects PCB pads (both component footprint pins and free pads) with net connections, layers, drill sizes, shapes, and coordinates.",
+    method: "getPcbPads",
+    inputSchema: {
+      component: z
+        .string()
+        .min(1)
+        .optional()
+        .describe("Filter pads by parent component designator (e.g. 'U1') or primitive ID."),
+      net: z.string().min(1).optional().describe("Filter pads by assigned net name (e.g. 'GND', 'VCC')."),
+      layer: z
+        .enum(["all", "top", "bottom", "multi"])
+        .default("all")
+        .describe("Filter pads by layer or multi-layer through-hole."),
+      padNumber: z.string().min(1).optional().describe("Filter pads by specific pin/pad number (e.g. '1', 'A1')."),
+      includeComponentPads: z.boolean().default(true).describe("Include pads belonging to footprint components."),
+      includeStandalonePads: z.boolean().default(true).describe("Include standalone / free canvas pads."),
+      limit: z.number().int().positive().max(1000).default(200),
+      includeRaw: z.boolean().default(false),
+      target: DocumentTargetSchema.optional().describe("Expected active PCB target."),
+      timeoutMs: DefaultTimeoutSchema.default(30_000)
+    },
+    summary: "Fetched EasyEDA Pro PCB pads."
   });
 
   registerReadTool(server, bridge, {
