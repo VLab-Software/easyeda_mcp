@@ -32,6 +32,86 @@ describe("pcbTools", () => {
     ]);
   });
 
+  it("invokes easyeda_run_drc with detailed parameters and target assertion", async () => {
+    const bridge = {
+      endpoint: "ws://127.0.0.1:8765",
+      getStatus: vi.fn((): EditorStatus => ({ connected: true, updatedAt: "2026-11-01T00:00:00.000Z" })),
+      call: vi.fn(async () => ({
+        executionId: "drc_123456_abc",
+        executedAt: "2026-11-01T15:00:00.000Z",
+        status: "violations_found",
+        passed: false,
+        violationsCount: 1,
+        errorsCount: 1,
+        warningsCount: 0,
+        violations: [
+          {
+            id: "violation-1",
+            rule: "Clearance",
+            category: "Clearance",
+            message: "Clearance error: actual 0.12mm, required 0.20mm",
+            severity: "error",
+            evidence: { actual: 0.12, expected: 0.2, difference: -0.08 }
+          }
+        ],
+        summary: {
+          totalViolations: 1,
+          errors: 1,
+          warnings: 0,
+          byCategory: { Clearance: 1 }
+        },
+        editorComparison: {
+          editorApiQueried: true,
+          editorErrorCount: 1,
+          checkErrorCount: 1,
+          matched: true
+        }
+      }))
+    };
+
+    const server = new McpServer({ name: "test", version: "1.0.0" });
+    registerPcbTools(server, bridge as any);
+    const client = new Client({ name: "test-client", version: "1.0.0" });
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
+
+    const result = await client.callTool({
+      name: "easyeda_run_drc",
+      arguments: {
+        strict: true,
+        severity: "error",
+        rule: "Clearance",
+        limit: 50,
+        compareWithEditor: true,
+        target: { documentId: "pcb-doc-123" }
+      }
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(bridge.call).toHaveBeenCalledWith(
+      "runDrc",
+      {
+        strict: true,
+        severity: "error",
+        rule: "Clearance",
+        limit: 50,
+        compareWithEditor: true,
+        target: { documentId: "pcb-doc-123" }
+      },
+      60_000
+    );
+    expect(result.structuredContent).toMatchObject({
+      result: {
+        passed: false,
+        status: "violations_found",
+        violationsCount: 1,
+        errorsCount: 1
+      }
+    });
+
+    await client.close();
+  });
+
   it("invokes easyeda_get_pcb_pads with component and net filters", async () => {
     const bridge = {
       endpoint: "ws://127.0.0.1:8765",

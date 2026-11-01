@@ -1,7 +1,22 @@
-import { apiError, ensureApi, numeric, optionalCall, sanitize, simplifyPrimitive, toArray } from "../helpers.js";
+import {
+  apiError,
+  ensureApi,
+  numeric,
+  optionalCall,
+  sanitize,
+  simplifyPrimitive,
+  stringOrUndefined,
+  toArray
+} from "../helpers.js";
 import { assertDocumentTargetMatch, extractDocumentIdentity } from "../identity.js";
 import { getBoardOutlineSummary } from "../mutation/pcbOutlineMutations.js";
 import type { EasyEdaApi, RpcHandler } from "../types.js";
+import {
+  filterAndLimitViolations,
+  normalizeDrcViolation,
+  summarizeDrcViolations,
+  type EditorDrcComparison
+} from "./pcbDrcNormalizer.js";
 
 function getProp(obj: any, getterName: string, propNames: string[]): any {
   if (!obj || typeof obj !== "object") return undefined;
@@ -119,55 +134,171 @@ export function createPcbHandlers(api: () => EasyEdaApi): Record<string, RpcHand
   async function runDrc(params: Record<string, any>): Promise<Record<string, unknown>> {
     const eda = api();
     const documentInfo = await optionalCall(() => eda.dmt_SelectControl?.getCurrentDocumentInfo?.());
+    const currentTarget = extractDocumentIdentity(documentInfo, undefined, "native_api");
+
+    const expectedTarget = params.expectedTarget ?? params.target;
+    if (expectedTarget) {
+      assertDocumentTargetMatch(expectedTarget, currentTarget);
+    }
+
     if (
       documentInfo &&
       ![3, "pcb"].includes(documentInfo?.documentType ?? documentInfo?.doctype ?? documentInfo?.type)
     ) {
       throw apiError("wrong_document", "Open a PCB document before running DRC checks.");
     }
+    if (
+      currentTarget.documentType &&
+      currentTarget.documentType !== "pcb" &&
+      currentTarget.documentType !== "unknown"
+    ) {
+      throw apiError("wrong_document", "Open a PCB document before running DRC checks.");
+    }
+
     ensureApi("pcb_Drc", "check", eda);
     const strict = params.strict !== false;
+    const compareWithEditor = params.compareWithEditor !== false;
+    const limit = typeof params.limit === "number" && params.limit > 0 ? Math.min(params.limit, 500) : 100;
+    const executionId = `drc_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const executedAt = new Date().toISOString();
+
     const startedAt = Date.now();
-    const rawResult = await eda.pcb_Drc.check(strict);
+    let rawResult: unknown;
+    try {
+      rawResult = await eda.pcb_Drc.check(strict);
+    } catch (err) {
+      throw apiError("drc_failed", `Native PCB DRC check failed: ${(err as Error)?.message || String(err)}`);
+    }
     const durationMs = Date.now() - startedAt;
 
-    let errors: unknown[] = [];
+    let rawViolations: unknown[] = [];
     let passed = true;
-    let errorsCount = 0;
-    let warningsCount = 0;
+    let nativeReportedErrors = 0;
+    let nativeReportedWarnings = 0;
 
     if (Array.isArray(rawResult)) {
-      errors = rawResult;
-      errorsCount = rawResult.length;
-      passed = errorsCount === 0;
+      rawViolations = rawResult;
+      passed = rawResult.length === 0;
     } else if (rawResult && typeof rawResult === "object") {
       const rawObj = rawResult as Record<string, any>;
       if (Array.isArray(rawObj.errors)) {
-        errors = rawObj.errors;
-        errorsCount = rawObj.errors.length;
+        rawViolations.push(...rawObj.errors);
+        nativeReportedErrors = rawObj.errors.length;
       }
       if (Array.isArray(rawObj.warnings)) {
-        warningsCount = rawObj.warnings.length;
+        rawViolations.push(...rawObj.warnings);
+        nativeReportedWarnings = rawObj.warnings.length;
+      }
+      if (Array.isArray(rawObj.violations)) {
+        rawViolations = rawObj.violations;
+        nativeReportedErrors = rawViolations.length;
       }
       if (typeof rawObj.passed === "boolean") {
         passed = rawObj.passed;
       } else if (typeof rawObj.success === "boolean") {
         passed = rawObj.success;
       } else {
-        passed = errorsCount === 0;
+        passed = nativeReportedErrors === 0;
       }
     } else if (typeof rawResult === "boolean") {
       passed = rawResult;
-      errorsCount = rawResult ? 0 : 1;
+      nativeReportedErrors = rawResult ? 0 : 1;
+      if (!passed) {
+        rawViolations.push({
+          message: "Native PCB DRC check failed without detailed violation records.",
+          severity: "error",
+          rule: "General"
+        });
+      }
     }
 
+    const normalizedViolations = rawViolations.map((v, i) => normalizeDrcViolation(v, i));
+    const summary = summarizeDrcViolations(normalizedViolations);
+
+    const totalErrors = Math.max(summary.errors, nativeReportedErrors);
+    const totalWarnings = Math.max(summary.warnings, nativeReportedWarnings);
+    if (totalErrors > 0) {
+      passed = false;
+    }
+
+    // Optional comparison against editor-side live DRC error list or state
+    let editorApiQueried = false;
+    let editorErrorCount: number | undefined = undefined;
+    let ruleConfigName: string | undefined = undefined;
+    let matched: boolean | null = null;
+    let editorNote = "Editor live DRC query not available in connected version.";
+
+    if (compareWithEditor) {
+      try {
+        const drcApi = (eda.pcb_Drc ?? {}) as Record<string, any>;
+        if (typeof drcApi.getDrcErrors === "function") {
+          const list = toArray(await drcApi.getDrcErrors());
+          editorErrorCount = list.length;
+          editorApiQueried = true;
+        } else if (typeof drcApi.getErrors === "function") {
+          const list = toArray(await drcApi.getErrors());
+          editorErrorCount = list.length;
+          editorApiQueried = true;
+        } else if (typeof drcApi.getLastResult === "function") {
+          const last = await drcApi.getLastResult();
+          if (Array.isArray(last)) {
+            editorErrorCount = last.length;
+            editorApiQueried = true;
+          } else if (last && typeof last === "object" && Array.isArray((last as any).errors)) {
+            editorErrorCount = (last as any).errors.length;
+            editorApiQueried = true;
+          }
+        }
+
+        const activeConfig = await optionalCall(() => drcApi.getCurrentRuleConfiguration?.());
+        if (activeConfig && typeof activeConfig === "object") {
+          ruleConfigName = stringOrUndefined((activeConfig as any).name ?? (activeConfig as any).ruleName);
+        }
+
+        if (editorApiQueried && editorErrorCount !== undefined) {
+          matched = editorErrorCount === totalErrors;
+          editorNote = matched
+            ? `DRC check results match editor live error state (${totalErrors} error(s)).`
+            : `Discrepancy: check returned ${totalErrors} error(s) vs editor reported ${editorErrorCount} error(s).`;
+        }
+      } catch {
+        // Non-fatal if editor error query is not implemented
+      }
+    }
+
+    const editorComparison: EditorDrcComparison = {
+      editorApiQueried,
+      editorErrorCount,
+      checkErrorCount: totalErrors,
+      matched,
+      ruleConfigName,
+      note: editorNote
+    };
+
+    const { filtered, warnings: filterWarnings } = filterAndLimitViolations(normalizedViolations, {
+      severity: params.severity,
+      rule: params.rule,
+      limit
+    });
+
     return {
-      target: extractDocumentIdentity(documentInfo),
+      executionId,
+      executedAt,
+      status: passed ? "passed" : "violations_found",
       passed,
-      errorsCount,
-      warningsCount,
-      errors: sanitize(errors),
+      violationsCount: normalizedViolations.length,
+      errorsCount: totalErrors,
+      warningsCount: totalWarnings,
+      violationsReturned: filtered.length,
+      violations: filtered,
+      errors: filtered.filter((v) => v.severity === "error").map((v) => v.raw),
+      summary,
+      editorComparison,
+      target: currentTarget,
+      capturedAt: currentTarget.capturedAt,
       durationMs,
+      strict,
+      warnings: filterWarnings,
       rawResult: sanitize(rawResult)
     };
   }

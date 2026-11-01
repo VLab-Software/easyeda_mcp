@@ -410,11 +410,37 @@ PCB and DRC tools require an active **PCB** document (`documentType: 3`). See [D
 
 **Scope:** PCB RPC (`readOnlyHint: true`, default timeout: `60000` ms)
 
-Executes the native EasyEDA Pro PCB Design Rule Check (DRC) against the active board and returns passed status, error counts, warning counts, and detected design violations.
+Executes the native EasyEDA Pro PCB Design Rule Check (DRC) against the active board and returns detailed violations, categorized counts, evidence, document target, execution metadata, and comparison with editor-side DRC state.
 
 **Parameters:**
 - **`strict`** (`boolean`, _optional_, default: `true`): Enforce strict DRC validation rules.
+- **`severity`** (`"all" | "error" | "warning"`, _optional_, default: `"all"`): Filter reported violations by severity.
+- **`rule`** (`string`, _optional_): Filter violations by rule code or name (e.g. `Clearance`, `ShortCircuit`, `UnroutedNet`, `TrackWidth`, `HoleSize`, `KeepoutViolation`).
+- **`limit`** (`number`, _optional_, default: `100`, max: `500`): Maximum detailed violation records returned.
+- **`compareWithEditor`** (`boolean`, _optional_, default: `true`): Compare check results with editor-side live DRC error list when supported.
+- **`target`** (`object`, _optional_): Asserts execution against the expected PCB document (`documentId`, `projectId`, `tabId`, etc.).
 - **`timeoutMs`** (`number`, _optional_, default: `60000`): RPC timeout in ms.
+
+**Response Structure:**
+- **`executionId`** (`string`): Unique identifier for this DRC run (`drc_<timestamp>_<id>`).
+- **`executedAt`** (`string`): ISO timestamp when the check was performed.
+- **`status`** (`"passed" | "violations_found"`): High-level check status.
+- **`passed`** (`boolean`): True if zero DRC errors were found.
+- **`violationsCount`** (`number`): Total violations detected before limit truncation.
+- **`errorsCount`** (`number`): Total error-level violations.
+- **`warningsCount`** (`number`): Total warning-level violations.
+- **`violationsReturned`** (`number`): Count of violations returned in payload after filtering and limit.
+- **`violations`** (`array`): Normalized violation objects with `id`, `rule`, `category`, `message`, `severity`, `primitiveIds`, `layer`, `nets`, `coordinates`, `evidence` (`actual`, `expected`, `difference`), and `raw`.
+- **`summary`** (`object`): Categorized counts:
+  - `byRule`: Counts per rule name.
+  - `byCategory`: Counts per category (`Clearance`, `ShortCircuit`, `Unrouted`, `Geometry`, `Hole`, `Keepout`, `Silkscreen`, `Component`).
+  - `bySeverity`: `{ error: number, warning: number }`.
+  - `byLayer`: Counts per PCB layer.
+  - `topViolatedRules`: Sorted list of most violated rules.
+- **`editorComparison`** (`object`): Comparison against editor live error panel (`editorApiQueried`, `editorErrorCount`, `checkErrorCount`, `matched`, `ruleConfigName`, `note`).
+- **`target`** (`object`): Document identity of the checked board (`documentId`, `projectId`, `title`, `fingerprint`).
+- **`durationMs`** (`number`): Check execution time in milliseconds.
+- **`errors`** (`array`): Retained for backward compatibility with earlier integrations.
 
 ---
 

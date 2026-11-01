@@ -114,6 +114,11 @@ describe("Extension PCB Handlers - Pads and Components", () => {
       },
       pcb_Net: {
         getAllNetsName: vi.fn(async () => ["GND", "VCC"])
+      },
+      pcb_Drc: {
+        check: vi.fn(async (): Promise<any> => []),
+        getDrcErrors: vi.fn(async (): Promise<any> => []),
+        getCurrentRuleConfiguration: vi.fn(async (): Promise<any> => ({ name: "DefaultRules" }))
       }
     };
   }
@@ -271,6 +276,194 @@ describe("Extension PCB Handlers - Pads and Components", () => {
           expectedTarget: { documentType: "pcb" }
         })
       ).rejects.toThrow();
+    });
+  });
+
+  describe("runDrc", () => {
+    it("executes DRC returning zero violations and passed=true", async () => {
+      const mockApi = makeMockApi();
+      const handlers = createPcbHandlers(() => mockApi);
+
+      const result = (await handlers.runDrc({ strict: true })) as any;
+
+      expect(result.passed).toBe(true);
+      expect(result.status).toBe("passed");
+      expect(result.violationsCount).toBe(0);
+      expect(result.errorsCount).toBe(0);
+      expect(result.warningsCount).toBe(0);
+      expect(result.violations).toEqual([]);
+      expect(result.errors).toEqual([]);
+      expect(result.executionId).toMatch(/^drc_\d+_/);
+      expect(result.executedAt).toBeDefined();
+      expect(result.target.documentId).toBe("doc-pcb-123");
+      expect(result.editorComparison.matched).toBe(true);
+      expect(result.editorComparison.ruleConfigName).toBe("DefaultRules");
+    });
+
+    it("executes DRC with array of violation records and normalizes evidence", async () => {
+      const mockApi = makeMockApi();
+      mockApi.pcb_Drc.check = vi.fn(async () => [
+        {
+          id: "err-clearance-1",
+          rule: "TrackClearance",
+          desc: "Clearance error between Net GND and Net VCC: actual 0.12mm, required 0.20mm at (10, 20)",
+          severity: "error",
+          primitiveIds: ["trk-1", "pad-1"],
+          layer: "TopLayer",
+          actual: 0.12,
+          expected: 0.2
+        },
+        {
+          id: "err-width-1",
+          rule: "TrackWidth",
+          desc: "Track width is 0.15mm, required minimum is 0.25mm",
+          severity: "warning",
+          primitiveIds: ["trk-2"],
+          layer: "BottomLayer"
+        }
+      ]);
+      mockApi.pcb_Drc.getDrcErrors = vi.fn(async () => [{ id: "err-clearance-1" }]);
+
+      const handlers = createPcbHandlers(() => mockApi);
+      const result = (await handlers.runDrc({ strict: true })) as any;
+
+      expect(result.passed).toBe(false);
+      expect(result.status).toBe("violations_found");
+      expect(result.violationsCount).toBe(2);
+      expect(result.errorsCount).toBe(1);
+      expect(result.warningsCount).toBe(1);
+      expect(result.violations).toHaveLength(2);
+
+      const clearance = result.violations.find((v: any) => v.id === "err-clearance-1");
+      expect(clearance).toBeDefined();
+      expect(clearance.category).toBe("Clearance");
+      expect(clearance.severity).toBe("error");
+      expect(clearance.nets).toContain("GND");
+      expect(clearance.nets).toContain("VCC");
+      expect(clearance.evidence?.difference).toBe(-0.08);
+
+      expect(result.summary.bySeverity).toEqual({ error: 1, warning: 1 });
+      expect(result.summary.byCategory).toEqual({ Clearance: 1, Geometry: 1 });
+      expect(result.editorComparison.matched).toBe(true);
+    });
+
+    it("executes DRC with object containing errors, warnings, and passed flag", async () => {
+      const mockApi = makeMockApi();
+      mockApi.pcb_Drc.check = vi.fn(async () => ({
+        passed: false,
+        errors: [
+          {
+            rule: "ShortCircuit",
+            message: "Short circuit between Net GND and Net +5V",
+            severity: "error"
+          }
+        ],
+        warnings: [
+          {
+            rule: "SilkClearance",
+            message: "Silkscreen over pad",
+            severity: "warning"
+          }
+        ]
+      }));
+      mockApi.pcb_Drc.getDrcErrors = vi.fn(async () => ["short"]);
+
+      const handlers = createPcbHandlers(() => mockApi);
+      const result = (await handlers.runDrc({})) as any;
+
+      expect(result.passed).toBe(false);
+      expect(result.violationsCount).toBe(2);
+      expect(result.errorsCount).toBe(1);
+      expect(result.warningsCount).toBe(1);
+      expect(result.summary.byCategory.ShortCircuit).toBe(1);
+      expect(result.summary.byCategory.Silkscreen).toBe(1);
+    });
+
+    it("handles boolean false result with fallback error violation", async () => {
+      const mockApi = makeMockApi();
+      mockApi.pcb_Drc.check = vi.fn(async () => false);
+
+      const handlers = createPcbHandlers(() => mockApi);
+      const result = (await handlers.runDrc({})) as any;
+
+      expect(result.passed).toBe(false);
+      expect(result.errorsCount).toBe(1);
+      expect(result.violations).toHaveLength(1);
+      expect(result.violations[0].message).toContain("Native PCB DRC check failed");
+    });
+
+    it("filters violations by severity and rule code", async () => {
+      const mockApi = makeMockApi();
+      mockApi.pcb_Drc.check = vi.fn(async () => [
+        { rule: "Clearance", severity: "error", desc: "Clearance 1" },
+        { rule: "Clearance", severity: "warning", desc: "Clearance 2" },
+        { rule: "ShortCircuit", severity: "error", desc: "Short 1" }
+      ]);
+
+      const handlers = createPcbHandlers(() => mockApi);
+
+      const warningResult = (await handlers.runDrc({ severity: "warning" })) as any;
+      expect(warningResult.violationsReturned).toBe(1);
+      expect(warningResult.violations[0].severity).toBe("warning");
+
+      const shortResult = (await handlers.runDrc({ rule: "ShortCircuit" })) as any;
+      expect(shortResult.violationsReturned).toBe(1);
+      expect(shortResult.violations[0].rule).toBe("ShortCircuit");
+    });
+
+    it("truncates violations according to limit", async () => {
+      const mockApi = makeMockApi();
+      mockApi.pcb_Drc.check = vi.fn(async () => [
+        { rule: "Clearance", desc: "Err 1" },
+        { rule: "Clearance", desc: "Err 2" },
+        { rule: "Clearance", desc: "Err 3" }
+      ]);
+
+      const handlers = createPcbHandlers(() => mockApi);
+      const result = (await handlers.runDrc({ limit: 2 })) as any;
+
+      expect(result.violationsCount).toBe(3);
+      expect(result.violationsReturned).toBe(2);
+      expect(result.warnings).toHaveLength(1);
+      expect(result.warnings[0]).toContain("truncated to 2 items");
+    });
+
+    it("reports discrepancy when editor error count differs from check errors", async () => {
+      const mockApi = makeMockApi();
+      mockApi.pcb_Drc.check = vi.fn(async () => [
+        { rule: "Clearance", desc: "Err 1" },
+        { rule: "Clearance", desc: "Err 2" }
+      ]);
+      mockApi.pcb_Drc.getDrcErrors = vi.fn(async () => [{ id: "only-one-error" }]);
+
+      const handlers = createPcbHandlers(() => mockApi);
+      const result = (await handlers.runDrc({})) as any;
+
+      expect(result.editorComparison.matched).toBe(false);
+      expect(result.editorComparison.editorErrorCount).toBe(1);
+      expect(result.editorComparison.checkErrorCount).toBe(2);
+      expect(result.editorComparison.note).toContain("Discrepancy");
+    });
+
+    it("rejects when active document is not a PCB document", async () => {
+      const mockApi = makeMockApi({
+        uuid: "doc-sch-1",
+        documentType: 1 // Schematic
+      });
+      const handlers = createPcbHandlers(() => mockApi);
+
+      await expect(handlers.runDrc({})).rejects.toThrow("Open a PCB document");
+    });
+
+    it("asserts expectedTarget match", async () => {
+      const mockApi = makeMockApi();
+      const handlers = createPcbHandlers(() => mockApi);
+
+      await expect(
+        handlers.runDrc({
+          expectedTarget: { documentId: "wrong-uuid" }
+        })
+      ).rejects.toThrow("Active document");
     });
   });
 });

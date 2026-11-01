@@ -9,10 +9,33 @@ export function registerPcbTools(server: McpServer, bridge: EditorClient): void 
     name: "easyeda_run_drc",
     title: "Run PCB Design Rule Check (DRC)",
     description:
-      "Executes the native EasyEDA Pro PCB Design Rule Check (DRC) on the active board and reports rule violations, clearings, and errors.",
+      "Executes the native EasyEDA Pro PCB Design Rule Check (DRC) on the active board and reports detailed violations, categorized counts, evidence, document target, and execution comparison.",
     method: "runDrc",
     inputSchema: {
       strict: z.boolean().default(true).describe("Enforce strict design rule checking."),
+      severity: z
+        .enum(["all", "error", "warning"])
+        .optional()
+        .describe("Filter reported violations by severity level ('all', 'error', or 'warning')."),
+      rule: z
+        .string()
+        .min(1)
+        .optional()
+        .describe("Optional rule name or code filter (e.g. Clearance, ShortCircuit, UnroutedNet)."),
+      limit: z
+        .number()
+        .int()
+        .positive()
+        .max(500)
+        .optional()
+        .describe("Maximum number of detailed violation records to return."),
+      compareWithEditor: z
+        .boolean()
+        .optional()
+        .describe("Compare execution results against editor-side DRC error state if available."),
+      target: DocumentTargetSchema.optional().describe(
+        "Expected document target to assert execution on the intended PCB document."
+      ),
       timeoutMs: DefaultTimeoutSchema.default(60_000)
     },
     summary: "Executed EasyEDA Pro PCB DRC check."
