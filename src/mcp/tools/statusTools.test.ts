@@ -1,3 +1,4 @@
+import type { EditorStatus } from "../../protocol/messages.js";
 import { describe, expect, it, vi } from "vitest";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { registerStatusTools } from "./statusTools.js";
@@ -9,11 +10,11 @@ describe("statusTools", () => {
     const registerToolSpy = vi.spyOn(server, "registerTool");
     const bridge = {
       endpoint: "ws://127.0.0.1:8765",
-      getStatus: vi.fn(() => ({ connected: true })),
+      getStatus: vi.fn((): EditorStatus => ({ connected: true, updatedAt: "2026-11-01T00:00:00.000Z" })),
       call: vi.fn()
     };
 
-    registerStatusTools(server, bridge as never);
+    registerStatusTools(server, bridge);
 
     const registeredToolNames = registerToolSpy.mock.calls.map((call) => call[0]);
     expect(registeredToolNames).toEqual([

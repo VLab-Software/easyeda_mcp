@@ -1,9 +1,9 @@
 import * as z from "zod/v4";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import type { EasyEdaBridge } from "../../bridge/EasyEdaBridge.js";
+import type { EditorClient } from "../../editor/EditorClient.js";
 import { DefaultTimeoutSchema, registerReadTool } from "./common.js";
 
-export function registerPcbTools(server: McpServer, bridge: EasyEdaBridge): void {
+export function registerPcbTools(server: McpServer, bridge: EditorClient): void {
   registerReadTool(server, bridge, {
     name: "easyeda_run_drc",
     title: "Run PCB Design Rule Check (DRC)",

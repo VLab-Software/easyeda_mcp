@@ -1,12 +1,12 @@
 import * as z from "zod/v4";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import type { EasyEdaBridge } from "../../bridge/EasyEdaBridge.js";
+import type { EditorClient } from "../../editor/EditorClient.js";
 import { BridgeTimeoutError, BridgeUnavailableError } from "../../bridge/errors.js";
 import { DrcEditQuerySchema, drcConfirmation } from "../../drc/contracts.js";
 import { ok, fail } from "../toolResult.js";
 import { DefaultTimeoutSchema, hasExplicitMutationConfirmation } from "./common.js";
 
-export function registerActionTools(server: McpServer, bridge: EasyEdaBridge): void {
+export function registerActionTools(server: McpServer, bridge: EditorClient): void {
   server.registerTool(
     "easyeda_confirmed_action",
     {

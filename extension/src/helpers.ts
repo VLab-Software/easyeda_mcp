@@ -1,14 +1,5 @@
 declare const eda: Record<string, any>;
-
-export type BridgeErrorMessage = {
-  kind: "error";
-  requestId: string;
-  error: {
-    code: string;
-    message: string;
-    details?: unknown;
-  };
-};
+import type { RpcErrorPayload } from "../../src/protocol/messages.js";
 
 export function simplifyPrimitive(value: unknown): Record<string, unknown> {
   const item = sanitize(value) as Record<string, unknown>;
@@ -53,7 +44,7 @@ export function apiError(code: string, message: string, details?: unknown): Erro
   return error;
 }
 
-export function normalizeError(error: unknown): BridgeErrorMessage["error"] {
+export function normalizeError(error: unknown): RpcErrorPayload {
   if (error instanceof Error) {
     const coded = error as Error & { code?: string; details?: unknown };
     return {

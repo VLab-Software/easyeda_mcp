@@ -1,3 +1,5 @@
+import type { EditorClient } from "../editor/EditorClient.js";
+import type { EditorStatus } from "../protocol/messages.js";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
@@ -11,12 +13,12 @@ afterEach(async () => {
   await Promise.all(clients.splice(0).map((client) => client.close()));
 });
 
-async function makeClient(bridge: { endpoint: string; getStatus: () => unknown; call: ReturnType<typeof vi.fn> }): Promise<Client> {
+async function makeClient(bridge: EditorClient): Promise<Client> {
   const server = new McpServer({
     name: "test-server",
     version: "0.0.0"
   });
-  registerEasyEdaTools(server, bridge as never);
+  registerEasyEdaTools(server, bridge);
 
   const client = new Client({
     name: "test-client",
@@ -34,7 +36,7 @@ async function makeClient(bridge: { endpoint: string; getStatus: () => unknown; 
 
 describe("mutation confirmation guard", () => {
   it("exposes DRC tools and rejects a vague DRC confirmation before dispatch", async () => {
-    const bridge = { endpoint: "ws://127.0.0.1:8765", getStatus: () => ({ connected: true }), call: vi.fn() };
+    const bridge = { endpoint: "ws://127.0.0.1:8765", getStatus: (): EditorStatus => ({ connected: true, updatedAt: "2026-11-01T00:00:00.000Z" }), call: vi.fn() };
     const client = await makeClient(bridge);
     const tools = await client.listTools();
     expect(tools.tools.map(tool => tool.name)).toEqual(expect.arrayContaining(["easyeda_get_drc_rules", "easyeda_prepare_drc_edit", "easyeda_get_drc_edit_result"]));
@@ -45,7 +47,7 @@ describe("mutation confirmation guard", () => {
   });
   it.each([new BridgeTimeoutError("confirmedAction", 100), new BridgeUnavailableError()])("does not recommend retrying an inconclusive DRC mutation: %s", async error => {
     const editId = "22bd6220-9f2e-40a8-a019-d32a2f4d67eb";
-    const bridge = { endpoint: "ws://127.0.0.1:8765", getStatus: () => ({ connected: true }), call: vi.fn().mockRejectedValue(error) };
+    const bridge = { endpoint: "ws://127.0.0.1:8765", getStatus: (): EditorStatus => ({ connected: true, updatedAt: "2026-11-01T00:00:00.000Z" }), call: vi.fn().mockRejectedValue(error) };
     const client = await makeClient(bridge);
     const result = await client.callTool({ name: "easyeda_confirmed_action", arguments: {
       action: "editDrcRules", confirmation: `CONFIRM editDrcRules ${editId}`, params: { editId }
@@ -55,7 +57,7 @@ describe("mutation confirmation guard", () => {
   });
   it("forwards a reviewed DRC edit and marks a failed result as an MCP error", async () => {
     const editId = "22bd6220-9f2e-40a8-a019-d32a2f4d67eb";
-    const bridge = { endpoint: "ws://127.0.0.1:8765", getStatus: () => ({ connected: true }), call: vi.fn().mockResolvedValue({ status: "failed" }) };
+    const bridge = { endpoint: "ws://127.0.0.1:8765", getStatus: (): EditorStatus => ({ connected: true, updatedAt: "2026-11-01T00:00:00.000Z" }), call: vi.fn().mockResolvedValue({ status: "failed" }) };
     const client = await makeClient(bridge);
     const result = await client.callTool({ name: "easyeda_confirmed_action", arguments: { action: "editDrcRules", confirmation: `CONFIRM editDrcRules ${editId}`, params: { editId } } });
     expect(bridge.call).toHaveBeenCalledWith("confirmedAction", { action: "editDrcRules", confirmation: `CONFIRM editDrcRules ${editId}`, params: { editId } }, 60_000);
@@ -74,7 +76,7 @@ describe("mutation confirmation guard", () => {
   it("blocks mutating actions without explicit confirmation", async () => {
     const bridge = {
       endpoint: "ws://127.0.0.1:8765",
-      getStatus: () => ({ connected: true, updatedAt: new Date().toISOString() }),
+      getStatus: (): EditorStatus => ({ connected: true, updatedAt: new Date().toISOString() }),
       call: vi.fn()
     };
     const client = await makeClient(bridge);
@@ -88,15 +90,14 @@ describe("mutation confirmation guard", () => {
     });
 
     expect(result.isError).toBe(true);
-    expect(result.content[0]?.type).toBe("text");
-    expect(result.content[0]?.text).toContain('Action "save" was blocked');
+    expect(result).toMatchObject({ content: [{ type: "text", text: expect.stringContaining('Action "save" was blocked') }] });
     expect(bridge.call).not.toHaveBeenCalled();
   });
 
   it("forwards confirmed actions to the bridge", async () => {
     const bridge = {
       endpoint: "ws://127.0.0.1:8765",
-      getStatus: () => ({ connected: true, updatedAt: new Date().toISOString() }),
+      getStatus: (): EditorStatus => ({ connected: true, updatedAt: new Date().toISOString() }),
       call: vi.fn(async () => ({ saved: true, documentUuid: "doc-123" }))
     };
     const client = await makeClient(bridge);
@@ -128,7 +129,7 @@ describe("mutation confirmation guard", () => {
   it("forwards verify_connections checks and preserves structured results", async () => {
     const bridge = {
       endpoint: "ws://127.0.0.1:8765",
-      getStatus: () => ({ connected: true, updatedAt: new Date().toISOString() }),
+      getStatus: (): EditorStatus => ({ connected: true, updatedAt: new Date().toISOString() }),
       call: vi.fn(async () => ({
         checks: [
           {
@@ -200,7 +201,7 @@ describe("mutation confirmation guard", () => {
   it("returns a doctor report without calling the bridge RPC layer", async () => {
     const bridge = {
       endpoint: "ws://127.0.0.1:8765",
-      getStatus: () => ({
+      getStatus: (): EditorStatus => ({
         connected: false,
         connectionState: "disconnected",
         message: "Extension not connected.",
@@ -217,8 +218,7 @@ describe("mutation confirmation guard", () => {
 
     expect(bridge.call).not.toHaveBeenCalled();
     expect(result.isError).toBeFalsy();
-    expect(result.content[0]?.type).toBe("text");
-    expect(result.content[0]?.text).toContain("diagnostics");
+    expect(result).toMatchObject({ content: [{ type: "text", text: expect.stringContaining("diagnostics") }] });
     expect(result.structuredContent).toMatchObject({
       doctor: {
         bridge: {
@@ -234,7 +234,7 @@ describe("mutation confirmation guard", () => {
   it("marks the active document as available when documentInfo exists", async () => {
     const bridge = {
       endpoint: "ws://127.0.0.1:8765",
-      getStatus: () => ({
+      getStatus: (): EditorStatus => ({
         connected: true,
         connectionState: "connected",
         activeDocumentType: "schematic",
@@ -271,7 +271,7 @@ describe("mutation confirmation guard", () => {
   it("exposes Phase 1 tools and forwards calls to the bridge", async () => {
     const bridge = {
       endpoint: "ws://127.0.0.1:8765",
-      getStatus: () => ({ connected: true }),
+      getStatus: (): EditorStatus => ({ connected: true, updatedAt: "2026-11-01T00:00:00.000Z" }),
       call: vi.fn(async (method: string, params: unknown) => {
         if (method === "exportCpl") return { saved: true, fileName: "test.csv" };
         if (method === "runDrc") return { passed: true, errorsCount: 0 };

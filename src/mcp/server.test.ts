@@ -3,6 +3,8 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { EasyEdaBridge } from "../bridge/EasyEdaBridge.js";
 import { createMcpServer } from "./server.js";
+import type { EditorClient } from "../editor/EditorClient.js";
+import { createDisconnectedStatus } from "../protocol/messages.js";
 
 const bridges: EasyEdaBridge[] = [];
 const clients: Client[] = [];
@@ -13,6 +15,35 @@ afterEach(async () => {
 });
 
 describe("EasyEDA MCP server", () => {
+  it("serves diagnostics and forwards calls through a transport-independent editor client", async () => {
+    const calls: Array<{ method: string; params: unknown; timeoutMs?: number }> = [];
+    const status = createDisconnectedStatus();
+    const editor: EditorClient = {
+      endpoint: "ws://editor-test:1234",
+      getStatus: () => status,
+      async call(method, params, timeoutMs) {
+        calls.push({ method, params, timeoutMs });
+        return { documentName: "Test.Schematic", source: "test-editor" };
+      }
+    };
+    const server = createMcpServer(editor);
+    const client = new Client({ name: "interface-client", version: "0.0.0" });
+    clients.push(client);
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
+
+    expect((await client.listTools()).tools).toHaveLength(32);
+    const live = await client.callTool({ name: "easyeda_live_status", arguments: {} });
+    expect(live.structuredContent).toEqual({ status, bridgeEndpoint: editor.endpoint });
+    const doctor = await client.callTool({ name: "easyeda_doctor", arguments: {} });
+    expect(doctor).toMatchObject({ structuredContent: { doctor: { bridge: { endpoint: editor.endpoint } } } });
+    expect(calls).toHaveLength(0);
+
+    const context = await client.callTool({ name: "easyeda_get_context", arguments: { timeoutMs: 1234 } });
+    expect(context.structuredContent).toEqual({ result: { documentName: "Test.Schematic", source: "test-editor" } });
+    expect(calls).toEqual([{ method: "getContext", params: {}, timeoutMs: 1234 }]);
+  });
+
   it("lists EasyEDA tools and returns actionable disconnected status", async () => {
     const bridge = new EasyEdaBridge({
       port: 0,
@@ -62,9 +93,8 @@ describe("EasyEDA MCP server", () => {
     });
 
     expect(result.isError).toBe(true);
-    expect(result.content[0]?.type).toBe("text");
-    expect(result.content[0]?.text).toContain("EasyEDA Pro extension is not connected");
+    expect(result).toMatchObject({ content: [{ type: "text", text: expect.stringContaining("EasyEDA Pro extension is not connected") }] });
     const doctor = await client.callTool({ name: "easyeda_doctor", arguments: {} });
-    expect(doctor.structuredContent?.doctor).toMatchObject({ server: client.getServerVersion() });
+    expect(doctor).toMatchObject({ structuredContent: { doctor: { server: client.getServerVersion() } } });
   });
 });
