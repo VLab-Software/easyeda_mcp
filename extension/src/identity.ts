@@ -193,6 +193,9 @@ export function detectMethodCapabilities(api: () => EasyEdaApi): Record<string, 
 
     // Libraries & System
     "lib_Device.search": Boolean(eda.lib_Device?.search || eda.lib_Search?.search),
+    "lib_Device.get": Boolean(eda.lib_Device?.get || eda.lib_Device?.getDevice),
+    "lib_Symbol.get": Boolean(eda.lib_Symbol?.get || eda.lib_Symbol?.getSymbol),
+    "lib_Footprint.get": Boolean(eda.lib_Footprint?.get || eda.lib_Footprint?.getFootprint),
     "sys_WebSocket.register": Boolean(eda.sys_WebSocket?.register),
     "sys_WebSocket.send": Boolean(eda.sys_WebSocket?.send),
     "sys_FileSystem.saveFile": Boolean(eda.sys_FileSystem?.saveFile),

@@ -1,4 +1,9 @@
 import { apiError, ensureApi, sanitize, timestamp, toArray } from "../helpers.js";
+import {
+  fetchDeviceDetails,
+  compareDevices as compareDevicesFn,
+  verifyPinPadMapping as verifyPinPadMappingFn
+} from "../reporting/deviceLibraryReports.js";
 import type { EasyEdaApi, RpcHandler } from "../types.js";
 
 export function extractFile(value: unknown): unknown {
@@ -156,6 +161,9 @@ export function createExportHandlers(api: () => EasyEdaApi): Record<string, RpcH
     exportGerber,
     exportPdf,
     exportCpl,
-    searchLibrary
+    searchLibrary,
+    getDeviceDetails: (params: Record<string, any>) => fetchDeviceDetails(api, params as any),
+    compareDevices: (params: Record<string, any>) => compareDevicesFn(api, params as any),
+    verifyPinPadMapping: (params: Record<string, any>) => verifyPinPadMappingFn(api, params as any)
   };
 }
