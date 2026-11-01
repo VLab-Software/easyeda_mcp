@@ -147,6 +147,118 @@ export function registerPcbTools(server: McpServer, bridge: EditorClient): void 
   );
 
   registerReadTool(server, bridge, {
+    name: "easyeda_get_board_outline",
+    title: "Inspect PCB Board Outline",
+    description:
+      "Inspects the board outline boundary, bounding box (minX, minY, maxX, maxY, width, height), perimeter, estimated area, loop closure status, and segments on the active PCB.",
+    method: "getBoardOutline",
+    inputSchema: {
+      includeSegments: z.boolean().default(true).describe("Include individual segment coordinates and primitives."),
+      includeRaw: z.boolean().default(false).describe("Include raw primitive payloads."),
+      target: DocumentTargetSchema.optional().describe("Expected active PCB target."),
+      timeoutMs: DefaultTimeoutSchema.default(30_000)
+    },
+    summary: "Inspected EasyEDA Pro PCB board outline."
+  });
+
+  server.registerTool(
+    "easyeda_prepare_board_outline",
+    {
+      title: "Prepare Board Outline Mutation",
+      description:
+        "Prepares creation, rectangular/polygonal sizing, clearing, or segment modification of the board outline on the active PCB. Returns a mutationId and exact confirmation phrase required for execution via easyeda_confirmed_action.",
+      inputSchema: {
+        action: z
+          .enum(["set_rectangle", "create", "set_polygon", "clear", "modify_segment"])
+          .default("set_rectangle")
+          .describe("Board outline mutation action to perform."),
+        x: z.number().default(0).describe("Origin X coordinate in mm (for set_rectangle / create)."),
+        y: z.number().default(0).describe("Origin Y coordinate in mm (for set_rectangle / create)."),
+        width: z.number().positive().optional().describe("Board width in mm (for set_rectangle / create)."),
+        height: z.number().positive().optional().describe("Board height in mm (for set_rectangle / create)."),
+        points: z
+          .array(z.object({ x: z.number(), y: z.number() }))
+          .min(3)
+          .optional()
+          .describe("Array of vertex coordinates in mm for polygonal outline (for set_polygon)."),
+        lineWidth: z.number().positive().default(0.2).describe("Outline track line width in mm (default: 0.2)."),
+        clearExisting: z
+          .boolean()
+          .default(true)
+          .describe("Whether to delete existing board outline primitives before creating new ones."),
+        primitiveId: z.string().optional().describe("Target segment primitive ID (for modify_segment)."),
+        startX: z.number().optional().describe("New start X coordinate in mm (for modify_segment)."),
+        startY: z.number().optional().describe("New start Y coordinate in mm (for modify_segment)."),
+        endX: z.number().optional().describe("New end X coordinate in mm (for modify_segment)."),
+        endY: z.number().optional().describe("New end Y coordinate in mm (for modify_segment)."),
+        target: DocumentTargetSchema.optional().describe("Expected active PCB target."),
+        timeoutMs: DefaultTimeoutSchema.default(30_000)
+      },
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: false,
+        openWorldHint: false
+      }
+    },
+    async ({
+      action,
+      x,
+      y,
+      width,
+      height,
+      points,
+      lineWidth,
+      clearExisting,
+      primitiveId,
+      startX,
+      startY,
+      endX,
+      endY,
+      target,
+      timeoutMs
+    }) => {
+      try {
+        const result = (await bridge.call(
+          "prepareBoardOutline",
+          {
+            action,
+            x,
+            y,
+            width,
+            height,
+            points,
+            lineWidth,
+            clearExisting,
+            primitiveId,
+            startX,
+            startY,
+            endX,
+            endY,
+            target
+          },
+          timeoutMs
+        )) as Record<string, unknown>;
+
+        const mutationId = String(result.mutationId ?? "");
+        const confirmation = String(result.confirmation ?? "");
+        const preview = (result.preview as { impact?: string; scope?: string }) ?? {};
+        const summary = [
+          `Prepared PCB board outline mutation '${action}':`,
+          `Impact: ${preview.impact ?? "none"}`,
+          `Scope: ${preview.scope ?? "active document"}`,
+          `Confirmation phrase required: "${confirmation}"`,
+          `Review the preview and run easyeda_confirmed_action with action="mutation", params={ mutationId: "${mutationId}" }, and the exact confirmation string.`
+        ].join("\n");
+
+        return ok(summary, result);
+      } catch (error) {
+        return fail(error);
+      }
+    }
+  );
+
+  registerReadTool(server, bridge, {
     name: "easyeda_highlight_net",
     title: "Highlight or clear PCB net",
     description: "Visually highlights a specified net on the EasyEDA Pro PCB canvas, or clears all highlighted nets.",

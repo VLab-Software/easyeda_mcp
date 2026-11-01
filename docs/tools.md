@@ -1,6 +1,6 @@
 # Tools Reference
 
-EasyEDA Pro MCP exposes **42 tools** across 8 categories. All inspection, tracing, navigation, and export tools are read-only (`readOnlyHint: true`).
+EasyEDA Pro MCP exposes **44 tools** across 8 categories. All inspection, tracing, navigation, and export tools are read-only (`readOnlyHint: true`).
 
 ## Tool Catalog
 
@@ -14,8 +14,8 @@ EasyEDA Pro MCP exposes **42 tools** across 8 categories. All inspection, tracin
   - [`easyeda_schematic_snapshot`](#easyeda_schematic_snapshot) · [`easyeda_get_schematic_nets`](#easyeda_get_schematic_nets) · [`easyeda_list_schematic_components`](#easyeda_list_schematic_components) · [`easyeda_get_component_pins`](#easyeda_get_component_pins) · [`easyeda_find_component`](#easyeda_find_component) · [`easyeda_find_net`](#easyeda_find_net) · [`easyeda_search_library`](#easyeda_search_library)
 - **[Circuit Tracing & Verification](#circuit-tracing-verification)** (6 tools)
   - [`easyeda_run_schematic_erc`](#easyeda_run_schematic_erc) · [`easyeda_trace_net`](#easyeda_trace_net) · [`easyeda_trace_component`](#easyeda_trace_component) · [`easyeda_find_unconnected_pins`](#easyeda_find_unconnected_pins) · [`easyeda_validate_schematic_area`](#easyeda_validate_schematic_area) · [`easyeda_verify_connections`](#easyeda_verify_connections)
-- **[PCB Layout & DRC Rules](#pcb-layout-drc-rules)** (10 tools)
-  - [`easyeda_run_drc`](#easyeda_run_drc) · [`easyeda_get_pcb_layers`](#easyeda_get_pcb_layers) · [`easyeda_get_routing_status`](#easyeda_get_routing_status) · [`easyeda_list_pcb_components`](#easyeda_list_pcb_components) · [`easyeda_get_pcb_pads`](#easyeda_get_pcb_pads) · [`easyeda_prepare_pcb_component`](#easyeda_prepare_pcb_component) · [`easyeda_highlight_net`](#easyeda_highlight_net) · [`easyeda_get_drc_rules`](#easyeda_get_drc_rules) · [`easyeda_prepare_drc_edit`](#easyeda_prepare_drc_edit) · [`easyeda_get_drc_edit_result`](#easyeda_get_drc_edit_result)
+- **[PCB Layout & DRC Rules](#pcb-layout-drc-rules)** (12 tools)
+  - [`easyeda_run_drc`](#easyeda_run_drc) · [`easyeda_get_pcb_layers`](#easyeda_get_pcb_layers) · [`easyeda_get_routing_status`](#easyeda_get_routing_status) · [`easyeda_list_pcb_components`](#easyeda_list_pcb_components) · [`easyeda_get_pcb_pads`](#easyeda_get_pcb_pads) · [`easyeda_prepare_pcb_component`](#easyeda_prepare_pcb_component) · [`easyeda_get_board_outline`](#easyeda_get_board_outline) · [`easyeda_prepare_board_outline`](#easyeda_prepare_board_outline) · [`easyeda_highlight_net`](#easyeda_highlight_net) · [`easyeda_get_drc_rules`](#easyeda_get_drc_rules) · [`easyeda_prepare_drc_edit`](#easyeda_prepare_drc_edit) · [`easyeda_get_drc_edit_result`](#easyeda_get_drc_edit_result)
 - **[Navigation & Exports](#navigation-exports)** (8 tools)
   - [`easyeda_export_cpl`](#easyeda_export_cpl) · [`easyeda_export_bom`](#easyeda_export_bom) · [`easyeda_export_netlist`](#easyeda_export_netlist) · [`easyeda_export_gerber`](#easyeda_export_gerber) · [`easyeda_export_pdf`](#easyeda_export_pdf) · [`easyeda_navigate_component`](#easyeda_navigate_component) · [`easyeda_navigate_region`](#easyeda_navigate_region) · [`easyeda_zoom_board`](#easyeda_zoom_board)
 - **[Confirmation-Gated Actions](#confirmation-gated-actions)** (1 tool)
@@ -501,6 +501,51 @@ Returns `mutationId`, exact confirmation token `CONFIRM pcb:<action> <mutationId
 - **`rotation`** (`number`, _optional_): Absolute angle in degrees `[0, 360)` (used with `rotate`).
 - **`dRotation`** (`number`, _optional_): Relative rotation angle delta in degrees (used with `rotate`).
 - **`layer`** (`"top" | "bottom" | string`, _optional_): Target layer or side (used with `flip`).
+- **`target`** (`object`, _optional_): Expected document target specification to assert against active canvas.
+- **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
+
+---
+
+### `easyeda_get_board_outline`
+
+**Scope:** PCB RPC (`readOnlyHint: true`, `idempotentHint: true`, default timeout: `30000` ms)
+
+Inspects the physical boundary profile of the active PCB on the board outline layer. Computes geometry metrics including bounding box (`minX`, `minY`, `maxX`, `maxY`, `width`, `height`), perimeter, estimated area, loop closure status (`isClosed`), segment count, and segment vectors.
+
+**Parameters:**
+- **`includeSegments`** (`boolean`, _optional_, default: `true`): Include individual segment primitives (lines, arcs).
+- **`includeRaw`** (`boolean`, _optional_, default: `false`): Include raw primitive payloads.
+- **`target`** (`object`, _optional_): Expected document target specification to assert against active canvas.
+- **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
+
+---
+
+### `easyeda_prepare_board_outline`
+
+**Scope:** PCB Mutation RPC (`readOnlyHint: false`, `destructiveHint: true`, default timeout: `30000` ms)
+
+Stages creation, rectangular/polygonal sizing, clearing, or segment modification of the board outline on the active PCB without applying changes directly. Supported actions are:
+- `set_rectangle`: Defines a rectangular board outline specified by origin `x`, `y`, `width`, and `height`.
+- `set_polygon`: Defines an arbitrary closed polygonal board outline from an array of `points` (`[{ x, y }]`).
+- `clear`: Deletes all existing board outline primitives from the active canvas.
+- `modify_segment`: Updates coordinates or line width of a specific outline segment by `primitiveId`.
+
+Returns `mutationId`, exact confirmation token `CONFIRM pcb:<action> <mutationId>`, and structured `preview` with `impact`, `before`, `requestedAfter`, and `changedKeys`. Previews expire after 5 minutes and require execution via `easyeda_confirmed_action`.
+
+**Parameters:**
+- **`action`** (`"set_rectangle" | "create" | "set_polygon" | "clear" | "modify_segment"`, _optional_, default: `"set_rectangle"`): Board outline mutation action to perform.
+- **`x`** (`number`, _optional_, default: `0`): Origin X coordinate in mm (used with `set_rectangle` / `create`).
+- **`y`** (`number`, _optional_, default: `0`): Origin Y coordinate in mm (used with `set_rectangle` / `create`).
+- **`width`** (`number`, _optional_): Board width in mm (used with `set_rectangle` / `create`).
+- **`height`** (`number`, _optional_): Board height in mm (used with `set_rectangle` / `create`).
+- **`points`** (`array`, _optional_): Array of vertex objects `[{ x: number, y: number }]` (at least 3 vertices, used with `set_polygon`).
+- **`lineWidth`** (`number`, _optional_, default: `0.2`): Line width of outline tracks in mm.
+- **`clearExisting`** (`boolean`, _optional_, default: `true`): Whether to clear existing outline primitives before placing the new outline.
+- **`primitiveId`** (`string`, _optional_): Target segment primitive ID (used with `modify_segment`).
+- **`startX`** (`number`, _optional_): New start X coordinate in mm (used with `modify_segment`).
+- **`startY`** (`number`, _optional_): New start Y coordinate in mm (used with `modify_segment`).
+- **`endX`** (`number`, _optional_): New end X coordinate in mm (used with `modify_segment`).
+- **`endY`** (`number`, _optional_): New end Y coordinate in mm (used with `modify_segment`).
 - **`target`** (`object`, _optional_): Expected document target specification to assert against active canvas.
 - **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
 
