@@ -323,4 +323,34 @@ describe("Extension Schematic Handlers - Native Nets and ERC", () => {
       ]);
     });
   });
+
+  describe("getSchematicPortsBuses", () => {
+    it("delegates to fetchSchematicPortsBusesReport handler", async () => {
+      const mockApi = {
+        dmt_SelectControl: {
+          getCurrentDocumentInfo: vi.fn(async () => baseDocInfo)
+        },
+        sch_PrimitiveNetPort: {
+          getAll: vi.fn(async () => [{ primitiveId: "port-1", name: "RXD", portType: "input", x: 10, y: 20 }])
+        },
+        sch_PrimitiveBus: {
+          getAll: vi.fn(async () => [{ primitiveId: "bus-1", name: "DATA[0..3]", pointList: [0, 0, 100, 0] }])
+        },
+        sch_PrimitiveBusEntry: {
+          getAll: vi.fn(async () => [
+            { primitiveId: "entry-1", startX: 10, startY: 0, endX: 20, endY: 10, net: "DATA0" }
+          ])
+        }
+      };
+
+      const handlers = createSchematicHandlers(() => mockApi);
+      const result = (await handlers.getSchematicPortsBuses({})) as any;
+
+      expect(result.summary.portCount).toBe(1);
+      expect(result.summary.busCount).toBe(1);
+      expect(result.summary.busEntryCount).toBe(1);
+      expect(result.ports[0].name).toBe("RXD");
+      expect(result.buses[0].name).toBe("DATA[0..3]");
+    });
+  });
 });

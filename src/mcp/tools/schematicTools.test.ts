@@ -40,7 +40,8 @@ describe("schematicTools MCP registration and invocation", () => {
       "easyeda_find_unconnected_pins",
       "easyeda_run_schematic_erc",
       "easyeda_validate_schematic_area",
-      "easyeda_verify_connections"
+      "easyeda_verify_connections",
+      "easyeda_get_schematic_ports_buses"
     ]);
   });
 
@@ -125,6 +126,45 @@ describe("schematicTools MCP registration and invocation", () => {
         passed: false,
         status: "violations_found",
         violationsCount: 1
+      }
+    });
+  });
+
+  it("invokes easyeda_get_schematic_ports_buses and returns ports, buses, and diagnostics", async () => {
+    const bridge = {
+      endpoint: "ws://127.0.0.1:8765",
+      getStatus: (): EditorStatus => ({ connected: true, updatedAt: new Date().toISOString() }),
+      call: vi.fn(async () => ({
+        target: { documentType: "schematic" },
+        summary: { portCount: 1, busCount: 1, busEntryCount: 1, totalSignalsInBuses: 8, warningsCount: 0 },
+        ports: [{ primitiveId: "p1", name: "TXD", portType: "output", x: 10, y: 20, rotation: 0 }],
+        buses: [{ primitiveId: "b1", name: "DATA[0..7]", prefix: "DATA", signals: ["DATA0", "DATA1"] }],
+        busEntries: [{ primitiveId: "e1", startX: 10, startY: 20, endX: 20, endY: 30, net: "DATA0" }],
+        diagnostics: []
+      }))
+    };
+    const client = await makeClient(bridge);
+
+    const result = await client.callTool({
+      name: "easyeda_get_schematic_ports_buses",
+      arguments: {
+        includePorts: true,
+        includeBuses: true
+      }
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(bridge.call).toHaveBeenCalledWith(
+      "getSchematicPortsBuses",
+      expect.objectContaining({
+        includePorts: true,
+        includeBuses: true
+      }),
+      15_000
+    );
+    expect(result.structuredContent).toMatchObject({
+      result: {
+        summary: { portCount: 1, busCount: 1, totalSignalsInBuses: 8 }
       }
     });
   });

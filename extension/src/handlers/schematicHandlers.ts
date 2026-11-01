@@ -22,6 +22,7 @@ import {
   toArray
 } from "../helpers.js";
 import type { EasyEdaApi, RpcHandler } from "../types.js";
+import { fetchSchematicPortsBusesReport } from "../mutation/schematicPortBusMutations.js";
 import { getPcbComponents, getPcbNetNames } from "./pcbHandlers.js";
 
 export async function getSchematicComponents(api: () => EasyEdaApi): Promise<unknown[]> {
@@ -559,6 +560,7 @@ export function createSchematicHandlers(api: () => EasyEdaApi): Record<string, R
     getSchematicNets: getSchematicNetsTool,
     getSchematicNetsTool,
     runSchematicErc: runSchematicErcTool,
-    runSchematicErcTool
+    runSchematicErcTool,
+    getSchematicPortsBuses: (params) => fetchSchematicPortsBusesReport(api, params)
   };
 }

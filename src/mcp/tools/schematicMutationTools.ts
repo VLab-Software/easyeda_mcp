@@ -197,6 +197,165 @@ export function registerSchematicMutationTools(server: McpServer, bridge: Editor
   );
 
   server.registerTool(
+    "easyeda_prepare_schematic_port",
+    {
+      title: "Prepare Schematic Port Mutation",
+      description:
+        "Prepares a create, modify, or delete operation on a schematic net port (hierarchical/sheet connector) with preview, validation, and exact confirmation phrase. Does not write until confirmed via easyeda_confirmed_action.",
+      inputSchema: {
+        action: z.enum(["createPort", "modifyPort", "deletePort"]).describe("Port action to perform"),
+        name: z.string().optional().describe("Net name for the port (e.g. 'TXD', 'CLK')"),
+        portType: z
+          .enum(["input", "output", "bidirectional", "unspecified"])
+          .optional()
+          .describe("Port direction / type"),
+        x: z.number().optional().describe("X coordinate for port placement"),
+        y: z.number().optional().describe("Y coordinate for port placement"),
+        rotation: z.number().optional().describe("Rotation angle in degrees (0, 90, 180, 270)"),
+        color: z.string().optional().describe("Port color string"),
+        portId: z.string().optional().describe("Target port primitiveId for modify or delete"),
+        target: DocumentTargetSchema.optional().describe("Expected active schematic target"),
+        timeoutMs: DefaultTimeoutSchema.default(30_000)
+      },
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: false,
+        openWorldHint: false
+      }
+    },
+    async ({ action, name, portType, x, y, rotation, color, portId, target, timeoutMs }) => {
+      try {
+        const result = (await bridge.call(
+          "prepareSchematicPort",
+          {
+            action,
+            name,
+            portType,
+            x,
+            y,
+            rotation,
+            color,
+            portId,
+            target
+          },
+          timeoutMs
+        )) as Record<string, unknown>;
+
+        const mutationId = String(result.mutationId ?? "");
+        const confirmation = String(result.confirmation ?? "");
+        const preview = (result.preview as { impact?: string; scope?: string }) ?? {};
+        const summary = [
+          `Prepared schematic port mutation '${action}':`,
+          `Impact: ${preview.impact ?? "none"}`,
+          `Scope: ${preview.scope ?? "active document"}`,
+          `Confirmation phrase required: "${confirmation}"`,
+          `Review the preview and run easyeda_confirmed_action with action="mutation", params={ mutationId: "${mutationId}" }, and the exact confirmation string.`
+        ].join("\n");
+
+        return ok(summary, result);
+      } catch (error) {
+        return fail(error);
+      }
+    }
+  );
+
+  server.registerTool(
+    "easyeda_prepare_schematic_bus",
+    {
+      title: "Prepare Schematic Bus Mutation",
+      description:
+        "Prepares a create, modify, or delete operation on schematic multi-bit buses or diagonal bus entries with syntax parsing, coordinate validation, preview, and exact confirmation phrase. Does not write until confirmed via easyeda_confirmed_action.",
+      inputSchema: {
+        action: z
+          .enum(["createBus", "modifyBus", "deleteBus", "createBusEntry", "deleteBusEntry"])
+          .describe("Bus or bus entry action to perform"),
+        name: z.string().optional().describe("Bus name with syntax, e.g. 'DATA[0..7]' or 'ADDR[15:0]'"),
+        coordinates: z
+          .array(z.number())
+          .optional()
+          .describe("Flat array of coordinates [x1, y1, x2, y2, ...] for bus polyline (min 4 numbers / 2 points)"),
+        lineWidth: z.number().optional().describe("Bus stroke width"),
+        color: z.string().optional().describe("Bus color string"),
+        busId: z.string().optional().describe("Target bus primitive ID for modify, delete, or attaching bus entry"),
+        entryId: z.string().optional().describe("Target bus entry primitive ID for delete"),
+        startX: z.number().optional().describe("Start X for bus entry tap"),
+        startY: z.number().optional().describe("Start Y for bus entry tap"),
+        endX: z.number().optional().describe("End X for bus entry tap"),
+        endY: z.number().optional().describe("End Y for bus entry tap"),
+        rotation: z.number().optional().describe("Rotation angle for bus entry"),
+        net: z.string().optional().describe("Net name for tapped signal (e.g. 'DATA0')"),
+        wireId: z.string().optional().describe("Primitive ID of wire connected by bus entry"),
+        target: DocumentTargetSchema.optional().describe("Expected active schematic target"),
+        timeoutMs: DefaultTimeoutSchema.default(30_000)
+      },
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: false,
+        openWorldHint: false
+      }
+    },
+    async ({
+      action,
+      name,
+      coordinates,
+      lineWidth,
+      color,
+      busId,
+      entryId,
+      startX,
+      startY,
+      endX,
+      endY,
+      rotation,
+      net,
+      wireId,
+      target,
+      timeoutMs
+    }) => {
+      try {
+        const result = (await bridge.call(
+          "prepareSchematicBus",
+          {
+            action,
+            name,
+            coordinates,
+            lineWidth,
+            color,
+            busId,
+            entryId,
+            startX,
+            startY,
+            endX,
+            endY,
+            rotation,
+            net,
+            wireId,
+            target
+          },
+          timeoutMs
+        )) as Record<string, unknown>;
+
+        const mutationId = String(result.mutationId ?? "");
+        const confirmation = String(result.confirmation ?? "");
+        const preview = (result.preview as { impact?: string; scope?: string }) ?? {};
+        const summary = [
+          `Prepared schematic bus mutation '${action}':`,
+          `Impact: ${preview.impact ?? "none"}`,
+          `Scope: ${preview.scope ?? "active document"}`,
+          `Confirmation phrase required: "${confirmation}"`,
+          `Review the preview and run easyeda_confirmed_action with action="mutation", params={ mutationId: "${mutationId}" }, and the exact confirmation string.`
+        ].join("\n");
+
+        return ok(summary, result);
+      } catch (error) {
+        return fail(error);
+      }
+    }
+  );
+
+  server.registerTool(
     "easyeda_get_mutation_result",
     {
       title: "Get Mutation Result",

@@ -28,6 +28,8 @@ describe("Schematic Mutation MCP Tools", () => {
 
     expect(names).toContain("easyeda_prepare_schematic_component");
     expect(names).toContain("easyeda_prepare_schematic_wire");
+    expect(names).toContain("easyeda_prepare_schematic_port");
+    expect(names).toContain("easyeda_prepare_schematic_bus");
     expect(names).toContain("easyeda_get_mutation_result");
   });
 
@@ -250,6 +252,101 @@ describe("Schematic Mutation MCP Tools", () => {
         net: "GND",
         x: 500,
         y: 600
+      }),
+      30_000
+    );
+    expect(result.structuredContent).toMatchObject({
+      mutationId,
+      confirmation
+    });
+  });
+
+  it("prepares a net port mutation via easyeda_prepare_schematic_port", async () => {
+    const mutationId = "mut-sch-createPort-123";
+    const confirmation = `CONFIRM sch:createPort ${mutationId}`;
+    const bridge = {
+      endpoint: "ws://127.0.0.1:8765",
+      getStatus: (): EditorStatus => ({ connected: true, updatedAt: new Date().toISOString() }),
+      call: vi.fn(async () => ({
+        mutationId,
+        confirmation,
+        action: "createPort",
+        preview: {
+          impact: "Creates net port 'TXD' (type: output) at (100, 200).",
+          scope: "port:TXD"
+        },
+        expiresAt: new Date(Date.now() + 300_000).toISOString()
+      }))
+    };
+    const client = await makeClient(bridge);
+
+    const result = await client.callTool({
+      name: "easyeda_prepare_schematic_port",
+      arguments: {
+        action: "createPort",
+        name: "TXD",
+        portType: "output",
+        x: 100,
+        y: 200,
+        rotation: 0
+      }
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(bridge.call).toHaveBeenCalledWith(
+      "prepareSchematicPort",
+      expect.objectContaining({
+        action: "createPort",
+        name: "TXD",
+        portType: "output",
+        x: 100,
+        y: 200
+      }),
+      30_000
+    );
+    expect(result.structuredContent).toMatchObject({
+      mutationId,
+      confirmation
+    });
+  });
+
+  it("prepares a bus mutation via easyeda_prepare_schematic_bus", async () => {
+    const mutationId = "mut-sch-createBus-456";
+    const confirmation = `CONFIRM sch:createBus ${mutationId}`;
+    const bridge = {
+      endpoint: "ws://127.0.0.1:8765",
+      getStatus: (): EditorStatus => ({ connected: true, updatedAt: new Date().toISOString() }),
+      call: vi.fn(async () => ({
+        mutationId,
+        confirmation,
+        action: "createBus",
+        preview: {
+          impact: "Creates bus 'DATA[0..7]' with 4 points.",
+          scope: "bus:DATA[0..7]"
+        },
+        expiresAt: new Date(Date.now() + 300_000).toISOString()
+      }))
+    };
+    const client = await makeClient(bridge);
+
+    const result = await client.callTool({
+      name: "easyeda_prepare_schematic_bus",
+      arguments: {
+        action: "createBus",
+        name: "DATA[0..7]",
+        coordinates: [100, 200, 300, 200],
+        lineWidth: 3
+      }
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(bridge.call).toHaveBeenCalledWith(
+      "prepareSchematicBus",
+      expect.objectContaining({
+        action: "createBus",
+        name: "DATA[0..7]",
+        coordinates: [100, 200, 300, 200],
+        lineWidth: 3
       }),
       30_000
     );

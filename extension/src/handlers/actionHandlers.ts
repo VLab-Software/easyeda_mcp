@@ -15,6 +15,7 @@ import {
 } from "../mutation/pcbRoutingMutations.js";
 import { executePcbTrackViaMutation } from "../mutation/pcbTrackViaMutations.js";
 import { executeSchematicComponentMutation } from "../mutation/schematicComponentMutations.js";
+import { executeSchematicBusMutation, executeSchematicPortMutation } from "../mutation/schematicPortBusMutations.js";
 import { executeSchematicWireMutation } from "../mutation/schematicWireMutations.js";
 import type { EasyEdaApi, RpcHandler } from "../types.js";
 
@@ -42,6 +43,12 @@ export function createActionHandlers(
           let res: { executed: boolean; readback: Record<string, unknown> };
           if (["createWire", "modifyWire", "deleteWire", "addNetLabel"].includes(record.action)) {
             res = await executeSchematicWireMutation(record, api);
+          } else if (["createPort", "modifyPort", "deletePort"].includes(record.action)) {
+            res = await executeSchematicPortMutation(record, api);
+          } else if (
+            ["createBus", "modifyBus", "deleteBus", "createBusEntry", "deleteBusEntry"].includes(record.action)
+          ) {
+            res = await executeSchematicBusMutation(record, api);
           } else {
             res = await executeSchematicComponentMutation(record, api);
           }
