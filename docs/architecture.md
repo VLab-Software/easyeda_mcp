@@ -13,9 +13,10 @@ flowchart LR
 ## Design Principles
 
 1. **Live editor source of truth**: queries run against the active schematic or PCB open in EasyEDA Pro rather than fragile offline file exports.
-2. **Read-first by default**: 22 of 24 tools are strictly non-destructive (`readOnlyHint: true`) and never alter editor or project state.
-3. **Two-phase confirmed mutations**: high-impact edits (such as PCB DRC rules) require an immutable preview (`easyeda_prepare_drc_edit`), human approval of an exact confirmation token, target-identity checks, and native readback verification.
+2. **Read-first by default**: 31 of 32 tools are strictly non-destructive (`readOnlyHint: true`) and never alter editor or project state.
+3. **Two-phase confirmed mutations**: high-impact edits (such as PCB DRC rules and upcoming layout/schematic mutations) require an immutable preview, human approval of an exact confirmation token, target-identity checks, and native readback verification.
 4. **Actionable diagnostics**: every error returns a deterministic `errorCode` (`wrong_document`, `stale_edit`, `api_unavailable`, etc.) and remediation steps.
+5. **Spec-Driven & Domain-Modular**: all tools are governed by formal specs (`specs/*.md`) and organized into domain modules to preserve clean separation of concerns.
 
 ## Core Modules
 
@@ -23,12 +24,15 @@ flowchart LR
 | --- | --- | --- |
 | **CLI Entrypoint** | `src/index.ts` | Starts the WebSocket server, attaches `StdioServerTransport`, and manages process shutdown. |
 | **WebSocket Bridge** | `src/bridge/EasyEdaBridge.ts` | Listens on `ws://127.0.0.1:8765`, tracks extension handshake and version compatibility, and dispatches timed RPC requests. |
-| **MCP Tool Registry** | `src/mcp/registerTools.ts` | Registers all 24 MCP tools, Zod input schemas, MCP tool annotations, and server-side confirmation guards. |
+| **MCP Tool Orchestrator** | `src/mcp/registerTools.ts` | Lean entrypoint delegating tool registration to domain-specific modules under `src/mcp/tools/`. |
+| **Domain MCP Tools** | `src/mcp/tools/` | Status (`statusTools.ts`), schematic (`schematicTools.ts`), PCB (`pcbTools.ts`), DRC (`drcTools.ts`), exports (`exportTools.ts`), and confirmed actions (`actionTools.ts`). |
 | **Schematic Engine** | `src/schematic/analysis.ts` | Normalizes schematic primitives, traces nets and components, and evaluates graph-based circuit assertions. |
 | **DRC Contracts** | `src/drc/contracts.ts` | Shared browser-safe Zod schemas and canonical JSON validation for PCB design rule operations. |
 | **Extension Host** | `extension/src/index.ts` | Connects via `eda.sys_WebSocket`, reports active document metadata, and routes bridge RPC methods to `eda.*` APIs. |
+| **Extension Helpers** | `extension/src/helpers.ts` | Defensive API guards (`ensureApi`), error normalization, geometry helpers, and data sanitization for browser sandbox. |
 | **DRC Handler** | `extension/src/drcRules.ts` | Reads `eda.pcb_Drc` surfaces, stages immutable previews with 15-minute TTL, verifies PCB identity, and performs readback checks. |
-| **Release Identity** | `src/version.ts` | Single source of truth for server (`1.1.0`), extension (`0.2.0`), and bridge protocol (`0.1.0`) versions, verified in `src/version.test.ts`. |
+| **Specs Governance** | `specs/SPEC_TEMPLATE.md` | Formal RFC contract templates defining Zod schemas, MCP annotations, and EasyEDA native API mappings. |
+| **Release Identity** | `src/version.ts` | Single source of truth for server (`1.3.1`), extension (`0.4.0`), and bridge protocol (`0.1.0`) versions, verified in `src/version.test.ts`. |
 
 ## Request Lifecycle
 
