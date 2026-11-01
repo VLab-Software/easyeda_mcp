@@ -4,6 +4,12 @@ All notable changes to the EasyEDA Pro MCP server and browser extension are docu
 
 For packaged `.eext` and `.mcpb` downloads and checksums, see [GitHub Releases](https://github.com/VLab-Software/easyeda_mcp/releases).
 
+## `1.3.1` (Extension `0.4.0`)
+
+- docs: add github sponsors badge and support link
+- chore: add github funding configuration
+- fix(ci): support npm OIDC Trusted Publishing and npm stage publish
+
 ## `1.3.0` (Extension `0.4.0`)
 
 **PCB DRC Execution, CPL Export, Layer Stackup, Routing Status, PCB Components, Net Highlighting, Canvas Selection, and Library Search**
