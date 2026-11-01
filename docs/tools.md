@@ -1,6 +1,6 @@
 # Tools Reference
 
-EasyEDA Pro MCP exposes **70 tools** across 8 categories. All inspection, tracing, navigation, and export tools are read-only (`readOnlyHint: true`).
+EasyEDA Pro MCP exposes **74 tools** across 8 categories. All inspection, tracing, navigation, and export tools are read-only (`readOnlyHint: true`).
 
 ## Tool Catalog
 
@@ -16,8 +16,8 @@ EasyEDA Pro MCP exposes **70 tools** across 8 categories. All inspection, tracin
   - [`easyeda_run_schematic_erc`](#easyeda_run_schematic_erc) · [`easyeda_trace_net`](#easyeda_trace_net) · [`easyeda_trace_component`](#easyeda_trace_component) · [`easyeda_find_unconnected_pins`](#easyeda_find_unconnected_pins) · [`easyeda_validate_schematic_area`](#easyeda_validate_schematic_area) · [`easyeda_verify_connections`](#easyeda_verify_connections)
 - **[PCB Layout & DRC Rules](#pcb-layout-drc-rules)** (30 tools)
   - [`easyeda_run_drc`](#easyeda_run_drc) · [`easyeda_get_pcb_layers`](#easyeda_get_pcb_layers) · [`easyeda_get_routing_status`](#easyeda_get_routing_status) · [`easyeda_list_pcb_components`](#easyeda_list_pcb_components) · [`easyeda_get_pcb_pads`](#easyeda_get_pcb_pads) · [`easyeda_prepare_pcb_component`](#easyeda_prepare_pcb_component) · [`easyeda_get_board_outline`](#easyeda_get_board_outline) · [`easyeda_prepare_board_outline`](#easyeda_prepare_board_outline) · [`easyeda_prepare_pcb_routing`](#easyeda_prepare_pcb_routing) · [`easyeda_prepare_pcb_layout`](#easyeda_prepare_pcb_layout) · [`easyeda_get_pcb_tracks`](#easyeda_get_pcb_tracks) · [`easyeda_get_pcb_vias`](#easyeda_get_pcb_vias) · [`easyeda_prepare_pcb_track_via`](#easyeda_prepare_pcb_track_via) · [`easyeda_highlight_net`](#easyeda_highlight_net) · [`easyeda_get_copper_zones`](#easyeda_get_copper_zones) · [`easyeda_get_keepouts`](#easyeda_get_keepouts) · [`easyeda_prepare_copper_keepout`](#easyeda_prepare_copper_keepout) · [`easyeda_get_pcb_airwires`](#easyeda_get_pcb_airwires) · [`easyeda_get_pcb_placement_report`](#easyeda_get_pcb_placement_report) · [`easyeda_get_pcb_net_report`](#easyeda_get_pcb_net_report) · [`easyeda_get_pcb_net_classes`](#easyeda_get_pcb_net_classes) · [`easyeda_get_pcb_differential_pairs`](#easyeda_get_pcb_differential_pairs) · [`easyeda_get_pcb_length_groups`](#easyeda_get_pcb_length_groups) · [`easyeda_prepare_pcb_net_constraint`](#easyeda_prepare_pcb_net_constraint) · [`easyeda_get_pcb_3d_inspection`](#easyeda_get_pcb_3d_inspection) · [`easyeda_get_pcb_3d_view`](#easyeda_get_pcb_3d_view) · [`easyeda_prepare_pcb_external_import`](#easyeda_prepare_pcb_external_import) · [`easyeda_get_drc_rules`](#easyeda_get_drc_rules) · [`easyeda_prepare_drc_edit`](#easyeda_prepare_drc_edit) · [`easyeda_get_drc_edit_result`](#easyeda_get_drc_edit_result)
-- **[Libraries, Navigation & Exports](#navigation-exports)** (11 tools)
-  - [`easyeda_export_cpl`](#easyeda_export_cpl) · [`easyeda_export_bom`](#easyeda_export_bom) · [`easyeda_export_netlist`](#easyeda_export_netlist) · [`easyeda_export_gerber`](#easyeda_export_gerber) · [`easyeda_export_pdf`](#easyeda_export_pdf) · [`easyeda_navigate_component`](#easyeda_navigate_component) · [`easyeda_navigate_region`](#easyeda_navigate_region) · [`easyeda_zoom_board`](#easyeda_zoom_board) · [`easyeda_get_device_details`](#easyeda_get_device_details) · [`easyeda_compare_devices`](#easyeda_compare_devices) · [`easyeda_verify_pin_pad_mapping`](#easyeda_verify_pin_pad_mapping)
+- **[Libraries, Navigation & Exports](#navigation-exports)** (15 tools)
+  - [`easyeda_export_cpl`](#easyeda_export_cpl) · [`easyeda_export_bom`](#easyeda_export_bom) · [`easyeda_export_netlist`](#easyeda_export_netlist) · [`easyeda_export_gerber`](#easyeda_export_gerber) · [`easyeda_export_pdf`](#easyeda_export_pdf) · [`easyeda_export_image`](#easyeda_export_image) · [`easyeda_export_3d_model`](#easyeda_export_3d_model) · [`easyeda_export_project_archive`](#easyeda_export_project_archive) · [`easyeda_export_dxf`](#easyeda_export_dxf) · [`easyeda_navigate_component`](#easyeda_navigate_component) · [`easyeda_navigate_region`](#easyeda_navigate_region) · [`easyeda_zoom_board`](#easyeda_zoom_board) · [`easyeda_get_device_details`](#easyeda_get_device_details) · [`easyeda_compare_devices`](#easyeda_compare_devices) · [`easyeda_verify_pin_pad_mapping`](#easyeda_verify_pin_pad_mapping)
 - **[Confirmation-Gated Actions](#confirmation-gated-actions)** (1 tool)
   - [`easyeda_confirmed_action`](#easyeda_confirmed_action)
 
@@ -1171,6 +1171,76 @@ Exports a PDF of the active schematic or PCB document.
 - **`scope`** (`"pcb" | "schematic" | "auto"`, _optional_, default: `"auto"`): Source document scope.
 - **`fileName`** (`string`, _optional_): Custom output filename.
 - **`timeoutMs`** (`number`, _optional_, default: `60000`): RPC timeout in ms.
+
+---
+
+### `easyeda_export_image`
+
+**Scope:** Visual Export RPC (`readOnlyHint: true`, default timeout: `30000` ms)
+
+Exports a high-resolution visual rendering or vector graphic (PNG, SVG, JPG) of the active schematic sheet or PCB layer stack with transparent background, resolution scaling (DPI), theme selection, and layer visibility options.
+
+**Parameters:**
+- **`fileName`** (`string`, _optional_): Custom output filename without extension.
+- **`format`** (`"png" | "svg" | "jpg"`, _optional_, default: `"png"`): Image export format.
+- **`scope`** (`"pcb" | "schematic" | "auto"`, _optional_, default: `"auto"`): Source document scope.
+- **`theme`** (`"light" | "dark" | "default"`, _optional_, default: `"default"`): Visual color theme for rendering.
+- **`transparentBackground`** (`boolean`, _optional_, default: `false`): Render with transparent canvas background.
+- **`dpi`** (`integer`, _optional_, default: `300`): Raster resolution in dots per inch (max 1200).
+- **`layers`** (`string[]`, _optional_): Specific PCB layers to include (e.g., `["TopLayer", "TopSilkLayer"]`).
+- **`destinationPath`** (`string`, _optional_): Target destination directory or output file path.
+- **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
+
+---
+
+### `easyeda_export_3d_model`
+
+**Scope:** PCB 3D CAD RPC (`readOnlyHint: true`, default timeout: `60000` ms)
+
+Exports 3D mechanical CAD geometry (STEP, OBJ, STL, WRL) of the board and mounted component bodies for MCAD integration, 3D printing, and thermal/clearance analysis.
+
+**Parameters:**
+- **`fileName`** (`string`, _optional_): Custom output filename without extension.
+- **`format`** (`"step" | "obj" | "stl" | "wrl"`, _optional_, default: `"step"`): 3D CAD geometry format.
+- **`includeComponents3D`** (`boolean`, _optional_, default: `true`): Include 3D component body models.
+- **`includeCopper`** (`boolean`, _optional_, default: `true`): Include copper layers in 3D geometry.
+- **`includeSilkscreen`** (`boolean`, _optional_, default: `true`): Include silkscreen legends in 3D geometry.
+- **`quality`** (`"low" | "medium" | "high"`, _optional_, default: `"high"`): Mesh tessellation and model quality.
+- **`destinationPath`** (`string`, _optional_): Target destination directory or output file path.
+- **`timeoutMs`** (`number`, _optional_, default: `60000`): RPC timeout in ms.
+
+---
+
+### `easyeda_export_project_archive`
+
+**Scope:** Project Package RPC (`readOnlyHint: true`, default timeout: `60000` ms)
+
+Exports the entire EasyEDA Pro project archive (`.epro`, `.zip`, `.json`) containing all schematic sheets, PCB layout, layer configurations, netlists, and project metadata with integrity validation and document tree manifest inspection.
+
+**Parameters:**
+- **`fileName`** (`string`, _optional_): Custom output filename without extension.
+- **`format`** (`"epro" | "zip" | "json"`, _optional_, default: `"epro"`): Archive bundle format.
+- **`includeLibraries`** (`boolean`, _optional_, default: `true`): Bundle custom library symbols and footprints.
+- **`includeHistory`** (`boolean`, _optional_, default: `false`): Include revision and change history.
+- **`destinationPath`** (`string`, _optional_): Target destination directory or output file path.
+- **`timeoutMs`** (`number`, _optional_, default: `60000`): RPC timeout in ms.
+
+---
+
+### `easyeda_export_dxf`
+
+**Scope:** 2D CAD Manufacture RPC (`readOnlyHint: true`, default timeout: `30000` ms)
+
+Exports 2D CAD DXF drawings of PCB outlines, copper traces, drilling holes, or schematic drawings for mechanical enclosures, CNC routing, laser cutting, and AutoCAD integration.
+
+**Parameters:**
+- **`fileName`** (`string`, _optional_): Custom output filename without extension.
+- **`scope`** (`"pcb" | "schematic" | "auto"`, _optional_, default: `"pcb"`): Export scope (PCB or schematic).
+- **`layers`** (`string[]`, _optional_): Specific layers to include in DXF drawing.
+- **`unit`** (`"mm" | "mil" | "inch"`, _optional_, default: `"mm"`): CAD drawing measurement unit.
+- **`dxfVersion`** (`"R12" | "R14" | "2000" | "2004" | "2007" | "2018"`, _optional_, default: `"2004"`): AutoCAD DXF format version.
+- **`destinationPath`** (`string`, _optional_): Target destination directory or output file path.
+- **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
 
 ---
 

@@ -106,9 +106,93 @@ export function registerExportTools(server: McpServer, bridge: EditorClient): vo
       fileName: z.string().min(1).optional().describe("Optional output file name without extension."),
       format: z.enum(["csv", "xlsx", "txt"]).default("csv").describe("File format for the pick and place report."),
       unit: z.enum(["mm", "mil"]).default("mm").describe("Coordinate unit for component positions."),
+      destinationPath: z.string().min(1).optional().describe("Optional destination directory / target path."),
       timeoutMs: DefaultTimeoutSchema.default(30_000)
     },
     summary: "Requested EasyEDA Pro CPL / Pick and Place export."
+  });
+
+  registerReadTool(server, bridge, {
+    name: "easyeda_export_image",
+    title: "Export schematic or PCB canvas image",
+    description:
+      "Exports a high-resolution visual rendering or vector graphic (PNG, SVG, JPG) of the active schematic sheet or PCB layer stack with transparent background, resolution scaling, and layer visibility options.",
+    method: "exportImage",
+    inputSchema: {
+      fileName: z.string().min(1).optional().describe("Optional output file name without extension."),
+      format: z.enum(["png", "svg", "jpg"]).default("png").describe("Image format (png, svg, jpg)."),
+      scope: z.enum(["pcb", "schematic", "auto"]).default("auto").describe("Scope of document to export."),
+      theme: z.enum(["light", "dark", "default"]).default("default").describe("Visual theme for rendering."),
+      transparentBackground: z.boolean().default(false).describe("Whether to use transparent background."),
+      dpi: z.number().int().positive().max(1200).default(300).describe("Resolution in dots-per-inch (raster formats)."),
+      layers: z
+        .array(z.string())
+        .optional()
+        .describe("Specific PCB layers to include (e.g. ['TopLayer', 'TopSilkLayer'])."),
+      destinationPath: z.string().min(1).optional().describe("Optional destination directory / target path."),
+      timeoutMs: DefaultTimeoutSchema.default(30_000)
+    },
+    summary: "Requested EasyEDA Pro canvas image export."
+  });
+
+  registerReadTool(server, bridge, {
+    name: "easyeda_export_3d_model",
+    title: "Export PCB 3D mechanical CAD model",
+    description:
+      "Exports 3D mechanical CAD geometry (STEP, OBJ, STL, WRL) of the board and mounted component bodies for MCAD integration, 3D printing, and thermal/clearance analysis.",
+    method: "export3dModel",
+    inputSchema: {
+      fileName: z.string().min(1).optional().describe("Optional output file name without extension."),
+      format: z
+        .enum(["step", "obj", "stl", "wrl"])
+        .default("step")
+        .describe("3D CAD geometry format (step, obj, stl, wrl)."),
+      includeComponents3D: z.boolean().default(true).describe("Include 3D component body models."),
+      includeCopper: z.boolean().default(true).describe("Include copper layers in 3D geometry."),
+      includeSilkscreen: z.boolean().default(true).describe("Include silkscreen legends in 3D geometry."),
+      quality: z.enum(["low", "medium", "high"]).default("high").describe("Tessellation/mesh export quality."),
+      destinationPath: z.string().min(1).optional().describe("Optional destination directory / target path."),
+      timeoutMs: DefaultTimeoutSchema.default(60_000)
+    },
+    summary: "Requested EasyEDA Pro 3D mechanical CAD export."
+  });
+
+  registerReadTool(server, bridge, {
+    name: "easyeda_export_project_archive",
+    title: "Export complete EasyEDA Pro project archive",
+    description:
+      "Exports the entire EasyEDA Pro project archive (epro, zip, json) containing all schematic sheets, PCB layout, layer configurations, netlists, and project metadata with integrity validation.",
+    method: "exportProjectArchive",
+    inputSchema: {
+      fileName: z.string().min(1).optional().describe("Optional output file name without extension."),
+      format: z.enum(["epro", "zip", "json"]).default("epro").describe("Archive bundle format (epro, zip, json)."),
+      includeLibraries: z.boolean().default(true).describe("Bundle custom library symbols and footprints."),
+      includeHistory: z.boolean().default(false).describe("Include revision and change history."),
+      destinationPath: z.string().min(1).optional().describe("Optional destination directory / target path."),
+      timeoutMs: DefaultTimeoutSchema.default(60_000)
+    },
+    summary: "Requested EasyEDA Pro project archive export."
+  });
+
+  registerReadTool(server, bridge, {
+    name: "easyeda_export_dxf",
+    title: "Export 2D CAD DXF drawing",
+    description:
+      "Exports 2D CAD DXF drawings of PCB outlines, copper traces, drilling holes, or schematic drawings for mechanical enclosures, CNC routing, laser cutting, and AutoCAD integration.",
+    method: "exportDxf",
+    inputSchema: {
+      fileName: z.string().min(1).optional().describe("Optional output file name without extension."),
+      scope: z.enum(["pcb", "schematic", "auto"]).default("pcb").describe("Export scope (pcb or schematic)."),
+      layers: z.array(z.string()).optional().describe("Specific layers to include in DXF export."),
+      unit: z.enum(["mm", "mil", "inch"]).default("mm").describe("CAD drawing unit."),
+      dxfVersion: z
+        .enum(["R12", "R14", "2000", "2004", "2007", "2018"])
+        .default("2004")
+        .describe("AutoCAD DXF format version."),
+      destinationPath: z.string().min(1).optional().describe("Optional destination directory / target path."),
+      timeoutMs: DefaultTimeoutSchema.default(30_000)
+    },
+    summary: "Requested EasyEDA Pro 2D CAD DXF export."
   });
 
   registerReadTool(server, bridge, {

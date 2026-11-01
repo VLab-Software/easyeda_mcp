@@ -32,7 +32,7 @@ describe("EasyEDA MCP server", () => {
     const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
     await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
 
-    expect((await client.listTools()).tools).toHaveLength(70);
+    expect((await client.listTools()).tools).toHaveLength(74);
     const live = await client.callTool({ name: "easyeda_live_status", arguments: {} });
     expect(live.structuredContent).toEqual({ status, bridgeEndpoint: editor.endpoint });
     const doctor = await client.callTool({ name: "easyeda_doctor", arguments: {} });
@@ -88,6 +88,10 @@ describe("EasyEDA MCP server", () => {
     expect(toolNames).toContain("easyeda_prepare_schematic_bus");
     expect(toolNames).toContain("easyeda_compare_schematic_pcb");
     expect(toolNames).toContain("easyeda_prepare_schematic_pcb_sync");
+    expect(toolNames).toContain("easyeda_export_image");
+    expect(toolNames).toContain("easyeda_export_3d_model");
+    expect(toolNames).toContain("easyeda_export_project_archive");
+    expect(toolNames).toContain("easyeda_export_dxf");
 
     const result = await client.callTool({
       name: "easyeda_get_context",

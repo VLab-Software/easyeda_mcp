@@ -172,12 +172,20 @@ export function detectMethodCapabilities(api: () => EasyEdaApi): Record<string, 
       (eda.pcb_Document as any)?.exportStep ||
       (eda.pcb_ManufactureData as any)?.getStepFile
     ),
+    "pcb_Document.exportSvg": Boolean((eda.pcb_Document as any)?.exportSvg),
+    "pcb_Document.exportPng": Boolean((eda.pcb_Document as any)?.exportPng),
     "pcb_Document.rebuildCopper": Boolean(
       (eda.pcb_Document as any)?.rebuildAllCopperArea || (eda.pcb_Document as any)?.rebuildCopperArea
     ),
     "pcb_ManufactureData.getPickAndPlaceFile": Boolean(eda.pcb_ManufactureData?.getPickAndPlaceFile),
     "pcb_ManufactureData.getGerberFile": Boolean(eda.pcb_ManufactureData?.getGerberFile),
     "pcb_ManufactureData.getBomFile": Boolean(eda.pcb_ManufactureData?.getBomFile),
+    "pcb_ManufactureData.getDxfFile": Boolean(
+      (eda.pcb_ManufactureData as any)?.getDxfFile || (eda.pcb_Document as any)?.exportDxf
+    ),
+    "dmt_Project.exportProject": Boolean(
+      (eda.dmt_Project as any)?.exportProject || (eda.dmt_Project as any)?.getProjectData
+    ),
 
     // Schematic APIs
     "sch_PrimitiveComponent.getAll": Boolean(eda.sch_PrimitiveComponent?.getAll),
@@ -206,6 +214,8 @@ export function detectMethodCapabilities(api: () => EasyEdaApi): Record<string, 
     "sch_PrimitiveBusEntry.create": Boolean(eda.sch_PrimitiveBusEntry?.create),
     "sch_PrimitiveBusEntry.delete": Boolean(eda.sch_PrimitiveBusEntry?.delete),
     "sch_Document.getAllPrimitiveId": Boolean(eda.sch_Document?.getAllPrimitiveId),
+    "sch_Document.exportSvg": Boolean((eda.sch_Document as any)?.exportSvg),
+    "sch_Document.exportPng": Boolean((eda.sch_Document as any)?.exportPng),
     "sch_ManufactureData.getBomFile": Boolean(eda.sch_ManufactureData?.getBomFile),
     "sch_Net.getAllNetsName": Boolean(
       eda.sch_Net?.getAllNetsName || eda.sch_Net?.getAllNetName || eda.sch_Net?.getAllNets
