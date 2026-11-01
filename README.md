@@ -19,6 +19,7 @@
   <a href="./LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-blue"></a>
   <img alt="Node" src="https://img.shields.io/badge/node-%3E%3D20-339933">
   <img alt="Platforms" src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey">
+  <a href="https://github.com/sponsors/vafreitas"><img alt="Sponsor" src="https://img.shields.io/badge/Sponsor-%E2%99%A5-ea4aaa?logo=githubsponsors&logoColor=white"></a>
 </p>
 
 <p align="center">
@@ -254,4 +255,5 @@ npm run docs:build           # Build VitePress documentation site
 
 - **Localhost & Live Session**: Operates on the live project open in EasyEDA Pro over `127.0.0.1:8765` (no offline `.epro` parsing or commercial/order automation). Do not expose the WebSocket port to untrusted networks — see [SECURITY.md](./SECURITY.md).
 - **Non-Affiliation**: Independent open-source project. Not affiliated with, endorsed by, or sponsored by EasyEDA, JLCPCB, or Shenzhen Jia Chuang Ban Technology Co., Ltd. EasyEDA and EasyEDA Pro are trademarks of their respective owners.
+- **Sponsorship & Support**: If you find this project useful, consider supporting its development via [GitHub Sponsors](https://github.com/sponsors/vafreitas).
 - **Contact & License**: [victor.freitas@vlabsoft.com](mailto:victor.freitas@vlabsoft.com) · Released under the [MIT License](./LICENSE).
