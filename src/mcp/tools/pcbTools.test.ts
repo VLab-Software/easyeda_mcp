@@ -41,7 +41,10 @@ describe("pcbTools", () => {
       "easyeda_get_pcb_net_classes",
       "easyeda_get_pcb_differential_pairs",
       "easyeda_get_pcb_length_groups",
-      "easyeda_prepare_pcb_net_constraint"
+      "easyeda_prepare_pcb_net_constraint",
+      "easyeda_get_pcb_3d_inspection",
+      "easyeda_get_pcb_3d_view",
+      "easyeda_prepare_pcb_external_import"
     ]);
   });
 
@@ -1078,6 +1081,137 @@ describe("pcbTools", () => {
     expect(result.structuredContent).toMatchObject({
       mutationId: "mut-diff-1",
       confirmation: "CONFIRM pcb:createDifferentialPair mut-diff-1"
+    });
+
+    await client.close();
+  });
+
+  it("invokes easyeda_get_pcb_3d_inspection with height clearance parameters", async () => {
+    const bridge = {
+      endpoint: "ws://127.0.0.1:8765",
+      getStatus: vi.fn((): EditorStatus => ({ connected: true, updatedAt: "2026-11-01T00:00:00.000Z" })),
+      call: vi.fn(async () => ({
+        envelope: {
+          boardThicknessMm: 1.6,
+          maxHeightTopMm: 3.2,
+          totalEnvelopeHeightMm: 5.4,
+          enclosureStatus: "FIT"
+        },
+        totalComponents: 10,
+        missing3dModels: []
+      }))
+    };
+
+    const server = new McpServer({ name: "test", version: "1.0.0" });
+    registerPcbTools(server, bridge as any);
+    const client = new Client({ name: "test-client", version: "1.0.0" });
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
+
+    const result = await client.callTool({
+      name: "easyeda_get_pcb_3d_inspection",
+      arguments: {
+        maxHeightMm: 5.0,
+        enclosureHeightMm: 10.0,
+        checkInterference: true
+      }
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(bridge.call).toHaveBeenCalledWith(
+      "getPcb3dInspection",
+      {
+        maxHeightMm: 5.0,
+        enclosureHeightMm: 10.0,
+        checkInterference: true
+      },
+      30_000
+    );
+    expect(result.structuredContent).toMatchObject({
+      result: {
+        envelope: { totalEnvelopeHeightMm: 5.4 }
+      }
+    });
+
+    await client.close();
+  });
+
+  it("invokes easyeda_get_pcb_3d_view with viewAngle preset", async () => {
+    const bridge = {
+      endpoint: "ws://127.0.0.1:8765",
+      getStatus: vi.fn((): EditorStatus => ({ connected: true, updatedAt: "2026-11-01T00:00:00.000Z" })),
+      call: vi.fn(async () => ({
+        viewAngle: "isometric_sw",
+        camera: { pitch: 45, yaw: 225 },
+        renderingLayers: { component3dModels: true }
+      }))
+    };
+
+    const server = new McpServer({ name: "test", version: "1.0.0" });
+    registerPcbTools(server, bridge as any);
+    const client = new Client({ name: "test-client", version: "1.0.0" });
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
+
+    const result = await client.callTool({
+      name: "easyeda_get_pcb_3d_view",
+      arguments: {
+        viewAngle: "isometric_sw"
+      }
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(bridge.call).toHaveBeenCalledWith(
+      "getPcb3dView",
+      {
+        viewAngle: "isometric_sw"
+      },
+      30_000
+    );
+
+    await client.close();
+  });
+
+  it("invokes easyeda_prepare_pcb_external_import with inline content", async () => {
+    const bridge = {
+      endpoint: "ws://127.0.0.1:8765",
+      getStatus: vi.fn((): EditorStatus => ({ connected: true, updatedAt: "2026-11-01T00:00:00.000Z" })),
+      call: vi.fn(async () => ({
+        mutationId: "mut-import-1",
+        confirmation: "CONFIRM pcb:import_external mut-import-1",
+        preview: {
+          impact: "Import 4 external primitives onto active PCB.",
+          scope: "PCB: active document"
+        }
+      }))
+    };
+
+    const server = new McpServer({ name: "test", version: "1.0.0" });
+    registerPcbTools(server, bridge as any);
+    const client = new Client({ name: "test-client", version: "1.0.0" });
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
+
+    const result = await client.callTool({
+      name: "easyeda_prepare_pcb_external_import",
+      arguments: {
+        format: "specctra_ses",
+        content: "(session test ...)"
+      }
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(bridge.call).toHaveBeenCalledWith(
+      "preparePcbExternalImport",
+      expect.objectContaining({
+        format: "specctra_ses",
+        content: "(session test ...)"
+      }),
+      30_000
+    );
+    expect(result.structuredContent).toMatchObject({
+      mutationId: "mut-import-1",
+      confirmation: "CONFIRM pcb:import_external mut-import-1"
     });
 
     await client.close();

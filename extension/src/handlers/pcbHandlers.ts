@@ -21,12 +21,14 @@ import {
   fetchPcbLengthGroups,
   preparePcbNetConstraintMutation
 } from "../mutation/pcbNetConstraintMutations.js";
+import { preparePcbExternalImportMutation } from "../mutation/pcbExternalImportMutations.js";
 import { fetchPcbTracks, fetchPcbVias, preparePcbTrackViaMutation } from "../mutation/pcbTrackViaMutations.js";
 import {
   generatePcbAirwiresReport,
   generatePcbPlacementReport,
   generatePcbNetReport
 } from "../reporting/pcbBoardReports.js";
+import { inspectPcb3d, fetchPcb3dView } from "../reporting/pcb3dInspection.js";
 import type { EasyEdaApi, RpcHandler } from "../types.js";
 import {
   filterAndLimitViolations,
@@ -869,6 +871,9 @@ export function createPcbHandlers(api: () => EasyEdaApi): Record<string, RpcHand
     getPcbNetClasses,
     getPcbDifferentialPairs,
     getPcbLengthGroups,
-    prepareNetConstraint: (params: Record<string, any>) => preparePcbNetConstraintMutation(api, params)
+    prepareNetConstraint: (params: Record<string, any>) => preparePcbNetConstraintMutation(api, params),
+    getPcb3dInspection: (params: Record<string, any>) => inspectPcb3d(api, params),
+    getPcb3dView: (params: Record<string, any>) => fetchPcb3dView(api, params),
+    preparePcbExternalImport: (params: Record<string, any>) => preparePcbExternalImportMutation(api, params)
   };
 }

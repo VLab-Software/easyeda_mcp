@@ -157,6 +157,12 @@ export function detectMethodCapabilities(api: () => EasyEdaApi): Record<string, 
     "pcb_LengthGroup.delete": Boolean(
       (eda as any).pcb_LengthGroup?.delete || (eda as any).pcb_EqualLengthGroup?.delete
     ),
+    "pcb_Document.get3DView": Boolean((eda.pcb_Document as any)?.get3DView),
+    "pcb_Document.export3D": Boolean(
+      (eda.pcb_Document as any)?.export3D ||
+      (eda.pcb_Document as any)?.exportStep ||
+      (eda.pcb_ManufactureData as any)?.getStepFile
+    ),
     "pcb_Document.rebuildCopper": Boolean(
       (eda.pcb_Document as any)?.rebuildAllCopperArea || (eda.pcb_Document as any)?.rebuildCopperArea
     ),
