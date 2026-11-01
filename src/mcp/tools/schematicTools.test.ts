@@ -41,7 +41,8 @@ describe("schematicTools MCP registration and invocation", () => {
       "easyeda_run_schematic_erc",
       "easyeda_validate_schematic_area",
       "easyeda_verify_connections",
-      "easyeda_get_schematic_ports_buses"
+      "easyeda_get_schematic_ports_buses",
+      "easyeda_compare_schematic_pcb"
     ]);
   });
 
@@ -165,6 +166,41 @@ describe("schematicTools MCP registration and invocation", () => {
     expect(result.structuredContent).toMatchObject({
       result: {
         summary: { portCount: 1, busCount: 1, totalSignalsInBuses: 8 }
+      }
+    });
+  });
+
+  it("invokes easyeda_compare_schematic_pcb and returns synchronization status", async () => {
+    const bridge = {
+      endpoint: "ws://127.0.0.1:8765",
+      getStatus: (): EditorStatus => ({ connected: true, updatedAt: new Date().toISOString() }),
+      call: vi.fn(async () => ({
+        syncStatus: "in_sync",
+        syncScore: 100,
+        summary: {
+          schematicComponentCount: 5,
+          pcbComponentCount: 5,
+          matchedComponentCount: 5,
+          totalDiscrepancies: 0
+        },
+        components: [],
+        nets: [],
+        recommendations: ["Schematic and PCB are fully synchronized."]
+      }))
+    };
+    const client = await makeClient(bridge);
+
+    const result = await client.callTool({
+      name: "easyeda_compare_schematic_pcb",
+      arguments: {}
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(bridge.call).toHaveBeenCalledWith("compareSchematicPcb", expect.any(Object), 30_000);
+    expect(result.structuredContent).toMatchObject({
+      result: {
+        syncStatus: "in_sync",
+        syncScore: 100
       }
     });
   });

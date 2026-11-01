@@ -356,6 +356,71 @@ export function registerSchematicMutationTools(server: McpServer, bridge: Editor
   );
 
   server.registerTool(
+    "easyeda_prepare_schematic_pcb_sync",
+    {
+      title: "Prepare Schematic-PCB Synchronization",
+      description:
+        "Prepares a synchronization or board creation mutation between Schematic and PCB in EasyEDA Pro ('syncToPcb', 'syncToSchematic', 'createPcbFromSchematic') with cross-domain discrepancy preview and exact confirmation phrase. Does not write until confirmed via easyeda_confirmed_action.",
+      inputSchema: {
+        action: z
+          .enum(["syncToPcb", "syncToSchematic", "createPcbFromSchematic"])
+          .describe("Synchronization or board creation action to perform"),
+        boardName: z.string().optional().describe("Name for newly created PCB document (for createPcbFromSchematic)"),
+        layerCount: z
+          .number()
+          .int()
+          .min(1)
+          .max(32)
+          .optional()
+          .describe("Copper layer count for created PCB board (default: 2)"),
+        width: z.number().positive().optional().describe("Board outline width in mm (default: 100)"),
+        height: z.number().positive().optional().describe("Board outline height in mm (default: 80)"),
+        schematicTarget: DocumentTargetSchema.optional().describe("Expected schematic document target"),
+        pcbTarget: DocumentTargetSchema.optional().describe("Expected PCB document target"),
+        timeoutMs: DefaultTimeoutSchema.default(30_000)
+      },
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: false,
+        openWorldHint: false
+      }
+    },
+    async ({ action, boardName, layerCount, width, height, schematicTarget, pcbTarget, timeoutMs }) => {
+      try {
+        const result = (await bridge.call(
+          "prepareSchematicPcbSync",
+          {
+            action,
+            boardName,
+            layerCount,
+            width,
+            height,
+            schematicTarget,
+            pcbTarget
+          },
+          timeoutMs
+        )) as Record<string, unknown>;
+
+        const mutationId = String(result.mutationId ?? "");
+        const confirmation = String(result.confirmation ?? "");
+        const preview = (result.preview as { impact?: string; scope?: string }) ?? {};
+        const summary = [
+          `Prepared schematic-PCB sync mutation '${action}':`,
+          `Impact: ${preview.impact ?? "none"}`,
+          `Scope: ${preview.scope ?? "project"}`,
+          `Confirmation phrase required: "${confirmation}"`,
+          `Review the preview and run easyeda_confirmed_action with action="mutation", params={ mutationId: "${mutationId}" }, and the exact confirmation string.`
+        ].join("\n");
+
+        return ok(summary, result);
+      } catch (error) {
+        return fail(error);
+      }
+    }
+  );
+
+  server.registerTool(
     "easyeda_get_mutation_result",
     {
       title: "Get Mutation Result",

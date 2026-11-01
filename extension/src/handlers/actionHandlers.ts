@@ -15,6 +15,7 @@ import {
 } from "../mutation/pcbRoutingMutations.js";
 import { executePcbTrackViaMutation } from "../mutation/pcbTrackViaMutations.js";
 import { executeSchematicComponentMutation } from "../mutation/schematicComponentMutations.js";
+import { executeSchematicPcbSyncMutation } from "../mutation/schematicPcbSyncMutations.js";
 import { executeSchematicBusMutation, executeSchematicPortMutation } from "../mutation/schematicPortBusMutations.js";
 import { executeSchematicWireMutation } from "../mutation/schematicWireMutations.js";
 import type { EasyEdaApi, RpcHandler } from "../types.js";
@@ -52,6 +53,14 @@ export function createActionHandlers(
           } else {
             res = await executeSchematicComponentMutation(record, api);
           }
+          resultReadback = res.readback;
+          return res.executed;
+        };
+        readbackFn = async () => resultReadback;
+      } else if (record.domain === "sync") {
+        let resultReadback: Record<string, unknown> = {};
+        executeFn = async () => {
+          const res = await executeSchematicPcbSyncMutation(record, api);
           resultReadback = res.readback;
           return res.executed;
         };
