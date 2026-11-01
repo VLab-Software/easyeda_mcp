@@ -1,4 +1,5 @@
 import { apiError, ensureApi, numeric, optionalCall, sanitize, simplifyPrimitive, toArray } from "../helpers.js";
+import { extractDocumentIdentity } from "../identity.js";
 import type { EasyEdaApi, RpcHandler } from "../types.js";
 
 export async function getPcbComponents(api: () => EasyEdaApi): Promise<unknown[]> {
@@ -62,6 +63,7 @@ export function createPcbHandlers(api: () => EasyEdaApi): Record<string, RpcHand
     }
 
     return {
+      target: extractDocumentIdentity(documentInfo),
       passed,
       errorsCount,
       warningsCount,
@@ -74,6 +76,7 @@ export function createPcbHandlers(api: () => EasyEdaApi): Record<string, RpcHand
   async function getPcbLayers(): Promise<Record<string, unknown>> {
     const eda = api();
     ensureApi("pcb_Layer", "getAllLayers", eda);
+    const documentInfo = await optionalCall(() => eda.dmt_SelectControl?.getCurrentDocumentInfo?.());
     const rawLayers = toArray(await eda.pcb_Layer.getAllLayers());
     const layers = rawLayers.map((layer: any) => {
       if (!layer || typeof layer !== "object") return layer;
@@ -97,6 +100,7 @@ export function createPcbHandlers(api: () => EasyEdaApi): Record<string, RpcHand
       (l: any) => l && (l.isSignal || ["signal", "copper", "plane"].includes(String(l.type).toLowerCase()))
     );
     return {
+      target: extractDocumentIdentity(documentInfo),
       layerCount: layers.length,
       copperLayerCount: copperLayers.length,
       layers: sanitize(layers),
@@ -158,7 +162,9 @@ export function createPcbHandlers(api: () => EasyEdaApi): Record<string, RpcHand
     const totalNets = names.length;
     const completionPercent = totalNets > 0 ? Math.round((routedCount / totalNets) * 1000) / 10 : 100;
 
+    const documentInfo = await optionalCall(() => eda.dmt_SelectControl?.getCurrentDocumentInfo?.());
     return {
+      target: extractDocumentIdentity(documentInfo),
       totalNets,
       routedNets: routedCount,
       unroutedNets: Math.max(0, totalNets - routedCount),
@@ -178,6 +184,7 @@ export function createPcbHandlers(api: () => EasyEdaApi): Record<string, RpcHand
     const includeRaw = Boolean(params.includeRaw);
 
     const rawComponents = await getPcbComponents(api);
+    const documentInfo = await optionalCall(() => api().dmt_SelectControl?.getCurrentDocumentInfo?.());
     const all = toArray(rawComponents).map((item: any) => {
       const simplified = simplifyPrimitive(item);
       const layerId =
@@ -225,6 +232,7 @@ export function createPcbHandlers(api: () => EasyEdaApi): Record<string, RpcHand
 
     const items = filtered.slice(0, limit);
     return {
+      target: extractDocumentIdentity(documentInfo),
       total: all.length,
       count: items.length,
       layerFilter,
