@@ -111,6 +111,92 @@ export function registerSchematicMutationTools(server: McpServer, bridge: Editor
   );
 
   server.registerTool(
+    "easyeda_prepare_schematic_wire",
+    {
+      title: "Prepare Schematic Wire Mutation",
+      description:
+        "Prepares a wire creation, modification, deletion, or net label placement operation in EasyEDA Pro with preview, coordinate validation, affected connections check, and exact confirmation phrase. Does not write until confirmed.",
+      inputSchema: {
+        action: z
+          .enum(["createWire", "modifyWire", "deleteWire", "addNetLabel"])
+          .describe("Wire mutation action to perform"),
+        coordinates: z
+          .array(z.number())
+          .optional()
+          .describe("Flat array of polyline coordinates [x1, y1, x2, y2, ...] (minimum 2 points)"),
+        wireId: z.string().optional().describe("Target wire ID for modify or delete"),
+        net: z.string().optional().describe("Net name for wire or net label"),
+        x: z.number().optional().describe("X coordinate for net label"),
+        y: z.number().optional().describe("Y coordinate for net label"),
+        kind: z.enum(["label", "flag"]).optional().describe("Kind of net label (label or power/ground flag)"),
+        flagType: z.string().optional().describe("Flag type for net flag (Power, Ground, NetPort)"),
+        rotation: z.number().optional().describe("Rotation angle for net label or flag"),
+        color: z.string().optional().describe("Wire color string"),
+        lineWidth: z.number().optional().describe("Wire line width"),
+        target: DocumentTargetSchema.optional().describe("Expected active schematic target"),
+        timeoutMs: DefaultTimeoutSchema.default(30_000)
+      },
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: false,
+        openWorldHint: false
+      }
+    },
+    async ({
+      action,
+      coordinates,
+      wireId,
+      net,
+      x,
+      y,
+      kind,
+      flagType,
+      rotation,
+      color,
+      lineWidth,
+      target,
+      timeoutMs
+    }) => {
+      try {
+        const result = (await bridge.call(
+          "prepareSchematicWire",
+          {
+            action,
+            coordinates,
+            wireId,
+            net,
+            x,
+            y,
+            kind,
+            flagType,
+            rotation,
+            color,
+            lineWidth,
+            target
+          },
+          timeoutMs
+        )) as Record<string, unknown>;
+
+        const mutationId = String(result.mutationId ?? "");
+        const confirmation = String(result.confirmation ?? "");
+        const preview = (result.preview as { impact?: string; scope?: string }) ?? {};
+        const summary = [
+          `Prepared schematic wire mutation '${action}':`,
+          `Impact: ${preview.impact ?? "none"}`,
+          `Scope: ${preview.scope ?? "active document"}`,
+          `Confirmation phrase required: "${confirmation}"`,
+          `Review the preview and run easyeda_confirmed_action with action="mutation", params={ mutationId: "${mutationId}" }, and the exact confirmation string.`
+        ].join("\n");
+
+        return ok(summary, result);
+      } catch (error) {
+        return fail(error);
+      }
+    }
+  );
+
+  server.registerTool(
     "easyeda_get_mutation_result",
     {
       title: "Get Mutation Result",

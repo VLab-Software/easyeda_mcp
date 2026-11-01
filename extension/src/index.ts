@@ -15,6 +15,7 @@ import { createSchematicHandlers } from "./handlers/schematicHandlers.js";
 import { log, showMessage } from "./helpers.js";
 import { extensionMutations } from "./mutation/mutationManager.js";
 import { prepareSchematicComponentMutation } from "./mutation/schematicComponentMutations.js";
+import { prepareSchematicWireMutation } from "./mutation/schematicWireMutations.js";
 import type { EasyEdaApi, RpcHandler } from "./types.js";
 
 const getApi = (): EasyEdaApi => (typeof eda !== "undefined" ? eda : (globalThis as any).eda);
@@ -38,6 +39,7 @@ const handlers: Record<string, RpcHandler> = {
   prepareDrcEdit: (params) => drcRules.prepare(params),
   getDrcEditResult: (params) => drcRules.result(params),
   prepareSchematicComponent: (params) => prepareSchematicComponentMutation(getApi, params),
+  prepareSchematicWire: (params) => prepareSchematicWireMutation(getApi, params),
   ...contextHandlers,
   ...documentHandlers,
   ...schematicHandlers,

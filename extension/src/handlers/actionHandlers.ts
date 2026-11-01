@@ -3,6 +3,7 @@ import { apiError, ensureApi, optionalCall, pickString } from "../helpers.js";
 import { extractDocumentIdentity } from "../identity.js";
 import { extensionMutations } from "../mutation/mutationManager.js";
 import { executeSchematicComponentMutation } from "../mutation/schematicComponentMutations.js";
+import { executeSchematicWireMutation } from "../mutation/schematicWireMutations.js";
 import type { EasyEdaApi, RpcHandler } from "../types.js";
 
 export function createActionHandlers(
@@ -26,7 +27,12 @@ export function createActionHandlers(
       if (record.domain === "schematic") {
         let resultReadback: Record<string, unknown> = {};
         executeFn = async () => {
-          const res = await executeSchematicComponentMutation(record, api);
+          let res: { executed: boolean; readback: Record<string, unknown> };
+          if (["createWire", "modifyWire", "deleteWire", "addNetLabel"].includes(record.action)) {
+            res = await executeSchematicWireMutation(record, api);
+          } else {
+            res = await executeSchematicComponentMutation(record, api);
+          }
           resultReadback = res.readback;
           return res.executed;
         };

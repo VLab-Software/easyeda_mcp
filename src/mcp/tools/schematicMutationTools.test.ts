@@ -27,6 +27,7 @@ describe("Schematic Mutation MCP Tools", () => {
     const names = tools.tools.map((t) => t.name);
 
     expect(names).toContain("easyeda_prepare_schematic_component");
+    expect(names).toContain("easyeda_prepare_schematic_wire");
     expect(names).toContain("easyeda_get_mutation_result");
   });
 
@@ -157,6 +158,104 @@ describe("Schematic Mutation MCP Tools", () => {
           text: expect.stringContaining("require an active schematic document")
         }
       ]
+    });
+  });
+
+  it("prepares a wire creation mutation and returns confirmation instructions", async () => {
+    const mutationId = "wire-mut-123";
+    const confirmation = `CONFIRM schematic:createWire ${mutationId}`;
+    const bridge = {
+      endpoint: "ws://127.0.0.1:8765",
+      getStatus: (): EditorStatus => ({ connected: true, updatedAt: new Date().toISOString() }),
+      call: vi.fn(async () => ({
+        mutationId,
+        confirmation,
+        action: "createWire",
+        preview: {
+          impact: "Creates wire from (100, 200) to (300, 200) on net VCC.",
+          scope: "document:sch-doc-1"
+        },
+        expiresAt: new Date(Date.now() + 300_000).toISOString()
+      }))
+    };
+    const client = await makeClient(bridge);
+
+    const result = await client.callTool({
+      name: "easyeda_prepare_schematic_wire",
+      arguments: {
+        action: "createWire",
+        coordinates: [100, 200, 300, 200],
+        net: "VCC"
+      }
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(bridge.call).toHaveBeenCalledWith(
+      "prepareSchematicWire",
+      expect.objectContaining({
+        action: "createWire",
+        coordinates: [100, 200, 300, 200],
+        net: "VCC"
+      }),
+      30_000
+    );
+    expect(result).toMatchObject({
+      content: [
+        {
+          type: "text",
+          text: expect.stringContaining(`CONFIRM schematic:createWire ${mutationId}`)
+        }
+      ]
+    });
+    expect(result.structuredContent).toMatchObject({
+      mutationId,
+      confirmation
+    });
+  });
+
+  it("prepares a net label mutation via easyeda_prepare_schematic_wire", async () => {
+    const mutationId = "netlabel-mut-456";
+    const confirmation = `CONFIRM schematic:addNetLabel ${mutationId}`;
+    const bridge = {
+      endpoint: "ws://127.0.0.1:8765",
+      getStatus: (): EditorStatus => ({ connected: true, updatedAt: new Date().toISOString() }),
+      call: vi.fn(async () => ({
+        mutationId,
+        confirmation,
+        action: "addNetLabel",
+        preview: {
+          impact: "Attaches net label GND at (500, 600).",
+          scope: "document:sch-doc-1"
+        },
+        expiresAt: new Date(Date.now() + 300_000).toISOString()
+      }))
+    };
+    const client = await makeClient(bridge);
+
+    const result = await client.callTool({
+      name: "easyeda_prepare_schematic_wire",
+      arguments: {
+        action: "addNetLabel",
+        net: "GND",
+        x: 500,
+        y: 600
+      }
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(bridge.call).toHaveBeenCalledWith(
+      "prepareSchematicWire",
+      expect.objectContaining({
+        action: "addNetLabel",
+        net: "GND",
+        x: 500,
+        y: 600
+      }),
+      30_000
+    );
+    expect(result.structuredContent).toMatchObject({
+      mutationId,
+      confirmation
     });
   });
 });
