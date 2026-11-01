@@ -28,6 +28,9 @@ describe("pcbTools", () => {
       "easyeda_prepare_board_outline",
       "easyeda_prepare_pcb_routing",
       "easyeda_prepare_pcb_layout",
+      "easyeda_get_pcb_tracks",
+      "easyeda_get_pcb_vias",
+      "easyeda_prepare_pcb_track_via",
       "easyeda_highlight_net"
     ]);
   });
@@ -401,6 +404,166 @@ describe("pcbTools", () => {
     expect(result.structuredContent).toMatchObject({
       mutationId: "mut-layout-101",
       confirmation: "CONFIRM pcb:autolayout mut-layout-101"
+    });
+
+    await client.close();
+  });
+
+  it("invokes easyeda_get_pcb_tracks with net and layer filters", async () => {
+    const bridge = {
+      endpoint: "ws://127.0.0.1:8765",
+      getStatus: vi.fn((): EditorStatus => ({ connected: true, updatedAt: "2026-11-01T00:00:00.000Z" })),
+      call: vi.fn(async () => ({
+        totalTracks: 1,
+        count: 1,
+        tracks: [
+          {
+            primitiveId: "track-101",
+            net: "GND",
+            layer: 1,
+            lineWidth: 0.254,
+            startX: 10,
+            startY: 20,
+            endX: 30,
+            endY: 20,
+            length: 20
+          }
+        ]
+      }))
+    };
+
+    const server = new McpServer({ name: "test", version: "1.0.0" });
+    registerPcbTools(server, bridge as any);
+    const client = new Client({ name: "test-client", version: "1.0.0" });
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
+
+    const result = await client.callTool({
+      name: "easyeda_get_pcb_tracks",
+      arguments: {
+        net: "GND",
+        layer: 1
+      }
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(bridge.call).toHaveBeenCalledWith(
+      "getPcbTracks",
+      expect.objectContaining({
+        net: "GND",
+        layer: 1
+      }),
+      30_000
+    );
+    expect(result.structuredContent).toMatchObject({
+      result: {
+        totalTracks: 1,
+        count: 1
+      }
+    });
+
+    await client.close();
+  });
+
+  it("invokes easyeda_get_pcb_vias with net filter", async () => {
+    const bridge = {
+      endpoint: "ws://127.0.0.1:8765",
+      getStatus: vi.fn((): EditorStatus => ({ connected: true, updatedAt: "2026-11-01T00:00:00.000Z" })),
+      call: vi.fn(async () => ({
+        totalVias: 1,
+        count: 1,
+        vias: [
+          {
+            primitiveId: "via-201",
+            net: "VCC",
+            x: 15,
+            y: 25,
+            diameter: 0.6,
+            holeDiameter: 0.3
+          }
+        ]
+      }))
+    };
+
+    const server = new McpServer({ name: "test", version: "1.0.0" });
+    registerPcbTools(server, bridge as any);
+    const client = new Client({ name: "test-client", version: "1.0.0" });
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
+
+    const result = await client.callTool({
+      name: "easyeda_get_pcb_vias",
+      arguments: {
+        net: "VCC"
+      }
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(bridge.call).toHaveBeenCalledWith(
+      "getPcbVias",
+      expect.objectContaining({
+        net: "VCC"
+      }),
+      30_000
+    );
+    expect(result.structuredContent).toMatchObject({
+      result: {
+        totalVias: 1,
+        count: 1
+      }
+    });
+
+    await client.close();
+  });
+
+  it("invokes easyeda_prepare_pcb_track_via to stage a track creation mutation", async () => {
+    const bridge = {
+      endpoint: "ws://127.0.0.1:8765",
+      getStatus: vi.fn((): EditorStatus => ({ connected: true, updatedAt: "2026-11-01T00:00:00.000Z" })),
+      call: vi.fn(async () => ({
+        mutationId: "mut-trk-99",
+        confirmation: "CONFIRM pcb:createTrack mut-trk-99",
+        preview: {
+          impact: "Creates PCB track on layer 1 (Net: GND, width: 0.254mm) from (10, 10) to (20, 20).",
+          scope: "track:create:layer=1:net=GND"
+        }
+      }))
+    };
+
+    const server = new McpServer({ name: "test", version: "1.0.0" });
+    registerPcbTools(server, bridge as any);
+    const client = new Client({ name: "test-client", version: "1.0.0" });
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
+
+    const result = await client.callTool({
+      name: "easyeda_prepare_pcb_track_via",
+      arguments: {
+        entity: "track",
+        action: "create",
+        net: "GND",
+        layer: 1,
+        startX: 10,
+        startY: 10,
+        endX: 20,
+        endY: 20,
+        lineWidth: 0.254
+      }
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(bridge.call).toHaveBeenCalledWith(
+      "preparePcbTrackVia",
+      expect.objectContaining({
+        entity: "track",
+        action: "create",
+        net: "GND"
+      }),
+      30_000
+    );
+    expect(result.structuredContent).toMatchObject({
+      mutationId: "mut-trk-99",
+      confirmation: "CONFIRM pcb:createTrack mut-trk-99"
     });
 
     await client.close();

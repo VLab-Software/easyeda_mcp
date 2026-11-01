@@ -10,6 +10,7 @@ import {
   fetchLayoutSummary,
   fetchRoutingSummary
 } from "../mutation/pcbRoutingMutations.js";
+import { executePcbTrackViaMutation } from "../mutation/pcbTrackViaMutations.js";
 import { executeSchematicComponentMutation } from "../mutation/schematicComponentMutations.js";
 import { executeSchematicWireMutation } from "../mutation/schematicWireMutations.js";
 import type { EasyEdaApi, RpcHandler } from "../types.js";
@@ -55,6 +56,10 @@ export function createActionHandlers(
             res = await executePcbLayoutMutation(api, (record as any).operation ?? record, record.before);
           } else if (["setBoardOutline", "clearBoardOutline", "modifyBoardOutline"].includes(record.action)) {
             res = await executeBoardOutlineMutation(api, (record as any).operation ?? record, record.before);
+          } else if (
+            ["createTrack", "modifyTrack", "deleteTrack", "createVia", "modifyVia", "deleteVia"].includes(record.action)
+          ) {
+            res = await executePcbTrackViaMutation(api, (record as any).operation ?? record, record.before);
           } else {
             res = await executePcbComponentMutation(api, (record as any).operation ?? record, record.before);
           }

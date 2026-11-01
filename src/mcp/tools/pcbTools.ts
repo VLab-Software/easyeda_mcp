@@ -386,6 +386,106 @@ export function registerPcbTools(server: McpServer, bridge: EditorClient): void 
   );
 
   registerReadTool(server, bridge, {
+    name: "easyeda_get_pcb_tracks",
+    title: "Get PCB tracks",
+    description:
+      "Lists and inspects copper tracks and traces on the active PCB layout with net, layer, geometry coordinates, width, and calculated length.",
+    method: "getPcbTracks",
+    inputSchema: {
+      net: z.string().min(1).optional().describe("Optional filter by net name (e.g. 'GND', 'VCC')."),
+      layer: z
+        .union([z.string(), z.number()])
+        .optional()
+        .describe("Optional filter by layer name or layer ID (e.g. 1, 'TopLayer', 2, 'BottomLayer')."),
+      primitiveId: z.string().min(1).optional().describe("Optional filter by track primitive ID."),
+      limit: z.number().int().positive().max(500).default(100).describe("Maximum number of tracks to return."),
+      includeRaw: z.boolean().default(false).describe("Include raw underlying primitive data."),
+      target: DocumentTargetSchema.optional(),
+      timeoutMs: DefaultTimeoutSchema.default(30_000)
+    },
+    summary: "Fetched EasyEDA Pro PCB tracks."
+  });
+
+  registerReadTool(server, bridge, {
+    name: "easyeda_get_pcb_vias",
+    title: "Get PCB vias",
+    description:
+      "Lists and inspects vias on the active PCB layout with net, center coordinates (x, y in mm), outer diameter, hole/drill diameter, and layers.",
+    method: "getPcbVias",
+    inputSchema: {
+      net: z.string().min(1).optional().describe("Optional filter by net name (e.g. 'GND', 'VCC')."),
+      primitiveId: z.string().min(1).optional().describe("Optional filter by via primitive ID."),
+      limit: z.number().int().positive().max(500).default(100).describe("Maximum number of vias to return."),
+      includeRaw: z.boolean().default(false).describe("Include raw underlying primitive data."),
+      target: DocumentTargetSchema.optional(),
+      timeoutMs: DefaultTimeoutSchema.default(30_000)
+    },
+    summary: "Fetched EasyEDA Pro PCB vias."
+  });
+
+  server.registerTool(
+    "easyeda_prepare_pcb_track_via",
+    {
+      title: "Prepare PCB track or via mutation",
+      description:
+        "Prepares creating, modifying, or destructively deleting copper tracks and vias on the active PCB canvas with safety preview and exact confirmation phrase. Does not modify the PCB until confirmed.",
+      inputSchema: {
+        entity: z.enum(["track", "via"]).describe("Entity type to mutate: 'track' or 'via'."),
+        action: z.enum(["create", "modify", "delete"]).describe("Action: 'create', 'modify', or 'delete'."),
+        trackId: z.string().min(1).optional().describe("Primitive ID of track to modify or delete."),
+        viaId: z.string().min(1).optional().describe("Primitive ID of via to modify or delete."),
+        net: z.string().min(1).optional().describe("Net name for created track or via (e.g. 'GND', 'VCC')."),
+        layer: z
+          .union([z.string(), z.number()])
+          .optional()
+          .describe("Placement layer for created track (default: 1 / TopLayer)."),
+        startX: z.number().optional().describe("Start X coordinate in mm (for track creation)."),
+        startY: z.number().optional().describe("Start Y coordinate in mm (for track creation)."),
+        endX: z.number().optional().describe("End X coordinate in mm (for track creation)."),
+        endY: z.number().optional().describe("End Y coordinate in mm (for track creation)."),
+        lineWidth: z.number().positive().optional().describe("Track line width in mm (default: 0.254)."),
+        x: z.number().optional().describe("Center X coordinate in mm (for via creation)."),
+        y: z.number().optional().describe("Center Y coordinate in mm (for via creation)."),
+        diameter: z.number().positive().optional().describe("Via outer diameter in mm (default: 0.6)."),
+        holeDiameter: z.number().positive().optional().describe("Via drill hole diameter in mm (default: 0.3)."),
+        properties: z
+          .record(z.string(), z.unknown())
+          .optional()
+          .describe("Property modifications dictionary (for track/via modification)."),
+        target: DocumentTargetSchema.optional().describe("Expected active PCB target."),
+        timeoutMs: DefaultTimeoutSchema.default(30_000)
+      },
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: false,
+        openWorldHint: false
+      }
+    },
+    async (params) => {
+      try {
+        const timeoutMs = params.timeoutMs ?? 30_000;
+        const result = (await bridge.call("preparePcbTrackVia", params, timeoutMs)) as Record<string, unknown>;
+
+        const mutationId = String(result.mutationId ?? "");
+        const confirmation = String(result.confirmation ?? "");
+        const preview = (result.preview as { impact?: string; scope?: string }) ?? {};
+        const summary = [
+          `Prepared PCB ${params.entity} ${params.action} mutation:`,
+          `Impact: ${preview.impact ?? "none"}`,
+          `Scope: ${preview.scope ?? "active document"}`,
+          `Confirmation phrase required: "${confirmation}"`,
+          `Review the preview and run easyeda_confirmed_action with action="mutation", params={ mutationId: "${mutationId}" }, and the exact confirmation string.`
+        ].join("\n");
+
+        return ok(summary, result);
+      } catch (error) {
+        return fail(error);
+      }
+    }
+  );
+
+  registerReadTool(server, bridge, {
     name: "easyeda_highlight_net",
     title: "Highlight or clear PCB net",
     description: "Visually highlights a specified net on the EasyEDA Pro PCB canvas, or clears all highlighted nets.",

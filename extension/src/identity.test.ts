@@ -81,6 +81,8 @@ describe("extension document identity and capabilities", () => {
     expect(caps["pcb_Drc.clearErrors"]).toBe(false);
     expect(caps["pcb_PrimitiveComponent.getAll"]).toBe(false);
     expect(caps["pcb_PrimitivePad.getAll"]).toBe(false);
+    expect(caps["pcb_PrimitiveTrack.getAll"]).toBe(false);
+    expect(caps["pcb_PrimitiveVia.getAll"]).toBe(false);
     expect(caps["sch_Document.getAllPrimitiveId"]).toBe(false);
     expect(caps["sch_Net.getAllNetsName"]).toBe(false);
     expect(caps["sch_Drc.check"]).toBe(false);

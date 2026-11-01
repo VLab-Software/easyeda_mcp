@@ -17,6 +17,7 @@ import { extensionMutations } from "./mutation/mutationManager.js";
 import { prepareBoardOutlineMutation } from "./mutation/pcbOutlineMutations.js";
 import { preparePcbComponentMutation } from "./mutation/pcbComponentMutations.js";
 import { preparePcbLayoutMutation, preparePcbRoutingMutation } from "./mutation/pcbRoutingMutations.js";
+import { preparePcbTrackViaMutation } from "./mutation/pcbTrackViaMutations.js";
 import { prepareSchematicComponentMutation } from "./mutation/schematicComponentMutations.js";
 import { prepareSchematicWireMutation } from "./mutation/schematicWireMutations.js";
 import type { EasyEdaApi, RpcHandler } from "./types.js";
@@ -45,6 +46,7 @@ const handlers: Record<string, RpcHandler> = {
   preparePcbComponent: (params) => preparePcbComponentMutation(getApi, params),
   preparePcbLayout: (params) => preparePcbLayoutMutation(getApi, params),
   preparePcbRouting: (params) => preparePcbRoutingMutation(getApi, params),
+  preparePcbTrackVia: (params) => preparePcbTrackViaMutation(getApi, params),
   prepareSchematicComponent: (params) => prepareSchematicComponentMutation(getApi, params),
   prepareSchematicWire: (params) => prepareSchematicWireMutation(getApi, params),
   ...contextHandlers,

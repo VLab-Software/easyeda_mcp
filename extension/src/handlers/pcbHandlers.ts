@@ -10,6 +10,7 @@ import {
 } from "../helpers.js";
 import { assertDocumentTargetMatch, extractDocumentIdentity } from "../identity.js";
 import { getBoardOutlineSummary } from "../mutation/pcbOutlineMutations.js";
+import { fetchPcbTracks, fetchPcbVias, preparePcbTrackViaMutation } from "../mutation/pcbTrackViaMutations.js";
 import type { EasyEdaApi, RpcHandler } from "../types.js";
 import {
   filterAndLimitViolations,
@@ -612,6 +613,71 @@ export function createPcbHandlers(api: () => EasyEdaApi): Record<string, RpcHand
     })) as unknown as Record<string, unknown>;
   }
 
+  async function getPcbTracks(params: Record<string, any> = {}): Promise<Record<string, unknown>> {
+    const eda = api();
+    const documentInfo = await optionalCall(() => eda.dmt_SelectControl?.getCurrentDocumentInfo?.());
+    const currentTarget = extractDocumentIdentity(documentInfo, undefined, "native_api");
+
+    const expectedTarget = params.expectedTarget ?? params.target;
+    if (expectedTarget) {
+      assertDocumentTargetMatch(expectedTarget, currentTarget);
+    }
+    if (
+      currentTarget.documentType &&
+      currentTarget.documentType !== "pcb" &&
+      currentTarget.documentType !== "unknown"
+    ) {
+      throw apiError("wrong_document", "Getting PCB tracks requires an active PCB document.");
+    }
+
+    const { total, count, tracks } = await fetchPcbTracks(eda, {
+      net: params.net,
+      layer: params.layer,
+      primitiveId: params.primitiveId ?? params.trackId,
+      limit: params.limit,
+      includeRaw: params.includeRaw
+    });
+
+    return {
+      target: currentTarget,
+      totalTracks: total,
+      count,
+      tracks
+    };
+  }
+
+  async function getPcbVias(params: Record<string, any> = {}): Promise<Record<string, unknown>> {
+    const eda = api();
+    const documentInfo = await optionalCall(() => eda.dmt_SelectControl?.getCurrentDocumentInfo?.());
+    const currentTarget = extractDocumentIdentity(documentInfo, undefined, "native_api");
+
+    const expectedTarget = params.expectedTarget ?? params.target;
+    if (expectedTarget) {
+      assertDocumentTargetMatch(expectedTarget, currentTarget);
+    }
+    if (
+      currentTarget.documentType &&
+      currentTarget.documentType !== "pcb" &&
+      currentTarget.documentType !== "unknown"
+    ) {
+      throw apiError("wrong_document", "Getting PCB vias requires an active PCB document.");
+    }
+
+    const { total, count, vias } = await fetchPcbVias(eda, {
+      net: params.net,
+      primitiveId: params.primitiveId ?? params.viaId,
+      limit: params.limit,
+      includeRaw: params.includeRaw
+    });
+
+    return {
+      target: currentTarget,
+      totalVias: total,
+      count,
+      vias
+    };
+  }
+
   return {
     runDrc,
     getPcbLayers,
@@ -620,6 +686,9 @@ export function createPcbHandlers(api: () => EasyEdaApi): Record<string, RpcHand
     getPcbPads,
     getPcbPadsTool: getPcbPads,
     highlightNet,
-    getBoardOutline
+    getBoardOutline,
+    getPcbTracks,
+    getPcbVias,
+    preparePcbTrackVia: (params: Record<string, any>) => preparePcbTrackViaMutation(api, params)
   };
 }

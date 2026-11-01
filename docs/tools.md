@@ -1,6 +1,6 @@
 # Tools Reference
 
-EasyEDA Pro MCP exposes **46 tools** across 8 categories. All inspection, tracing, navigation, and export tools are read-only (`readOnlyHint: true`).
+EasyEDA Pro MCP exposes **49 tools** across 8 categories. All inspection, tracing, navigation, and export tools are read-only (`readOnlyHint: true`).
 
 ## Tool Catalog
 
@@ -14,8 +14,8 @@ EasyEDA Pro MCP exposes **46 tools** across 8 categories. All inspection, tracin
   - [`easyeda_schematic_snapshot`](#easyeda_schematic_snapshot) · [`easyeda_get_schematic_nets`](#easyeda_get_schematic_nets) · [`easyeda_list_schematic_components`](#easyeda_list_schematic_components) · [`easyeda_get_component_pins`](#easyeda_get_component_pins) · [`easyeda_find_component`](#easyeda_find_component) · [`easyeda_find_net`](#easyeda_find_net) · [`easyeda_search_library`](#easyeda_search_library)
 - **[Circuit Tracing & Verification](#circuit-tracing-verification)** (6 tools)
   - [`easyeda_run_schematic_erc`](#easyeda_run_schematic_erc) · [`easyeda_trace_net`](#easyeda_trace_net) · [`easyeda_trace_component`](#easyeda_trace_component) · [`easyeda_find_unconnected_pins`](#easyeda_find_unconnected_pins) · [`easyeda_validate_schematic_area`](#easyeda_validate_schematic_area) · [`easyeda_verify_connections`](#easyeda_verify_connections)
-- **[PCB Layout & DRC Rules](#pcb-layout-drc-rules)** (14 tools)
-  - [`easyeda_run_drc`](#easyeda_run_drc) · [`easyeda_get_pcb_layers`](#easyeda_get_pcb_layers) · [`easyeda_get_routing_status`](#easyeda_get_routing_status) · [`easyeda_list_pcb_components`](#easyeda_list_pcb_components) · [`easyeda_get_pcb_pads`](#easyeda_get_pcb_pads) · [`easyeda_prepare_pcb_component`](#easyeda_prepare_pcb_component) · [`easyeda_get_board_outline`](#easyeda_get_board_outline) · [`easyeda_prepare_board_outline`](#easyeda_prepare_board_outline) · [`easyeda_prepare_pcb_routing`](#easyeda_prepare_pcb_routing) · [`easyeda_prepare_pcb_layout`](#easyeda_prepare_pcb_layout) · [`easyeda_highlight_net`](#easyeda_highlight_net) · [`easyeda_get_drc_rules`](#easyeda_get_drc_rules) · [`easyeda_prepare_drc_edit`](#easyeda_prepare_drc_edit) · [`easyeda_get_drc_edit_result`](#easyeda_get_drc_edit_result)
+- **[PCB Layout & DRC Rules](#pcb-layout-drc-rules)** (17 tools)
+  - [`easyeda_run_drc`](#easyeda_run_drc) · [`easyeda_get_pcb_layers`](#easyeda_get_pcb_layers) · [`easyeda_get_routing_status`](#easyeda_get_routing_status) · [`easyeda_list_pcb_components`](#easyeda_list_pcb_components) · [`easyeda_get_pcb_pads`](#easyeda_get_pcb_pads) · [`easyeda_prepare_pcb_component`](#easyeda_prepare_pcb_component) · [`easyeda_get_board_outline`](#easyeda_get_board_outline) · [`easyeda_prepare_board_outline`](#easyeda_prepare_board_outline) · [`easyeda_prepare_pcb_routing`](#easyeda_prepare_pcb_routing) · [`easyeda_prepare_pcb_layout`](#easyeda_prepare_pcb_layout) · [`easyeda_get_pcb_tracks`](#easyeda_get_pcb_tracks) · [`easyeda_get_pcb_vias`](#easyeda_get_pcb_vias) · [`easyeda_prepare_pcb_track_via`](#easyeda_prepare_pcb_track_via) · [`easyeda_highlight_net`](#easyeda_highlight_net) · [`easyeda_get_drc_rules`](#easyeda_get_drc_rules) · [`easyeda_prepare_drc_edit`](#easyeda_prepare_drc_edit) · [`easyeda_get_drc_edit_result`](#easyeda_get_drc_edit_result)
 - **[Navigation & Exports](#navigation-exports)** (8 tools)
   - [`easyeda_export_cpl`](#easyeda_export_cpl) · [`easyeda_export_bom`](#easyeda_export_bom) · [`easyeda_export_netlist`](#easyeda_export_netlist) · [`easyeda_export_gerber`](#easyeda_export_gerber) · [`easyeda_export_pdf`](#easyeda_export_pdf) · [`easyeda_navigate_component`](#easyeda_navigate_component) · [`easyeda_navigate_region`](#easyeda_navigate_region) · [`easyeda_zoom_board`](#easyeda_zoom_board)
 - **[Confirmation-Gated Actions](#confirmation-gated-actions)** (1 tool)
@@ -608,6 +608,69 @@ Returns `mutationId`, exact confirmation token `CONFIRM pcb:autolayout <mutation
 **Parameters:**
 - **`action`** (`"autolayout"`, _optional_, default: `"autolayout"`): The layout operation to stage.
 - **`components`** (`string[]`, _optional_): Explicit array of component designators to arrange (e.g. `["U1", "R1"]`). If omitted, arranges all unlocked components.
+- **`target`** (`object`, _optional_): Expected document target specification to assert against active canvas.
+- **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
+
+---
+
+### `easyeda_get_pcb_tracks`
+
+**Scope:** PCB RPC (`readOnlyHint: true`, default timeout: `30000` ms)
+
+Lists and inspects copper tracks and traces on the active PCB layout with net, layer, geometry coordinates (`startX`, `startY`, `endX`, `endY` in mm), line width, lock state, and calculated Euclidean length.
+
+**Parameters:**
+- **`net`** (`string`, _optional_): Filter tracks by connected electrical net name (e.g. `"GND"`, `"VCC"`).
+- **`layer`** (`string | number`, _optional_): Filter tracks by placement layer name or ID (e.g. `1`, `"TopLayer"`, `2`, `"BottomLayer"`).
+- **`primitiveId`** (`string`, _optional_): Query a single track by its primitive ID.
+- **`limit`** (`number`, _optional_, default: `100`, max: `500`): Maximum number of tracks to return.
+- **`includeRaw`** (`boolean`, _optional_, default: `false`): Include raw underlying primitive data.
+- **`target`** (`object`, _optional_): Asserts execution against the expected active PCB document.
+- **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
+
+---
+
+### `easyeda_get_pcb_vias`
+
+**Scope:** PCB RPC (`readOnlyHint: true`, default timeout: `30000` ms)
+
+Lists and inspects vias on the active PCB layout with net, center coordinates (`x`, `y` in mm), outer diameter, drill hole diameter, start/end layer connection, and lock state.
+
+**Parameters:**
+- **`net`** (`string`, _optional_): Filter vias by connected electrical net name (e.g. `"GND"`, `"VCC"`).
+- **`primitiveId`** (`string`, _optional_): Query a single via by its primitive ID.
+- **`limit`** (`number`, _optional_, default: `100`, max: `500`): Maximum number of vias to return.
+- **`includeRaw`** (`boolean`, _optional_, default: `false`): Include raw underlying primitive data.
+- **`target`** (`object`, _optional_): Asserts execution against the expected active PCB document.
+- **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
+
+---
+
+### `easyeda_prepare_pcb_track_via`
+
+**Scope:** PCB Mutation RPC (`readOnlyHint: false`, `destructiveHint: true`, default timeout: `30000` ms)
+
+Stages creating, modifying, or destructively deleting copper tracks and vias on the active PCB layout with safety preview, before-state snapshot, and exact confirmation phrase. Does not modify the PCB until confirmed.
+
+Returns `mutationId`, exact confirmation token `CONFIRM pcb:<track|via>:<create|modify|delete> <mutationId>`, and structured `preview`. Previews expire after 5 minutes and require execution via `easyeda_confirmed_action` with `action="mutation"`.
+
+**Parameters:**
+- **`entity`** (`"track" | "via"`, **required**): Entity type to mutate.
+- **`action`** (`"create" | "modify" | "delete"`, **required**): Operation to stage.
+- **`trackId`** (`string`, _optional_): Primitive ID of track to modify or delete.
+- **`viaId`** (`string`, _optional_): Primitive ID of via to modify or delete.
+- **`net`** (`string`, _optional_): Net name for created track or via (e.g. `"GND"`, `"VCC"`).
+- **`layer`** (`string | number`, _optional_, default: `1`): Placement layer for created track.
+- **`startX`** (`number`, _optional_): Start X coordinate in mm (for track creation).
+- **`startY`** (`number`, _optional_): Start Y coordinate in mm (for track creation).
+- **`endX`** (`number`, _optional_): End X coordinate in mm (for track creation).
+- **`endY`** (`number`, _optional_): End Y coordinate in mm (for track creation).
+- **`lineWidth`** (`number`, _optional_, default: `0.254`): Track line width in mm.
+- **`x`** (`number`, _optional_): Center X coordinate in mm (for via creation).
+- **`y`** (`number`, _optional_): Center Y coordinate in mm (for via creation).
+- **`diameter`** (`number`, _optional_, default: `0.6`): Outer diameter in mm (for via creation).
+- **`holeDiameter`** (`number`, _optional_, default: `0.3`): Drill hole diameter in mm (for via creation).
+- **`properties`** (`object`, _optional_): Dictionary of properties to modify on existing track or via.
 - **`target`** (`object`, _optional_): Expected document target specification to assert against active canvas.
 - **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
 
