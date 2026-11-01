@@ -14,6 +14,7 @@ import { createPcbHandlers } from "./handlers/pcbHandlers.js";
 import { createSchematicHandlers } from "./handlers/schematicHandlers.js";
 import { log, showMessage } from "./helpers.js";
 import { extensionMutations } from "./mutation/mutationManager.js";
+import { preparePcbComponentMutation } from "./mutation/pcbComponentMutations.js";
 import { prepareSchematicComponentMutation } from "./mutation/schematicComponentMutations.js";
 import { prepareSchematicWireMutation } from "./mutation/schematicWireMutations.js";
 import type { EasyEdaApi, RpcHandler } from "./types.js";
@@ -38,6 +39,7 @@ const handlers: Record<string, RpcHandler> = {
   getDrcRules: (params) => drcRules.read(params),
   prepareDrcEdit: (params) => drcRules.prepare(params),
   getDrcEditResult: (params) => drcRules.result(params),
+  preparePcbComponent: (params) => preparePcbComponentMutation(getApi, params),
   prepareSchematicComponent: (params) => prepareSchematicComponentMutation(getApi, params),
   prepareSchematicWire: (params) => prepareSchematicWireMutation(getApi, params),
   ...contextHandlers,

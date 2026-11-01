@@ -23,6 +23,7 @@ describe("pcbTools", () => {
       "easyeda_get_routing_status",
       "easyeda_list_pcb_components",
       "easyeda_get_pcb_pads",
+      "easyeda_prepare_pcb_component",
       "easyeda_highlight_net"
     ]);
   });
@@ -69,6 +70,60 @@ describe("pcbTools", () => {
         totalPads: 2,
         count: 2
       }
+    });
+
+    await client.close();
+  });
+
+  it("invokes easyeda_prepare_pcb_component for moving a component", async () => {
+    const bridge = {
+      endpoint: "ws://127.0.0.1:8765",
+      getStatus: vi.fn((): EditorStatus => ({ connected: true, updatedAt: "2026-11-01T00:00:00.000Z" })),
+      call: vi.fn(async () => ({
+        mutationId: "mut-pcb-123",
+        confirmation: "CONFIRM pcb:move mut-pcb-123",
+        action: "move",
+        preview: {
+          impact: "Moves PCB component R1 from (100, 200) to (120, 250).",
+          changedKeys: ["x", "y"],
+          before: { x: 100, y: 200 },
+          requestedAfter: { x: 120, y: 250 }
+        },
+        expiresAt: "2026-11-01T12:05:00.000Z"
+      }))
+    };
+
+    const server = new McpServer({ name: "test", version: "1.0.0" });
+    registerPcbTools(server, bridge as any);
+    const client = new Client({ name: "test-client", version: "1.0.0" });
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
+
+    const result = await client.callTool({
+      name: "easyeda_prepare_pcb_component",
+      arguments: {
+        action: "move",
+        component: "R1",
+        x: 120,
+        y: 250
+      }
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(bridge.call).toHaveBeenCalledWith(
+      "preparePcbComponent",
+      expect.objectContaining({
+        action: "move",
+        component: "R1",
+        x: 120,
+        y: 250
+      }),
+      30_000
+    );
+    expect(result.structuredContent).toMatchObject({
+      mutationId: "mut-pcb-123",
+      confirmation: "CONFIRM pcb:move mut-pcb-123",
+      action: "move"
     });
 
     await client.close();
