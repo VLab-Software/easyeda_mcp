@@ -17,7 +17,8 @@ const defaultBridgeConfig: ExtensionBridgeConfig = {
 };
 
 function resolveOverrides(): BridgeConfigOverride {
-  const globalOverride = (globalThis as { __EASYEDA_MCP_BRIDGE_CONFIG__?: BridgeConfigOverride }).__EASYEDA_MCP_BRIDGE_CONFIG__;
+  const globalOverride = (globalThis as { __EASYEDA_MCP_BRIDGE_CONFIG__?: BridgeConfigOverride })
+    .__EASYEDA_MCP_BRIDGE_CONFIG__;
   return globalOverride ?? {};
 }
 
@@ -26,9 +27,10 @@ export function getBridgeConfig(): ExtensionBridgeConfig {
   return {
     ...defaultBridgeConfig,
     ...override,
-    reconnectDelayMs: Array.isArray(override.reconnectDelayMs) && override.reconnectDelayMs.length > 0
-      ? override.reconnectDelayMs.filter((delay) => Number.isFinite(delay) && delay >= 0)
-      : defaultBridgeConfig.reconnectDelayMs
+    reconnectDelayMs:
+      Array.isArray(override.reconnectDelayMs) && override.reconnectDelayMs.length > 0
+        ? override.reconnectDelayMs.filter((delay) => Number.isFinite(delay) && delay >= 0)
+        : defaultBridgeConfig.reconnectDelayMs
   };
 }
 

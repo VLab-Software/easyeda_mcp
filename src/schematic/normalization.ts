@@ -1,11 +1,4 @@
-import type {
-  Position,
-  SchematicComponent,
-  SchematicLabel,
-  SchematicPin,
-  SchematicWire,
-  Segment
-} from "./types.js";
+import type { Position, SchematicComponent, SchematicLabel, SchematicPin, SchematicWire, Segment } from "./types.js";
 
 export function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" ? (value as Record<string, unknown>) : {};
@@ -28,7 +21,11 @@ export function compactRaw(value: unknown): unknown {
 }
 
 export function stringValue(value: unknown): string | undefined {
-  return typeof value === "string" && value.trim() ? value.trim() : typeof value === "number" ? String(value) : undefined;
+  return typeof value === "string" && value.trim()
+    ? value.trim()
+    : typeof value === "number"
+      ? String(value)
+      : undefined;
 }
 
 export function normalizeNetName(value: unknown): string | undefined {
@@ -142,7 +139,9 @@ export function segmentTouchesSegment(left: Segment, right: Segment, tolerance: 
 }
 
 export function segmentsTouch(left: Segment[], right: Segment[], tolerance: number): boolean {
-  return left.some((leftSegment) => right.some((rightSegment) => segmentTouchesSegment(leftSegment, rightSegment, tolerance)));
+  return left.some((leftSegment) =>
+    right.some((rightSegment) => segmentTouchesSegment(leftSegment, rightSegment, tolerance))
+  );
 }
 
 export function labelTouchesSegments(label: SchematicLabel, segments: Segment[], tolerance: number): boolean {

@@ -1,8 +1,4 @@
-import type {
-  BridgeCallMessage,
-  BridgeErrorMessage,
-  BridgeResultMessage
-} from "../../src/protocol/messages.js";
+import type { BridgeCallMessage, BridgeErrorMessage, BridgeResultMessage } from "../../src/protocol/messages.js";
 import { apiError, log, normalizeError } from "./helpers.js";
 import type { RpcHandler } from "./types.js";
 

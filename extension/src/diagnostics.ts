@@ -1,6 +1,6 @@
 import type { BridgeErrorMessage, ProtocolCompatibility } from "../../src/protocol/messages.js";
 import { getBridgeUri, type ExtensionBridgeConfig } from "./bridgeConfig.js";
-import { inferDocumentType, optionalCall, pickString, sanitize } from "./helpers.js";
+import { inferDocumentType, optionalCall, pickString } from "./helpers.js";
 import type { EasyEdaApi } from "./types.js";
 
 export function detectCapabilities(
@@ -32,7 +32,9 @@ export function detectCapabilities(
 
 export function isPermissionLikeError(error?: BridgeErrorMessage["error"]): boolean {
   const message = `${error?.message ?? ""} ${error?.code ?? ""}`.toLowerCase();
-  return message.includes("permission") || message.includes("external interaction") || message.includes("sys_websocket");
+  return (
+    message.includes("permission") || message.includes("external interaction") || message.includes("sys_websocket")
+  );
 }
 
 export function diagnosticHints(error?: BridgeErrorMessage["error"], bridgeConfig?: ExtensionBridgeConfig): string[] {
@@ -45,10 +47,7 @@ export function diagnosticHints(error?: BridgeErrorMessage["error"], bridgeConfi
 
   if (error?.code === "bridge_open_timeout") {
     const uri = bridgeConfig ? getBridgeUri(bridgeConfig) : "the configured bridge URI";
-    return [
-      "Make sure the MCP server is running locally.",
-      `Confirm the bridge endpoint is reachable at ${uri}.`
-    ];
+    return ["Make sure the MCP server is running locally.", `Confirm the bridge endpoint is reachable at ${uri}.`];
   }
 
   return [

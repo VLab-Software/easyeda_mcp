@@ -22,13 +22,7 @@ type LifecycleOptions = {
 };
 
 export function installLifecycleHandlers(options: LifecycleOptions): { shutdown: () => Promise<void> } {
-  const {
-    bridge,
-    server,
-    transport,
-    processRef = process,
-    exitOnShutdown = true
-  } = options;
+  const { bridge, server, transport, processRef = process, exitOnShutdown = true } = options;
 
   let shutdownPromise: Promise<void> | undefined;
 
@@ -36,11 +30,7 @@ export function installLifecycleHandlers(options: LifecycleOptions): { shutdown:
     if (!shutdownPromise) {
       detach();
       shutdownPromise = (async () => {
-        await Promise.allSettled([
-          server.close(),
-          transport.close(),
-          bridge.stop()
-        ]);
+        await Promise.allSettled([server.close(), transport.close(), bridge.stop()]);
       })().finally(() => {
         if (exitOnShutdown) {
           processRef.exit(0);

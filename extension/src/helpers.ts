@@ -15,7 +15,9 @@ export function simplifyPrimitive(value: unknown): Record<string, unknown> {
   };
 }
 
-export function normalizeBBox(value: unknown): { left: number; right: number; top: number; bottom: number } | undefined {
+export function normalizeBBox(
+  value: unknown
+): { left: number; right: number; top: number; bottom: number } | undefined {
   const item = Array.isArray(value) ? value[0] : value;
   if (!item || typeof item !== "object") {
     return undefined;
@@ -34,11 +36,18 @@ export function normalizeBBox(value: unknown): { left: number; right: number; to
 export function ensureApi(objectName: string, methodName: string, api?: Record<string, any>): void {
   const target = api ?? (typeof eda !== "undefined" ? eda : (globalThis as any).eda);
   if (!target?.[objectName]?.[methodName]) {
-    throw apiError("api_unavailable", `EasyEDA Pro API eda.${objectName}.${methodName} is unavailable in this context.`);
+    throw apiError(
+      "api_unavailable",
+      `EasyEDA Pro API eda.${objectName}.${methodName} is unavailable in this context.`
+    );
   }
 }
 
-export function apiError(code: string, message: string, details?: unknown): Error & { code: string; details?: unknown } {
+export function apiError(
+  code: string,
+  message: string,
+  details?: unknown
+): Error & { code: string; details?: unknown } {
   const error = new Error(message) as Error & { code: string; details?: unknown };
   error.code = code;
   error.details = details;
@@ -109,7 +118,11 @@ export function pickString(value: unknown, keys: string[]): string | undefined {
 }
 
 export function stringOrUndefined(value: unknown): string | undefined {
-  return typeof value === "string" && value.trim() ? value.trim() : typeof value === "number" ? String(value) : undefined;
+  return typeof value === "string" && value.trim()
+    ? value.trim()
+    : typeof value === "number"
+      ? String(value)
+      : undefined;
 }
 
 export function isRecord(value: unknown): value is Record<string, unknown> {
@@ -119,11 +132,7 @@ export function isRecord(value: unknown): value is Record<string, unknown> {
 export function inferDocumentType(documentInfo: unknown): string {
   const record = isRecord(documentInfo) ? documentInfo : undefined;
   const numericType = record
-    ? [
-      record.documentType,
-      record.doctype,
-      record.type
-    ].find((value) => typeof value === "number")
+    ? [record.documentType, record.doctype, record.type].find((value) => typeof value === "number")
     : undefined;
 
   if (numericType === 1) return "schematic";

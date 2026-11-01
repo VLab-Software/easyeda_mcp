@@ -3,11 +3,13 @@ import { createDisconnectedStatus, parseClientMessage } from "./messages.js";
 
 describe("bridge protocol messages", () => {
   it("parses supported client messages", () => {
-    const message = parseClientMessage(JSON.stringify({
-      kind: "result",
-      requestId: "abc",
-      result: { ok: true }
-    }));
+    const message = parseClientMessage(
+      JSON.stringify({
+        kind: "result",
+        requestId: "abc",
+        result: { ok: true }
+      })
+    );
 
     expect(message.kind).toBe("result");
   });

@@ -9,7 +9,12 @@ import {
   type EditorStatus,
   parseClientMessage
 } from "../protocol/messages.js";
-import { BridgeProtocolCompatibilityError, BridgeRpcError, BridgeTimeoutError, BridgeUnavailableError } from "./errors.js";
+import {
+  BridgeProtocolCompatibilityError,
+  BridgeRpcError,
+  BridgeTimeoutError,
+  BridgeUnavailableError
+} from "./errors.js";
 
 type PendingCall = {
   method: string;
@@ -146,7 +151,9 @@ export class EasyEdaBridge implements EditorClient {
     socket.on("close", () => {
       if (this.socket === socket) {
         this.socket = undefined;
-        this.status = createDisconnectedStatus("EasyEDA Pro extension disconnected. Keep the extension open or reopen EasyEDA Pro.");
+        this.status = createDisconnectedStatus(
+          "EasyEDA Pro extension disconnected. Keep the extension open or reopen EasyEDA Pro."
+        );
         this.rejectAll(new BridgeUnavailableError(this.status.message));
       }
       this.logger.error("[easyeda-mcp] EasyEDA Pro extension disconnected");
@@ -164,9 +171,7 @@ export class EasyEdaBridge implements EditorClient {
         compatibility,
         capabilities: message.capabilities,
         ...message.status,
-        message: compatibility.compatible
-          ? message.status?.message
-          : compatibility.reason,
+        message: compatibility.compatible ? message.status?.message : compatibility.reason,
         updatedAt: new Date().toISOString()
       };
       return;
@@ -181,9 +186,7 @@ export class EasyEdaBridge implements EditorClient {
         connected: true,
         connectionState: compatibility.compatible ? "connected" : "blocked",
         compatibility,
-        message: compatibility.compatible
-          ? message.status.message ?? this.status.message
-          : compatibility.reason,
+        message: compatibility.compatible ? (message.status.message ?? this.status.message) : compatibility.reason,
         updatedAt: new Date().toISOString()
       };
       return;

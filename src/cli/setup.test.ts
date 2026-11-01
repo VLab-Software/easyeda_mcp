@@ -82,9 +82,7 @@ describe("CLI setup & auto-installer", () => {
         env: {}
       });
       const byId = Object.fromEntries(targets.map((t) => [t.id, t.configPath]));
-      expect(byId["claude-desktop"]).toBe(
-        "/Users/alice/Library/Application Support/Claude/claude_desktop_config.json"
-      );
+      expect(byId["claude-desktop"]).toBe("/Users/alice/Library/Application Support/Claude/claude_desktop_config.json");
       expect(byId.vscode).toBe("/Users/alice/Library/Application Support/Code/User/mcp.json");
       expect(byId.cursor).toBe("/Users/alice/.cursor/mcp.json");
       expect(byId.antigravity).toBe("/Users/alice/.gemini/config/mcp_config.json");
@@ -100,9 +98,7 @@ describe("CLI setup & auto-installer", () => {
         env: { APPDATA: "C:\\Users\\alice\\AppData\\Roaming" }
       });
       const byId = Object.fromEntries(targets.map((t) => [t.id, t.configPath]));
-      expect(byId["claude-desktop"]).toBe(
-        "C:\\Users\\alice\\AppData\\Roaming\\Claude\\claude_desktop_config.json"
-      );
+      expect(byId["claude-desktop"]).toBe("C:\\Users\\alice\\AppData\\Roaming\\Claude\\claude_desktop_config.json");
       expect(byId.vscode).toBe("C:\\Users\\alice\\AppData\\Roaming\\Code\\User\\mcp.json");
       expect(byId.cursor).toBe("C:\\Users\\alice\\.cursor\\mcp.json");
     });
@@ -208,7 +204,7 @@ describe("CLI setup & auto-installer", () => {
       });
       expect(res.status).toBe("created");
       expect(res.content).toBe(
-        ['[mcp_servers.easyeda-pro]', 'command = "npx"', `args = ["-y", "${PACKAGE_NAME}"]`, ""].join("\n")
+        ["[mcp_servers.easyeda-pro]", 'command = "npx"', `args = ["-y", "${PACKAGE_NAME}"]`, ""].join("\n")
       );
     });
 
@@ -355,9 +351,10 @@ describe("CLI setup & auto-installer", () => {
       expect(handleCliArgs(["--help"], io)).toEqual({ handled: true, exitCode: 0 });
       expect(logs.pop()).toContain("Usage:");
 
-      expect(
-        handleCliArgs(["export-extension", outDir], io, { packageRoot: pkgRoot, cwd: root })
-      ).toEqual({ handled: true, exitCode: 0 });
+      expect(handleCliArgs(["export-extension", outDir], io, { packageRoot: pkgRoot, cwd: root })).toEqual({
+        handled: true,
+        exitCode: 0
+      });
       expect(fs.existsSync(path.join(outDir, BUNDLED_EXTENSION_FILENAME))).toBe(true);
 
       expect(handleCliArgs(["unknown-cmd"], io)).toEqual({ handled: true, exitCode: 1 });
@@ -370,9 +367,7 @@ describe("CLI setup & auto-installer", () => {
       const links = buildOneClickInstallLinks();
 
       const cursorUrl = new URL(links.cursorWebLink);
-      const decodedCursor = JSON.parse(
-        Buffer.from(cursorUrl.searchParams.get("config")!, "base64").toString("utf8")
-      );
+      const decodedCursor = JSON.parse(Buffer.from(cursorUrl.searchParams.get("config")!, "base64").toString("utf8"));
       expect(cursorUrl.searchParams.get("name")).toBe("easyeda-pro");
       expect(decodedCursor).toEqual({
         command: "npx",

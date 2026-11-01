@@ -14,7 +14,7 @@ describe("toolResult", () => {
       type: "text"
     });
     expect(result.content[0]?.text).toContain("Fetched EasyEDA Pro context.");
-    expect(result.content[0]?.text).toContain("\"projectName\": \"Power Supply\"");
+    expect(result.content[0]?.text).toContain('"projectName": "Power Supply"');
     expect(result.structuredContent).toMatchObject({
       result: {
         projectName: "Power Supply"
@@ -27,7 +27,7 @@ describe("toolResult", () => {
 
     expect(result.isError).toBe(true);
     expect(result.content[0]?.text).toContain("boom");
-    expect(result.content[0]?.text).toContain("\"error\": \"unexpected_error\"");
+    expect(result.content[0]?.text).toContain('"error": "unexpected_error"');
     expect(result.structuredContent).toMatchObject({
       error: "unexpected_error",
       message: "boom"

@@ -30,7 +30,10 @@ import type {
 } from "./types.js";
 
 export function netConfidence(pins: SchematicPin[], wires: SchematicWire[], labels: SchematicLabel[]): Confidence {
-  if (pins.some((pin) => pin.connectivityEvidence?.confidence === "high" || pin.netSource === "direct") && wires.length > 0) {
+  if (
+    pins.some((pin) => pin.connectivityEvidence?.confidence === "high" || pin.netSource === "direct") &&
+    wires.length > 0
+  ) {
     return "high";
   }
   if (pins.length > 0 || wires.length > 0 || labels.length > 0) {
@@ -86,7 +89,9 @@ export function buildConnectivityGroups(
     }
 
     const segments = componentIndexes.flatMap((itemIndex) => wireData[itemIndex]?.segments ?? []);
-    const matchingWires = componentIndexes.map((itemIndex) => wireData[itemIndex]?.wire).filter((w): w is SchematicWire => w !== undefined);
+    const matchingWires = componentIndexes
+      .map((itemIndex) => wireData[itemIndex]?.wire)
+      .filter((w): w is SchematicWire => w !== undefined);
     const touchingLabels = labels.filter((label) => labelTouchesSegments(label, segments, tolerance));
     const netNames = unique([
       ...matchingWires.map((wire) => wire.net).filter((net): net is string => Boolean(net)),
@@ -95,7 +100,9 @@ export function buildConnectivityGroups(
 
     const primaryNet = netNames[0];
     const wirePrimitiveIds = matchingWires.map((wire) => wire.primitiveId).filter((id): id is string => Boolean(id));
-    const labelPrimitiveIds = touchingLabels.map((label) => label.primitiveId).filter((id): id is string => Boolean(id));
+    const labelPrimitiveIds = touchingLabels
+      .map((label) => label.primitiveId)
+      .filter((id): id is string => Boolean(id));
     const nodeId = primaryNet ? netNodeId(primaryNet) : `node:${wirePrimitiveIds[0] ?? `group_${groups.length + 1}`}`;
 
     groups.push({
@@ -150,7 +157,9 @@ export function resolvePinConnectivity(
     };
   }
 
-  const touchingGroups = groups.filter((group) => group.segments.some((segment) => pointTouchesSegment(point, segment, tolerance)));
+  const touchingGroups = groups.filter((group) =>
+    group.segments.some((segment) => pointTouchesSegment(point, segment, tolerance))
+  );
   const netNames = new Set(touchingGroups.map((group) => group.net).filter((net): net is string => Boolean(net)));
   const nodeIds = unique(touchingGroups.map((group) => group.nodeId));
   if (netNames.size !== 1) {
@@ -240,28 +249,30 @@ export function buildNets(pins: SchematicPin[], wires: SchematicWire[], labels: 
   for (const wire of wires) if (wire.net) names.add(wire.net);
   for (const label of labels) if (label.net) names.add(label.net);
 
-  return [...names].sort((a, b) => a.localeCompare(b)).map((name) => {
-    const connectedPins = pins.filter((pin) => sameText(pin.net, name));
-    const netWires = wires.filter((wire) => sameText(wire.net, name));
-    const netLabels = labels.filter((label) => sameText(label.net, name));
-    const nodeIds = unique([
-      ...connectedPins.map((pin) => pin.nodeId).filter((id): id is string => Boolean(id)),
-      ...netWires.map((wire) => wire.nodeId).filter((id): id is string => Boolean(id))
-    ]);
-    return {
-      name,
-      connectedPins,
-      wires: netWires,
-      labels: netLabels,
-      nodeIds,
-      confidence: netConfidence(connectedPins, netWires, netLabels),
-      inferredConnectivity: {
-        pinCount: connectedPins.length,
-        wireCount: netWires.length,
-        labelCount: netLabels.length
-      }
-    };
-  });
+  return [...names]
+    .sort((a, b) => a.localeCompare(b))
+    .map((name) => {
+      const connectedPins = pins.filter((pin) => sameText(pin.net, name));
+      const netWires = wires.filter((wire) => sameText(wire.net, name));
+      const netLabels = labels.filter((label) => sameText(label.net, name));
+      const nodeIds = unique([
+        ...connectedPins.map((pin) => pin.nodeId).filter((id): id is string => Boolean(id)),
+        ...netWires.map((wire) => wire.nodeId).filter((id): id is string => Boolean(id))
+      ]);
+      return {
+        name,
+        connectedPins,
+        wires: netWires,
+        labels: netLabels,
+        nodeIds,
+        confidence: netConfidence(connectedPins, netWires, netLabels),
+        inferredConnectivity: {
+          pinCount: connectedPins.length,
+          wireCount: netWires.length,
+          labelCount: netLabels.length
+        }
+      };
+    });
 }
 
 export function buildSchematicSnapshot(raw: RawSchematicData): SchematicSnapshot {
@@ -355,8 +366,7 @@ export function getComponentPins(
   }
   const pins = snapshot.pins.filter(
     (pin) =>
-      pin.componentPrimitiveId === component.primitiveId ||
-      sameText(pin.componentDesignator, component.designator)
+      pin.componentPrimitiveId === component.primitiveId || sameText(pin.componentDesignator, component.designator)
   );
   return {
     component,
@@ -381,14 +391,12 @@ export function traceComponent(
   }));
   const findings = pins
     .filter((pin) => !pin.connected)
-    .map(
-      (pin): SchematicFinding => ({
-        severity: "warning",
-        type: "pin_without_connection",
-        message: `Pin ${formatPin(pin)} has no confirmed electrical connection.`,
-        evidence: pinEvidence(pin)
-      })
-    );
+    .map((pin): SchematicFinding => ({
+      severity: "warning",
+      type: "pin_without_connection",
+      message: `Pin ${formatPin(pin)} has no confirmed electrical connection.`,
+      evidence: pinEvidence(pin)
+    }));
 
   return {
     component: result.component,

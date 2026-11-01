@@ -1,10 +1,4 @@
-import {
-  apiError,
-  ensureApi,
-  sanitize,
-  timestamp,
-  toArray
-} from "../helpers.js";
+import { apiError, ensureApi, sanitize, timestamp, toArray } from "../helpers.js";
 import type { EasyEdaApi, RpcHandler } from "../types.js";
 
 export function extractFile(value: unknown): unknown {
@@ -92,7 +86,10 @@ export function createExportHandlers(api: () => EasyEdaApi): Record<string, RpcH
   async function exportPdf(params: Record<string, any>): Promise<Record<string, unknown>> {
     const eda = api();
     const fileName = params.fileName ?? `easyeda-export-${timestamp()}`;
-    if (params.scope === "schematic" || (!eda.pcb_ManufactureData?.getPdfFile && eda.sch_ManufactureData?.getExportDocumentFile)) {
+    if (
+      params.scope === "schematic" ||
+      (!eda.pcb_ManufactureData?.getPdfFile && eda.sch_ManufactureData?.getExportDocumentFile)
+    ) {
       const file = await eda.sch_ManufactureData.getExportDocumentFile(fileName, "pdf");
       return saveApiFile(api, file, `${fileName}.pdf`, true);
     }
@@ -119,7 +116,7 @@ export function createExportHandlers(api: () => EasyEdaApi): Record<string, RpcH
     }
     const limit = Math.max(1, Math.min(100, Number(params.limit ?? 20)));
 
-    let rawResults: unknown = [];
+    let rawResults: unknown;
     if (eda.lib_Device?.search) {
       rawResults = await eda.lib_Device.search(query);
     } else if (eda.lib_Search?.search) {

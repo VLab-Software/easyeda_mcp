@@ -12,14 +12,14 @@ describe("Extension BridgeConnection", () => {
   });
 
   it("registers websocket and transitions through connection lifecycle", async () => {
-    let registeredOnMessage: ((event: MessageEvent<string>) => Promise<void>) | undefined;
+    let _registeredOnMessage: ((event: MessageEvent<string>) => Promise<void>) | undefined;
     let registeredOnOpen: (() => Promise<void>) | undefined;
     const sentMessages: string[] = [];
 
     const mockApi = {
       sys_WebSocket: {
         register: vi.fn((_id: string, _uri: string, onMsg: any, onOpen: any) => {
-          registeredOnMessage = onMsg;
+          _registeredOnMessage = onMsg;
           registeredOnOpen = onOpen;
         }),
         send: vi.fn((_id: string, data: string) => {

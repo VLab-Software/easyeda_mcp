@@ -160,7 +160,8 @@ export function createBridgeConnection(options: BridgeConnectionOptions): Bridge
     connectionState.compatibility = evaluateProtocolCompatibility(PROTOCOL_VERSION);
     connectionState.phase = isPermissionLikeError(error) ? "blocked" : "idle";
 
-    const hasRetryLeft = failureOptions.shouldRetry && connectionState.attemptIndex < bridgeConfig.reconnectDelayMs.length - 1;
+    const hasRetryLeft =
+      failureOptions.shouldRetry && connectionState.attemptIndex < bridgeConfig.reconnectDelayMs.length - 1;
     if (hasRetryLeft) {
       const nextAttempt = connectionState.attemptIndex + 1;
       const delayMs = bridgeConfig.reconnectDelayMs[nextAttempt];
@@ -175,11 +176,7 @@ export function createBridgeConnection(options: BridgeConnectionOptions): Bridge
     }
 
     if (failureOptions.manual || !hasRetryLeft || connectionState.phase === "blocked") {
-      showMessage("EasyEDA MCP Bridge", [
-        error.message,
-        "",
-        ...diagnosticHints(error, bridgeConfig)
-      ].join("\n"));
+      showMessage("EasyEDA MCP Bridge", [error.message, "", ...diagnosticHints(error, bridgeConfig)].join("\n"));
     }
   }
 
@@ -244,7 +241,11 @@ export function createBridgeConnection(options: BridgeConnectionOptions): Bridge
     log("warn", `Bridge connection attempt ${attemptIndex + 1} started for ${startOptions.reason} -> ${wsUri}`);
   }
 
-  async function ensureConnected(connectOptions: { reason: string; manual: boolean; resetAttempts?: boolean }): Promise<void> {
+  async function ensureConnected(connectOptions: {
+    reason: string;
+    manual: boolean;
+    resetAttempts?: boolean;
+  }): Promise<void> {
     if (connectOptions.resetAttempts) {
       connectionState.attemptIndex = 0;
     }

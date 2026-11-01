@@ -86,12 +86,14 @@ export function isClientId(value: string): value is ClientId {
   return (SUPPORTED_CLIENT_IDS as readonly string[]).includes(value);
 }
 
-export function buildServerLaunchSpec(options: {
-  mode?: "npx" | "local";
-  platform?: NodeJS.Platform;
-  localEntryPath?: string;
-  packageName?: string;
-} = {}): ServerLaunchSpec {
+export function buildServerLaunchSpec(
+  options: {
+    mode?: "npx" | "local";
+    platform?: NodeJS.Platform;
+    localEntryPath?: string;
+    packageName?: string;
+  } = {}
+): ServerLaunchSpec {
   const mode = options.mode ?? "npx";
   const platform = options.platform ?? process.platform;
   const packageName = options.packageName ?? PACKAGE_NAME;
@@ -119,10 +121,12 @@ export function buildServerLaunchSpec(options: {
   };
 }
 
-export function buildOneClickInstallLinks(options: {
-  serverName?: string;
-  packageName?: string;
-} = {}): {
+export function buildOneClickInstallLinks(
+  options: {
+    serverName?: string;
+    packageName?: string;
+  } = {}
+): {
   cursorDeeplink: string;
   cursorWebLink: string;
   vscodeProtocolLink: string;
@@ -478,13 +482,15 @@ export function findBundledExtension(packageRoot?: string): string | null {
   return null;
 }
 
-export function exportBundledExtension(options: {
-  packageRoot?: string;
-  destination?: string;
-  homeDir?: string;
-  cwd?: string;
-  dryRun?: boolean;
-} = {}): ExtensionExportResult {
+export function exportBundledExtension(
+  options: {
+    packageRoot?: string;
+    destination?: string;
+    homeDir?: string;
+    cwd?: string;
+    dryRun?: boolean;
+  } = {}
+): ExtensionExportResult {
   const sourcePath = findBundledExtension(options.packageRoot);
   if (!sourcePath) {
     return {
@@ -534,7 +540,7 @@ export function runSetup(options: SetupOptions = {}): SetupReport {
   const serverName = options.serverName ?? DEFAULT_SERVER_NAME;
   const packageRoot = options.packageRoot ?? resolvePackageRoot();
   const localEntryPath =
-    mode === "local" ? options.localEntryPath ?? resolveDefaultEntryPath(packageRoot) : undefined;
+    mode === "local" ? (options.localEntryPath ?? resolveDefaultEntryPath(packageRoot)) : undefined;
 
   const launchSpec = buildServerLaunchSpec({
     mode,
@@ -673,11 +679,11 @@ function parseTomlTableHeader(line: string): string | null {
   if (!trimmed.startsWith("[")) {
     return null;
   }
-  const arrayMatch = /^\[\[([^\[\]]+)\]\]\s*(?:#.*)?$/.exec(trimmed);
+  const arrayMatch = /^\[\[([^\][]+)\]\]\s*(?:#.*)?$/.exec(trimmed);
   if (arrayMatch) {
     return arrayMatch[1].trim();
   }
-  const tableMatch = /^\[([^\[\]]+)\]\s*(?:#.*)?$/.exec(trimmed);
+  const tableMatch = /^\[([^\][]+)\]\s*(?:#.*)?$/.exec(trimmed);
   return tableMatch ? tableMatch[1].trim() : null;
 }
 

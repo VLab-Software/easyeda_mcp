@@ -12,20 +12,11 @@ import {
 describe("schematic analysis", () => {
   it("normalizes components, pins, wires, labels, and nets", () => {
     const snapshot = buildSchematicSnapshot({
-      components: [
-        component("U1", "$u1", "MCU"),
-        netflag("GND", "$gnd1")
-      ],
+      components: [component("U1", "$u1", "MCU"), netflag("GND", "$gnd1")],
       pinsByComponent: {
-        $u1: [
-          pin("1", "VDD", "VCC_5V"),
-          pin("2", "GND", "GND")
-        ]
+        $u1: [pin("1", "VDD", "VCC_5V"), pin("2", "GND", "GND")]
       },
-      wires: [
-        wire("VCC_5V"),
-        wire("GND")
-      ],
+      wires: [wire("VCC_5V"), wire("GND")],
       includeRaw: false
     });
 
@@ -44,10 +35,7 @@ describe("schematic analysis", () => {
     const snapshot = buildSchematicSnapshot({
       components: [component("USB1", "$usb1", "USB-C")],
       pinsByComponent: {
-        $usb1: [
-          pin("A4", "VBUS", "VCC_5V"),
-          pin("A1", "GND", "GND")
-        ]
+        $usb1: [pin("A4", "VBUS", "VCC_5V"), pin("A1", "GND", "GND")]
       },
       wires: [wire("VCC_5V"), wire("GND")]
     });
@@ -78,10 +66,7 @@ describe("schematic analysis", () => {
     const snapshot = buildSchematicSnapshot({
       components: [component("U2", "$u2", "Sensor")],
       pinsByComponent: {
-        $u2: [
-          pin("1", "VDD", "3V3"),
-          pin("2", "INT", undefined)
-        ]
+        $u2: [pin("1", "VDD", "3V3"), pin("2", "INT", undefined)]
       },
       wires: [wire("3V3")]
     });
@@ -101,10 +86,7 @@ describe("schematic analysis", () => {
         netflag("3V3", "$p2")
       ],
       pinsByComponent: {
-        $u3: [
-          pin("1", "VCC", "+3V3"),
-          pin("2", "NC", undefined)
-        ],
+        $u3: [pin("1", "VCC", "+3V3"), pin("2", "NC", undefined)],
         $r1: [pin("1", "1", "SENSE")]
       },
       wires: [wire("+3V3"), wire("SENSE")]
@@ -121,10 +103,7 @@ describe("schematic analysis", () => {
     const snapshot = buildSchematicSnapshot({
       components: [component("C1", "$c1", "100nF")],
       pinsByComponent: {
-        $c1: [
-          pin("1", "1", "3V3"),
-          pin("2", "2", "GND")
-        ]
+        $c1: [pin("1", "1", "3V3"), pin("2", "2", "GND")]
       },
       wires: [wire("3V3"), wire("GND")]
     });
@@ -154,15 +133,9 @@ describe("schematic analysis", () => {
     const snapshot = buildSchematicSnapshot({
       components: [component("U1", "$u1", "IC")],
       pinsByComponent: {
-        $u1: [
-          pinAt("1", "SDA", undefined, 25, 0),
-          pinAt("2", "SCL", undefined, 50, 25)
-        ]
+        $u1: [pinAt("1", "SDA", undefined, 25, 0), pinAt("2", "SCL", undefined, 50, 25)]
       },
-      wires: [
-        wirePath("I2C_SDA", [[10, 0, 40, 0]]),
-        wirePath("I2C_SCL", [[50, 10, 50, 40]])
-      ],
+      wires: [wirePath("I2C_SDA", [[10, 0, 40, 0]]), wirePath("I2C_SCL", [[50, 10, 50, 40]])],
       includeRaw: false
     });
 
@@ -175,10 +148,7 @@ describe("schematic analysis", () => {
       pinsByComponent: {
         $u2: [pinAt("1", "EN", undefined, 80, 0)]
       },
-      wires: [
-        wirePath("GPS_EN", [[0, 0, 40, 0]]),
-        wirePath(undefined, [[40, 0, 80, 0]])
-      ],
+      wires: [wirePath("GPS_EN", [[0, 0, 40, 0]]), wirePath(undefined, [[40, 0, 80, 0]])],
       includeRaw: false
     });
 
@@ -188,10 +158,7 @@ describe("schematic analysis", () => {
 
   it("uses a netflag to name an otherwise unnamed wire group", () => {
     const snapshot = buildSchematicSnapshot({
-      components: [
-        component("U3", "$u3", "IC"),
-        netflagAt("+3V3", "$pwr", 20, 0)
-      ],
+      components: [component("U3", "$u3", "IC"), netflagAt("+3V3", "$pwr", 20, 0)],
       pinsByComponent: {
         $u3: [pinAt("1", "VCC", undefined, 40, 0)]
       },
@@ -244,14 +211,8 @@ describe("schematic analysis", () => {
           pinAt("A7", "DN1", undefined, 10, 80),
           pinAt("B7", "DN2", undefined, 20, 80)
         ],
-        $r1: [
-          pinAt("1", "1", undefined, 60, 40),
-          pinAt("2", "2", undefined, 60, 20)
-        ],
-        $r2: [
-          pinAt("1", "1", undefined, 70, 50),
-          pinAt("2", "2", undefined, 70, 20)
-        ],
+        $r1: [pinAt("1", "1", undefined, 60, 40), pinAt("2", "2", undefined, 60, 20)],
+        $r2: [pinAt("1", "1", undefined, 70, 50), pinAt("2", "2", undefined, 70, 20)],
         $d1: [
           pinAt("1", "I/O1", undefined, 30, 60),
           pinAt("3", "I/O2", undefined, 30, 80),
@@ -276,8 +237,19 @@ describe("schematic analysis", () => {
     });
 
     const usbPins = getComponentPins(snapshot, "USB1").pins;
-    expect(usbPins.filter((item) => item.pinName === "VBUS").map((item) => item.net)).toEqual(["VBUS", "VBUS", "VBUS", "VBUS"]);
-    expect(usbPins.filter((item) => ["GND", "EH"].includes(item.pinName ?? "")).map((item) => item.net)).toEqual(["GND", "GND", "GND", "GND", "GND"]);
+    expect(usbPins.filter((item) => item.pinName === "VBUS").map((item) => item.net)).toEqual([
+      "VBUS",
+      "VBUS",
+      "VBUS",
+      "VBUS"
+    ]);
+    expect(usbPins.filter((item) => ["GND", "EH"].includes(item.pinName ?? "")).map((item) => item.net)).toEqual([
+      "GND",
+      "GND",
+      "GND",
+      "GND",
+      "GND"
+    ]);
     expect(usbPins.find((item) => item.pinName === "CC1")?.net).toBe("USB_IN_CC1");
     expect(usbPins.find((item) => item.pinName === "CC2")?.net).toBe("USB_IN_CC2");
     expect(usbPins.find((item) => item.pinName === "DP1")?.net).toBe("USB_IN_D+");
@@ -319,7 +291,12 @@ describe("schematic analysis", () => {
 
     const result = verifyConnections(snapshot, [
       { id: "vin-vbus", type: "pin_on_net", component: "U1", pinName: "VIN", net: "VBUS" },
-      { id: "vin-j1", type: "same_node", left: { component: "U1", pinName: "VIN" }, right: { component: "J1", pin: "1" } }
+      {
+        id: "vin-j1",
+        type: "same_node",
+        left: { component: "U1", pinName: "VIN" },
+        right: { component: "J1", pin: "1" }
+      }
     ]);
 
     expect(result.summary.passed).toBe(2);
@@ -333,10 +310,7 @@ describe("schematic analysis", () => {
         $u5: [pinAt("6", "PROG", undefined, 10, 0)],
         $r7: [pinAt("1", "1", undefined, 30, 0), pinAt("2", "2", undefined, 30, 40)]
       },
-      wires: [
-        wirePath(undefined, [[10, 0, 30, 0]]),
-        wirePath("GND", [[30, 40, 40, 40]])
-      ],
+      wires: [wirePath(undefined, [[10, 0, 30, 0]]), wirePath("GND", [[30, 40, 40, 40]])],
       includeRaw: false
     });
 
@@ -352,19 +326,12 @@ describe("schematic analysis", () => {
 
   it("verifies decoupling capacitors and forbidden paths", () => {
     const snapshot = buildSchematicSnapshot({
-      components: [
-        component("U1", "$u1", "IC"),
-        component("C1", "$c1", "100nF"),
-        netflagAt("GND", "$gnd", 50, 20)
-      ],
+      components: [component("U1", "$u1", "IC"), component("C1", "$c1", "100nF"), netflagAt("GND", "$gnd", 50, 20)],
       pinsByComponent: {
         $u1: [pinAt("1", "VCC", undefined, 10, 0)],
         $c1: [pinAt("1", "1", undefined, 30, 0), pinAt("2", "2", undefined, 30, 20)]
       },
-      wires: [
-        wirePath("3V3", [[10, 0, 30, 0]]),
-        wirePath("GND", [[30, 20, 50, 20]])
-      ],
+      wires: [wirePath("3V3", [[10, 0, 30, 0]]), wirePath("GND", [[30, 20, 50, 20]])],
       includeRaw: false
     });
 
@@ -399,7 +366,10 @@ describe("schematic analysis", () => {
         $led1: [pinAt("1", "K", undefined, 50, 30), pinAt("2", "A", undefined, 50, 0)]
       },
       wires: [
-        wirePath("VBUS", [[0, 0, 20, 0], [20, 0, 50, 0]]),
+        wirePath("VBUS", [
+          [0, 0, 20, 0],
+          [20, 0, 50, 0]
+        ]),
         wirePath("VBAT_LIPO", [[0, 10, 30, 10]]),
         wirePath(undefined, [[0, 20, 30, 20]]),
         wirePath("GND", [[20, 40, 30, 40]]),
@@ -413,7 +383,13 @@ describe("schematic analysis", () => {
       { type: "pin_on_net", component: "U5", pinName: "VCC", net: "VBUS" },
       { type: "pin_on_net", component: "U5", pinName: "BAT", net: "VBAT_LIPO" },
       { type: "pull_to_net", signal: { component: "U5", pinName: "PROG" }, net: "GND", through: { kind: "resistor" } },
-      { type: "path_exists", from: { component: "U5", pinName: "CHRG" }, to: { net: "VBUS" }, through: { kind: "led" }, maxHops: 3 },
+      {
+        type: "path_exists",
+        from: { component: "U5", pinName: "CHRG" },
+        to: { net: "VBUS" },
+        through: { kind: "led" },
+        maxHops: 3
+      },
       { type: "decoupled_to_net", power: { component: "U5", pinName: "VCC" }, referenceNet: "GND" }
     ]);
 
@@ -452,7 +428,13 @@ function pin(pinNumber: string, pinName: string, net: string | undefined): Recor
   return pinAt(pinNumber, pinName, net, 30, 40);
 }
 
-function pinAt(pinNumber: string, pinName: string, net: string | undefined, x: number, y: number): Record<string, unknown> {
+function pinAt(
+  pinNumber: string,
+  pinName: string,
+  net: string | undefined,
+  x: number,
+  y: number
+): Record<string, unknown> {
   return {
     primitiveId: `$pin-${pinNumber}`,
     pinNumber,
@@ -464,7 +446,10 @@ function pinAt(pinNumber: string, pinName: string, net: string | undefined, x: n
 }
 
 function wire(net: string): Record<string, unknown> {
-  return wirePath(net, [[0, 0], [10, 10]]);
+  return wirePath(net, [
+    [0, 0],
+    [10, 10]
+  ]);
 }
 
 function wirePath(net: string | undefined, line: unknown[]): Record<string, unknown> {
