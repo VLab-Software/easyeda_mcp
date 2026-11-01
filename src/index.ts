@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { StdioServerTransport } from "@modelcontextprotocol/server/stdio";
 import { EasyEdaBridge } from "./bridge/EasyEdaBridge.js";
 import { handleCliArgs } from "./cli/cli.js";
 import { installLifecycleHandlers } from "./lifecycle.js";

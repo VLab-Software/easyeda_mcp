@@ -1,6 +1,6 @@
 import type { EditorStatus } from "../../protocol/messages.js";
 import { describe, expect, it, vi } from "vitest";
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { McpServer } from "@modelcontextprotocol/server";
 import { registerStatusTools } from "./statusTools.js";
 import { doctorNextSteps } from "./common.js";
 

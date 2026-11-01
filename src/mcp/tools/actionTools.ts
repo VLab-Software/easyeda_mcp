@@ -1,5 +1,5 @@
 import * as z from "zod/v4";
-import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import type { McpServer } from "@modelcontextprotocol/server";
 import type { EditorClient } from "../../editor/EditorClient.js";
 import { BridgeTimeoutError, BridgeUnavailableError } from "../../bridge/errors.js";
 import { DrcEditQuerySchema, drcConfirmation } from "../../drc/contracts.js";

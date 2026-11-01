@@ -1,4 +1,4 @@
-import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import type { McpServer } from "@modelcontextprotocol/server";
 import type { EditorClient } from "../../editor/EditorClient.js";
 import { PROTOCOL_VERSION } from "../../protocol/messages.js";
 import { MCP_SERVER_NAME, MCP_SERVER_VERSION } from "../../version.js";

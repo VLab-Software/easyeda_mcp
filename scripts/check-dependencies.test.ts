@@ -28,7 +28,7 @@ describe("Dependency and Architectural Boundary Validation", () => {
 
     it("fails when browser extension module imports MCP SDK", () => {
       const mockFiles = {
-        "extension/src/badModule.ts": `import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";`
+        "extension/src/badModule.ts": `import { McpServer } from "@modelcontextprotocol/server";`
       };
       const result = validateDependencyArchitecture(mockFiles);
       expect(result.valid).toBe(false);

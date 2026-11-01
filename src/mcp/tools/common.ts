@@ -1,5 +1,5 @@
 import * as z from "zod/v4";
-import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import type { McpServer } from "@modelcontextprotocol/server";
 import type { EditorClient } from "../../editor/EditorClient.js";
 import type { EditorStatus } from "../../protocol/messages.js";
 import { ok, fail } from "../toolResult.js";
@@ -18,7 +18,7 @@ export type ReadToolConfig = {
   title: string;
   description: string;
   method: string;
-  inputSchema: z.ZodRawShape;
+  inputSchema: Record<string, z.ZodType>;
   summary: string;
 };
 

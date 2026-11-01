@@ -148,7 +148,7 @@ export function validateDependencyArchitecture(fileMap, rootDir = process.cwd())
             message: `Browser extension module must not import Node builtin "${specifier}"`
           });
         }
-        if (specifier === "@modelcontextprotocol/sdk" || specifier.startsWith("@modelcontextprotocol/sdk/")) {
+        if (specifier === "@modelcontextprotocol" || specifier.startsWith("@modelcontextprotocol/")) {
           violations.push({
             rule: "no-mcp-in-extension",
             file: relPath,
@@ -176,7 +176,7 @@ export function validateDependencyArchitecture(fileMap, rootDir = process.cwd())
             message: `Schematic pure analysis module must not import Node builtin "${specifier}"`
           });
         }
-        if (specifier === "@modelcontextprotocol/sdk" || specifier.startsWith("@modelcontextprotocol/sdk/")) {
+        if (specifier === "@modelcontextprotocol" || specifier.startsWith("@modelcontextprotocol/")) {
           violations.push({
             rule: "no-mcp-in-schematic",
             file: relPath,

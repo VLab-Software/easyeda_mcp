@@ -1,4 +1,4 @@
-import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import type { McpServer } from "@modelcontextprotocol/server";
 import type { EditorClient } from "../../editor/EditorClient.js";
 import { DrcScopeSchema, DrcOperationSchema, DrcEditQuerySchema } from "../../drc/contracts.js";
 import { DefaultTimeoutSchema, registerReadTool } from "./common.js";
