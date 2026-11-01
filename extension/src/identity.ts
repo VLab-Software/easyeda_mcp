@@ -80,6 +80,10 @@ export function detectMethodCapabilities(api: () => EasyEdaApi): Record<string, 
       eda.dmt_SelectControl?.getSelected
     ),
     "dmt_EditorControl.getSplitScreenTree": Boolean(eda.dmt_EditorControl?.getSplitScreenTree),
+    "dmt_EditorControl.openDocument": Boolean(eda.dmt_EditorControl?.openDocument),
+    "dmt_EditorControl.activateDocument": Boolean(eda.dmt_EditorControl?.activateDocument),
+    "dmt_EditorControl.getCurrentRenderedAreaImage": Boolean(eda.dmt_EditorControl?.getCurrentRenderedAreaImage),
+    "dmt_Project.getCurrentProjectInfo": Boolean(eda.dmt_Project?.getCurrentProjectInfo),
 
     // PCB APIs
     "pcb_Drc.getCurrentRuleConfiguration": Boolean(eda.pcb_Drc?.getCurrentRuleConfiguration),

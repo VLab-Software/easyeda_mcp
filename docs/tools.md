@@ -1,11 +1,13 @@
 # Tools Reference
 
-EasyEDA Pro MCP exposes **32 tools** across 6 categories. All inspection, tracing, navigation, and export tools are read-only (`readOnlyHint: true`).
+EasyEDA Pro MCP exposes **35 tools** across 7 categories. All inspection, tracing, navigation, and export tools are read-only (`readOnlyHint: true`).
 
 ## Tool Catalog
 
 - **[Status & Context](#status-context)** (4 tools)
   - [`easyeda_doctor`](#easyeda_doctor) · [`easyeda_live_status`](#easyeda_live_status) · [`easyeda_get_context`](#easyeda_get_context) · [`easyeda_get_selection`](#easyeda_get_selection)
+- **[Document Management & Canvas View](#document-management-canvas-view)** (3 tools)
+  - [`easyeda_list_documents`](#easyeda_list_documents) · [`easyeda_open_document`](#easyeda_open_document) · [`easyeda_render_document_view`](#easyeda_render_document_view)
 - **[Search & Schematic Inspection](#search-schematic-inspection)** (6 tools)
   - [`easyeda_schematic_snapshot`](#easyeda_schematic_snapshot) · [`easyeda_list_schematic_components`](#easyeda_list_schematic_components) · [`easyeda_get_component_pins`](#easyeda_get_component_pins) · [`easyeda_find_component`](#easyeda_find_component) · [`easyeda_find_net`](#easyeda_find_net) · [`easyeda_search_library`](#easyeda_search_library)
 - **[Circuit Tracing & Verification](#circuit-tracing-verification)** (5 tools)
@@ -64,6 +66,55 @@ Inspects the user's active canvas selection on either schematic or PCB documents
 
 **Parameters:**
 - **`timeoutMs`** (`number`, _optional_, default: `10000`): RPC timeout in ms.
+
+---
+
+## Document Management & Canvas View
+
+### `easyeda_list_documents`
+
+**Scope:** Editor RPC (`readOnlyHint: true`, `idempotentHint: true`, default timeout: `30000` ms)
+
+Lists all documents belonging to the current EasyEDA Pro project and open editor tabs, detailing document identity, type (schematic, PCB, symbol, footprint), open/active status, tab IDs, and split screen layout.
+
+**Parameters:**
+- **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
+
+---
+
+### `easyeda_open_document`
+
+**Scope:** Editor RPC (`readOnlyHint: false`, `idempotentHint: true`, default timeout: `30000` ms)
+
+Opens a document or activates an open tab in EasyEDA Pro, shifting input focus and canvas viewport. Provides readback confirmation and reports focus transitions (`previousTarget`, `currentTarget`, `focusChanged`).
+
+**Parameters:**
+- **`documentId`** (`string`, _optional_): Document UUID to open.
+- **`tabId`** (`string`, _optional_): Tab ID to activate if already open.
+- **`target`** (`object`, _optional_): Expected document target specification (`{ documentId, documentType, projectId }`).
+- **`splitScreenId`** (`string`, _optional_): Split screen ID to place the opened document into.
+- **`activate`** (`boolean`, _optional_, default: `true`): Whether to bring focus and activate the tab.
+- **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
+
+---
+
+### `easyeda_render_document_view`
+
+**Scope:** Editor RPC (`readOnlyHint: true`, `idempotentHint: false`, default timeout: `30000` ms)
+
+Captures the visible canvas rendering viewport image in EasyEDA Pro (via `eda.dmt_EditorControl.getCurrentRenderedAreaImage`). Explicitly documents viewport limits and asserts target match.
+
+**Parameters:**
+- **`target`** (`object`, _optional_): Expected document target to guard against capturing wrong canvas.
+- **`tabId`** (`string`, _optional_): Target tab ID if capturing a specific open tab.
+- **`format`** (`"data_url" | "base64"`, _optional_, default: `"data_url"`): Image encoding format.
+- **`timeoutMs`** (`number`, _optional_, default: `30000`): RPC timeout in ms.
+
+::: warning Viewport and Capture Limits
+1. Captures only the currently rendered area of the active canvas viewport, not off-screen elements or entire multi-page projects.
+2. Resolution and scale correspond directly to the current zoom level in the editor.
+3. Requires the editor canvas engine to have completed paint execution.
+:::
 
 ---
 
