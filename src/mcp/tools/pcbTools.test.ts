@@ -26,6 +26,8 @@ describe("pcbTools", () => {
       "easyeda_prepare_pcb_component",
       "easyeda_get_board_outline",
       "easyeda_prepare_board_outline",
+      "easyeda_prepare_pcb_routing",
+      "easyeda_prepare_pcb_layout",
       "easyeda_highlight_net"
     ]);
   });
@@ -225,6 +227,100 @@ describe("pcbTools", () => {
     expect(result.structuredContent).toMatchObject({
       mutationId: "mut-outline-456",
       confirmation: "CONFIRM pcb:setBoardOutline mut-outline-456"
+    });
+
+    await client.close();
+  });
+
+  it("invokes easyeda_prepare_pcb_routing for autorouting", async () => {
+    const bridge = {
+      endpoint: "ws://127.0.0.1:8765",
+      getStatus: vi.fn((): EditorStatus => ({ connected: true, updatedAt: "2026-11-01T00:00:00.000Z" })),
+      call: vi.fn(async () => ({
+        mutationId: "mut-route-789",
+        confirmation: "CONFIRM pcb:autoroute mut-route-789",
+        action: "autoroute",
+        preview: {
+          impact: "Executes native PCB auto-routing for all unrouted nets.",
+          changedKeys: ["routing", "routedNets"]
+        },
+        expiresAt: "2026-11-01T12:05:00.000Z"
+      }))
+    };
+
+    const server = new McpServer({ name: "test", version: "1.0.0" });
+    registerPcbTools(server, bridge as any);
+    const client = new Client({ name: "test-client", version: "1.0.0" });
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
+
+    const result = await client.callTool({
+      name: "easyeda_prepare_pcb_routing",
+      arguments: {
+        action: "autoroute",
+        keepExistingRoutes: true
+      }
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(bridge.call).toHaveBeenCalledWith(
+      "preparePcbRouting",
+      expect.objectContaining({
+        action: "autoroute",
+        keepExistingRoutes: true
+      }),
+      30_000
+    );
+    expect(result.structuredContent).toMatchObject({
+      mutationId: "mut-route-789",
+      confirmation: "CONFIRM pcb:autoroute mut-route-789"
+    });
+
+    await client.close();
+  });
+
+  it("invokes easyeda_prepare_pcb_layout for autolayout", async () => {
+    const bridge = {
+      endpoint: "ws://127.0.0.1:8765",
+      getStatus: vi.fn((): EditorStatus => ({ connected: true, updatedAt: "2026-11-01T00:00:00.000Z" })),
+      call: vi.fn(async () => ({
+        mutationId: "mut-layout-101",
+        confirmation: "CONFIRM pcb:autolayout mut-layout-101",
+        action: "autolayout",
+        preview: {
+          impact: "Executes native PCB auto-layout to position components within the board outline.",
+          changedKeys: ["layout", "componentPositions"]
+        },
+        expiresAt: "2026-11-01T12:05:00.000Z"
+      }))
+    };
+
+    const server = new McpServer({ name: "test", version: "1.0.0" });
+    registerPcbTools(server, bridge as any);
+    const client = new Client({ name: "test-client", version: "1.0.0" });
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
+
+    const result = await client.callTool({
+      name: "easyeda_prepare_pcb_layout",
+      arguments: {
+        action: "autolayout",
+        components: ["U1", "R1"]
+      }
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(bridge.call).toHaveBeenCalledWith(
+      "preparePcbLayout",
+      expect.objectContaining({
+        action: "autolayout",
+        components: ["U1", "R1"]
+      }),
+      30_000
+    );
+    expect(result.structuredContent).toMatchObject({
+      mutationId: "mut-layout-101",
+      confirmation: "CONFIRM pcb:autolayout mut-layout-101"
     });
 
     await client.close();

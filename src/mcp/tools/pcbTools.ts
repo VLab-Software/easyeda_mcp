@@ -258,6 +258,110 @@ export function registerPcbTools(server: McpServer, bridge: EditorClient): void 
     }
   );
 
+  server.registerTool(
+    "easyeda_prepare_pcb_routing",
+    {
+      title: "Prepare PCB Auto-routing or Unrouting",
+      description:
+        "Prepares native auto-routing or destructive unrouting of tracks/vias on the active PCB canvas with explicit nets scope, safety preview, and exact confirmation phrase. Does not modify the PCB until confirmed.",
+      inputSchema: {
+        action: z
+          .enum(["autoroute", "unroute"])
+          .describe("Routing operation: autoroute to route traces, or unroute to destructively clear tracks/vias."),
+        nets: z
+          .array(z.string())
+          .optional()
+          .describe("Explicit array of net names to target (e.g. ['GND', 'VCC']). If omitted, targets all nets."),
+        ignoreNets: z.array(z.string()).optional().describe("Array of net names to exclude from autorouting."),
+        keepExistingRoutes: z
+          .boolean()
+          .default(true)
+          .describe("Whether to preserve existing tracks during autorouting."),
+        target: DocumentTargetSchema.optional().describe("Expected active PCB target."),
+        timeoutMs: DefaultTimeoutSchema.default(30_000)
+      },
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: false,
+        openWorldHint: false
+      }
+    },
+    async ({ action, nets, ignoreNets, keepExistingRoutes, target, timeoutMs }) => {
+      try {
+        const result = (await bridge.call(
+          "preparePcbRouting",
+          { action, nets, ignoreNets, keepExistingRoutes, target },
+          timeoutMs
+        )) as Record<string, unknown>;
+
+        const mutationId = String(result.mutationId ?? "");
+        const confirmation = String(result.confirmation ?? "");
+        const preview = (result.preview as { impact?: string; scope?: string }) ?? {};
+        const summary = [
+          `Prepared PCB routing mutation '${action}':`,
+          `Impact: ${preview.impact ?? "none"}`,
+          `Scope: ${preview.scope ?? "active document"}`,
+          `Confirmation phrase required: "${confirmation}"`,
+          `Review the preview and run easyeda_confirmed_action with action="mutation", params={ mutationId: "${mutationId}" }, and the exact confirmation string.`
+        ].join("\n");
+
+        return ok(summary, result);
+      } catch (error) {
+        return fail(error);
+      }
+    }
+  );
+
+  server.registerTool(
+    "easyeda_prepare_pcb_layout",
+    {
+      title: "Prepare PCB Auto-layout",
+      description:
+        "Prepares native component auto-placement/auto-layout on the active PCB canvas within the board outline with safety preview and exact confirmation phrase. Does not modify the PCB until confirmed.",
+      inputSchema: {
+        action: z.literal("autolayout").default("autolayout").describe("Layout operation to perform."),
+        components: z
+          .array(z.string())
+          .optional()
+          .describe(
+            "Explicit array of component designators to arrange (e.g. ['U1', 'R1']). If omitted, arranges all unlocked components."
+          ),
+        target: DocumentTargetSchema.optional().describe("Expected active PCB target."),
+        timeoutMs: DefaultTimeoutSchema.default(30_000)
+      },
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: false,
+        openWorldHint: false
+      }
+    },
+    async ({ action, components, target, timeoutMs }) => {
+      try {
+        const result = (await bridge.call("preparePcbLayout", { action, components, target }, timeoutMs)) as Record<
+          string,
+          unknown
+        >;
+
+        const mutationId = String(result.mutationId ?? "");
+        const confirmation = String(result.confirmation ?? "");
+        const preview = (result.preview as { impact?: string; scope?: string }) ?? {};
+        const summary = [
+          `Prepared PCB auto-layout mutation:`,
+          `Impact: ${preview.impact ?? "none"}`,
+          `Scope: ${preview.scope ?? "active document"}`,
+          `Confirmation phrase required: "${confirmation}"`,
+          `Review the preview and run easyeda_confirmed_action with action="mutation", params={ mutationId: "${mutationId}" }, and the exact confirmation string.`
+        ].join("\n");
+
+        return ok(summary, result);
+      } catch (error) {
+        return fail(error);
+      }
+    }
+  );
+
   registerReadTool(server, bridge, {
     name: "easyeda_highlight_net",
     title: "Highlight or clear PCB net",

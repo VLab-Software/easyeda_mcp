@@ -4,6 +4,12 @@ import { extractDocumentIdentity } from "../identity.js";
 import { extensionMutations } from "../mutation/mutationManager.js";
 import { executeBoardOutlineMutation } from "../mutation/pcbOutlineMutations.js";
 import { executePcbComponentMutation } from "../mutation/pcbComponentMutations.js";
+import {
+  executePcbLayoutMutation,
+  executePcbRoutingMutation,
+  fetchLayoutSummary,
+  fetchRoutingSummary
+} from "../mutation/pcbRoutingMutations.js";
 import { executeSchematicComponentMutation } from "../mutation/schematicComponentMutations.js";
 import { executeSchematicWireMutation } from "../mutation/schematicWireMutations.js";
 import type { EasyEdaApi, RpcHandler } from "../types.js";
@@ -43,7 +49,11 @@ export function createActionHandlers(
         let resultReadback: Record<string, unknown> = {};
         executeFn = async () => {
           let res: { executed: boolean; readback: Record<string, unknown> };
-          if (["setBoardOutline", "clearBoardOutline", "modifyBoardOutline"].includes(record.action)) {
+          if (["autoroute", "unroute"].includes(record.action)) {
+            res = await executePcbRoutingMutation(api, (record as any).operation ?? record, record.before);
+          } else if (record.action === "autolayout") {
+            res = await executePcbLayoutMutation(api, (record as any).operation ?? record, record.before);
+          } else if (["setBoardOutline", "clearBoardOutline", "modifyBoardOutline"].includes(record.action)) {
             res = await executeBoardOutlineMutation(api, (record as any).operation ?? record, record.before);
           } else {
             res = await executePcbComponentMutation(api, (record as any).operation ?? record, record.before);
@@ -90,28 +100,112 @@ export function createActionHandlers(
       };
     }
 
-    if (action === "autoroute") {
+    if (action === "autoroute" || action === "nativeAutoRoute") {
+      if (params.params?.file) {
+        ensureApi("pcb_Document", "importAutoRouteJsonFile", eda);
+        await eda.pcb_Document.importAutoRouteJsonFile(params.params.file);
+        return {
+          action: "autoroute",
+          method: "external_import",
+          imported: true,
+          betaApi: true,
+          target: extractDocumentIdentity(documentInfo)
+        };
+      }
+
+      if (!eda.pcb_Document?.autoRouting && !eda.pcb_Document?.autoRoute) {
+        ensureApi("pcb_Document", "autoRouting", eda);
+      }
+      const routeFn = eda.pcb_Document.autoRouting ?? eda.pcb_Document.autoRoute;
+      await routeFn(params.params ?? {});
+      const routingStatus = await fetchRoutingSummary(api);
+      return {
+        action: "autoroute",
+        method: "native",
+        routed: true,
+        routingStatus,
+        target: extractDocumentIdentity(documentInfo)
+      };
+    }
+
+    if (action === "autolayout" || action === "nativeAutoLayout") {
+      if (params.params?.file) {
+        ensureApi("pcb_Document", "importAutoLayoutJsonFile", eda);
+        await eda.pcb_Document.importAutoLayoutJsonFile(params.params.file);
+        return {
+          action: "autolayout",
+          method: "external_import",
+          imported: true,
+          betaApi: true,
+          target: extractDocumentIdentity(documentInfo)
+        };
+      }
+
+      const layoutFn = eda.pcb_Document?.autoLayout ?? eda.pcb_Document?.autoPlace;
+      if (!layoutFn) {
+        ensureApi("pcb_Document", "autoLayout", eda);
+      }
+      await layoutFn(params.params ?? {});
+      const layoutStatus = await fetchLayoutSummary(api);
+      return {
+        action: "autolayout",
+        method: "native",
+        arranged: true,
+        layoutStatus,
+        target: extractDocumentIdentity(documentInfo)
+      };
+    }
+
+    if (action === "unroute") {
+      const unrouteFn = eda.pcb_Document?.unRoute ?? eda.pcb_Document?.unroute ?? eda.pcb_Document?.clearRouting;
+      if (!unrouteFn) {
+        ensureApi("pcb_Document", "unRoute", eda);
+      }
+      await unrouteFn(params.params ?? {});
+      const routingStatus = await fetchRoutingSummary(api);
+      return {
+        action: "unroute",
+        method: "native",
+        unrouted: true,
+        routingStatus,
+        target: extractDocumentIdentity(documentInfo)
+      };
+    }
+
+    if (action === "importAutoRouteFile") {
       ensureApi("pcb_Document", "importAutoRouteJsonFile", eda);
       if (!params.params?.file) {
         throw apiError(
           "missing_file",
-          "autoroute requires params.file from an EasyEDA-compatible autoroute JSON/SES file."
+          "importAutoRouteFile requires params.file from an EasyEDA-compatible autoroute JSON/SES file."
         );
       }
       await eda.pcb_Document.importAutoRouteJsonFile(params.params.file);
-      return { action, imported: true, betaApi: true, target: extractDocumentIdentity(documentInfo) };
+      return {
+        action: "importAutoRouteFile",
+        method: "external_import",
+        imported: true,
+        betaApi: true,
+        target: extractDocumentIdentity(documentInfo)
+      };
     }
 
-    if (action === "autolayout") {
+    if (action === "importAutoLayoutFile") {
       ensureApi("pcb_Document", "importAutoLayoutJsonFile", eda);
       if (!params.params?.file) {
         throw apiError(
           "missing_file",
-          "autolayout requires params.file from an EasyEDA-compatible autolayout JSON file."
+          "importAutoLayoutFile requires params.file from an EasyEDA-compatible autolayout JSON file."
         );
       }
       await eda.pcb_Document.importAutoLayoutJsonFile(params.params.file);
-      return { action, imported: true, betaApi: true, target: extractDocumentIdentity(documentInfo) };
+      return {
+        action: "importAutoLayoutFile",
+        method: "external_import",
+        imported: true,
+        betaApi: true,
+        target: extractDocumentIdentity(documentInfo)
+      };
     }
 
     throw apiError("unsupported_action", `Unsupported or unavailable confirmed action: ${action}.`);
