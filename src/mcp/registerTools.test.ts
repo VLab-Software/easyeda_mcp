@@ -81,6 +81,33 @@ describe("mutation confirmation guard", () => {
       expect(bridge.call).toHaveBeenCalledTimes(1);
     }
   );
+  it.each([new BridgeTimeoutError("confirmedAction", 100), new BridgeUnavailableError()])(
+    "does not recommend retrying an inconclusive generic mutation: %s",
+    async (error) => {
+      const mutationId = "mutation-uuid-1234";
+      const bridge = {
+        endpoint: "ws://127.0.0.1:8765",
+        getStatus: (): EditorStatus => ({ connected: true, updatedAt: "2026-11-01T00:00:00.000Z" }),
+        call: vi.fn().mockRejectedValue(error)
+      };
+      const client = await makeClient(bridge);
+      const result = await client.callTool({
+        name: "easyeda_confirmed_action",
+        arguments: {
+          action: "mutation",
+          confirmation: `CONFIRM mutation ${mutationId}`,
+          params: { mutationId }
+        }
+      });
+      expect(result.structuredContent).toMatchObject({
+        error: "mutation_outcome_unknown",
+        status: "unknown",
+        mutationId,
+        retryable: false
+      });
+      expect(bridge.call).toHaveBeenCalledTimes(1);
+    }
+  );
   it("forwards a reviewed DRC edit and marks a failed result as an MCP error", async () => {
     const editId = "22bd6220-9f2e-40a8-a019-d32a2f4d67eb";
     const bridge = {

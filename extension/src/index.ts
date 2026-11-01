@@ -12,6 +12,7 @@ import { createNavigationHandlers } from "./handlers/navigationHandlers.js";
 import { createPcbHandlers } from "./handlers/pcbHandlers.js";
 import { createSchematicHandlers } from "./handlers/schematicHandlers.js";
 import { log, showMessage } from "./helpers.js";
+import { extensionMutations } from "./mutation/mutationManager.js";
 import type { EasyEdaApi, RpcHandler } from "./types.js";
 
 const getApi = (): EasyEdaApi => (typeof eda !== "undefined" ? eda : (globalThis as any).eda);
@@ -46,7 +47,10 @@ bridgeConnection = createBridgeConnection({
   bridgeConfig,
   onMessage: (raw) => dispatchMessage(raw),
   getCapabilities: () => detectCapabilities(getApi, () => drcRules.capabilities()),
-  onConnectionChanged: () => drcRules.connectionChanged()
+  onConnectionChanged: () => {
+    drcRules.connectionChanged();
+    extensionMutations.invalidateAll();
+  }
 });
 
 const dispatchMessage = createDispatcher(handlers, (msg) => bridgeConnection.send(msg));
