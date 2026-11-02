@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { DocumentIdentity } from "../protocol/identity.js";
 import { MutationLifecycle } from "./MutationLifecycle.js";
 
@@ -220,5 +220,161 @@ describe("MutationLifecycle", () => {
 
     const record = lifecycle.get(prepared.mutationId);
     expect(record.status).toBe("expired");
+  });
+});
+
+describe("mutation execution deadlines", () => {
+  const target: DocumentIdentity = { documentId: "sheet", documentType: "schematic", tabId: "tab" };
+  function setup() {
+    const lifecycle = new MutationLifecycle(100);
+    const options = {
+      domain: "schematic",
+      action: "addNetLabel",
+      target,
+      operation: {},
+      before: {},
+      requestedAfter: {},
+      scope: "sheet"
+    };
+    const prepared = lifecycle.prepare(options);
+    return {
+      lifecycle,
+      options,
+      prepared,
+      apply: {
+        mutationId: prepared.mutationId,
+        confirmation: prepared.confirmation,
+        currentTarget: target,
+        currentBefore: {}
+      }
+    };
+  }
+
+  it("reports a hung write as unknown, retains its lock and forbids replay", async () => {
+    vi.useFakeTimers();
+    try {
+      const { lifecycle, options, prepared, apply } = setup();
+      const execute = vi.fn(() => new Promise<boolean>(() => {}));
+      const resultPromise = lifecycle.apply({ ...apply, execute, readback: async () => ({}) });
+      await vi.advanceTimersByTimeAsync(100);
+      const result = await resultPromise;
+      expect(result).toMatchObject({
+        status: "unknown",
+        phase: "execute",
+        execution: { lockHeld: true, timeoutMs: 100 }
+      });
+      expect(result.timedOutAt).toBeDefined();
+      expect(() => lifecycle.prepare(options)).toThrow(/still pending/);
+      try {
+        lifecycle.prepare(options);
+      } catch (error) {
+        expect((error as { details: unknown }).details).toMatchObject({
+          mutationId: prepared.mutationId,
+          status: "unknown"
+        });
+      }
+      await expect(lifecycle.apply({ ...apply, execute, readback: async () => ({}) })).rejects.toThrow();
+      expect(execute).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("automatically reconciles late completion and releases the lock", async () => {
+    vi.useFakeTimers();
+    try {
+      const { lifecycle, options, prepared, apply } = setup();
+      let finish!: (value: boolean) => void;
+      const resultPromise = lifecycle.apply({
+        ...apply,
+        execute: () =>
+          new Promise<boolean>((resolve) => {
+            finish = resolve;
+          }),
+        readback: async () => ({ verified: true })
+      });
+      await vi.advanceTimersByTimeAsync(100);
+      expect((await resultPromise).status).toBe("unknown");
+      finish(true);
+      await vi.advanceTimersByTimeAsync(0);
+      expect(lifecycle.get(prepared.mutationId)).toMatchObject({
+        status: "applied",
+        phase: "settled",
+        after: { verified: true },
+        execution: { lockHeld: false }
+      });
+      expect(lifecycle.get(prepared.mutationId).error).toBeUndefined();
+      expect(() => lifecycle.prepare(options)).not.toThrow();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("observes late rejection without an unhandled rejection or a permanent lock", async () => {
+    vi.useFakeTimers();
+    try {
+      const { lifecycle, options, prepared, apply } = setup();
+      let reject!: (error: Error) => void;
+      const resultPromise = lifecycle.apply({
+        ...apply,
+        execute: () =>
+          new Promise<boolean>((_, fail) => {
+            reject = fail;
+          }),
+        readback: async () => ({})
+      });
+      await vi.advanceTimersByTimeAsync(100);
+      await resultPromise;
+      reject(new Error("SDK failed late"));
+      await vi.advanceTimersByTimeAsync(0);
+      expect(lifecycle.get(prepared.mutationId)).toMatchObject({
+        status: "unknown",
+        phase: "settled",
+        execution: { lockHeld: false }
+      });
+      expect(() => lifecycle.prepare(options)).not.toThrow();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("releases a stalled readback without unlocking a newer write on late completion", async () => {
+    vi.useFakeTimers();
+    try {
+      const { lifecycle, options, prepared, apply } = setup();
+      let finishRead!: (value: unknown) => void;
+      const first = lifecycle.apply({
+        ...apply,
+        execute: async () => true,
+        readback: () =>
+          new Promise((resolve) => {
+            finishRead = resolve;
+          })
+      });
+      await vi.advanceTimersByTimeAsync(100);
+      expect(await first).toMatchObject({ status: "unknown", phase: "readback", execution: { lockHeld: false } });
+      const next = lifecycle.prepare(options);
+      let finishWrite!: (value: boolean) => void;
+      const second = lifecycle.apply({
+        ...apply,
+        mutationId: next.mutationId,
+        confirmation: next.confirmation,
+        execute: () =>
+          new Promise<boolean>((resolve) => {
+            finishWrite = resolve;
+          }),
+        readback: async () => ({})
+      });
+      finishRead({ verified: true });
+      await vi.advanceTimersByTimeAsync(0);
+      expect(lifecycle.get(prepared.mutationId).status).toBe("applied");
+      expect(lifecycle.get(next.mutationId).execution?.lockHeld).toBe(true);
+      expect(() => lifecycle.prepare(options)).toThrow();
+      finishWrite(true);
+      await second;
+      expect(() => lifecycle.prepare(options)).not.toThrow();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

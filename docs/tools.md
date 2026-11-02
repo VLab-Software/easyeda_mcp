@@ -1346,6 +1346,21 @@ Executes a mutating EasyEDA Pro action only after human confirmation is verified
 - **`params`** (`object`, _optional_): Required for `editDrcRules` (`{ "editId": "<UUID>" }`) and `mutation` (`{ "mutationId": "<UUID>" }`).
 - **`timeoutMs`** (`number`, _optional_, default: `60000`): RPC timeout in ms.
 
+For staged mutations (`action: "mutation"`), the extension also tracks a 45-second execution deadline,
+independent of the RPC timeout. A deadline returns `status: "unknown"`, not proof of cancellation.
+Query `easyeda_get_mutation_result` with the same mutation ID; never replay an uncertain write.
+The result includes `phase`, execution timestamps, and `execution` diagnostics (`timeoutMs`,
+`elapsedMs`, `lockHeld`, and recovery guidance). Busy errors include the active mutation record.
+
+The original operation remains observed after the deadline. Late completion runs readback and
+updates the retained result; late rejection preserves uncertainty and releases the lock. A pending
+executor retains its lock because the native SDK write cannot be cancelled by a JavaScript timeout.
+If it never settles, reload the extension and inspect the document before preparing another write.
+A stalled read-only lifecycle readback releases its lock at the deadline; its eventual completion
+cannot unlock another mutation. Executors that perform their own writes and readback internally
+are conservatively treated as pending writes until the entire executor settles.
+
+
 ::: code-group
 
 ```json [Apply Prepared DRC Edit]
