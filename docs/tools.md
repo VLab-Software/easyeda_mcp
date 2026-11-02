@@ -1353,7 +1353,10 @@ The result includes `phase`, execution timestamps, and `execution` diagnostics (
 `elapsedMs`, `lockHeld`, and recovery guidance). Busy errors include the active mutation record.
 
 The original operation remains observed after the deadline. Late completion runs readback and
-updates the retained result; late rejection preserves uncertainty and releases the lock. A pending
+updates the retained result; late rejection preserves uncertainty and releases the lock. A completed write whose readback fails validation or serialization remains `unknown`, with the
+original error and mutation ID available for inspection; it is not evidence that the write failed.
+Wire rename readback stores explicit plain state fields and verifies the returned net name.
+A pending
 executor retains its lock because the native SDK write cannot be cancelled by a JavaScript timeout.
 If it never settles, reload the extension and inspect the document before preparing another write.
 A stalled read-only lifecycle readback releases its lock at the deadline; its eventual completion

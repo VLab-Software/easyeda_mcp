@@ -205,6 +205,42 @@ describe("MutationLifecycle", () => {
     expect(record.error).toContain("Bridge connection lost");
   });
 
+  it("keeps a completed write uncertain when its readback cannot be serialized", async () => {
+    const lifecycle = new MutationLifecycle();
+    const prepared = lifecycle.prepare({
+      domain: "schematic",
+      action: "modifyWire",
+      target: baseTarget,
+      operation: {},
+      before: {},
+      requestedAfter: {},
+      scope: "sheet"
+    });
+    const execute = vi.fn(async () => true);
+    const result = await lifecycle.apply({
+      mutationId: prepared.mutationId,
+      confirmation: prepared.confirmation,
+      currentTarget: baseTarget,
+      currentBefore: {},
+      execute,
+      readback: async () => new Map()
+    });
+    expect(result.status).toBe("unknown");
+    expect(result.error).toMatch(/Write completed but readback/);
+    expect(result.execution?.lockHeld).toBe(false);
+    await expect(
+      lifecycle.apply({
+        mutationId: prepared.mutationId,
+        confirmation: prepared.confirmation,
+        currentTarget: baseTarget,
+        currentBefore: {},
+        execute,
+        readback: async () => ({})
+      })
+    ).rejects.toThrow();
+    expect(execute).toHaveBeenCalledTimes(1);
+  });
+
   it("expires mutations after TTL", () => {
     const lifecycle = new MutationLifecycle();
     const prepared = lifecycle.prepare({

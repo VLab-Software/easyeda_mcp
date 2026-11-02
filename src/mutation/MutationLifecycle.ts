@@ -249,6 +249,11 @@ export class MutationLifecycle {
         delete record.error;
         return this.public(record);
       } catch (error) {
+        if (record.phase === "readback" || (error as { code?: string })?.code === "write_readback_unknown") {
+          record.status = "unknown";
+          record.error = `Write completed but readback could not be confirmed: ${error instanceof Error ? error.message : String(error)}`;
+          return this.public(record);
+        }
         if (record.status === "running") {
           record.status = "failed";
           record.error = error instanceof Error ? error.message : String(error);

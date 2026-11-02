@@ -2,7 +2,7 @@ import { apiError, ensureApi, isNumber, isRecord, numeric, optionalCall, toArray
 import { assertDocumentTargetMatch, extractDocumentIdentity } from "../identity.js";
 import { extensionMutations } from "./mutationManager.js";
 import type { EasyEdaApi } from "../types.js";
-import type { MutationRecord } from "../../../src/mutation/contracts.js";
+import { canonicalJson, type MutationRecord } from "../../../src/mutation/contracts.js";
 
 export type NormalizedPoint = { x: number; y: number };
 
@@ -94,17 +94,35 @@ export async function findTouchingConnections(
   return touching;
 }
 
+// SDK primitives are class instances. Only explicit state belongs in a mutation record.
+export function wireReadbackData(wire: Record<string, unknown>): Record<string, unknown> {
+  const state = (method: string, field: string): unknown => {
+    const getter = wire[method];
+    return typeof getter === "function" ? getter.call(wire) : wire[field];
+  };
+  return JSON.parse(
+    canonicalJson({
+      primitiveId: state("getState_PrimitiveId", "primitiveId") ?? wire.id ?? wire.uuid,
+      line: state("getState_Line", "line"),
+      net: state("getState_Net", "net"),
+      color: state("getState_Color", "color"),
+      lineWidth: state("getState_LineWidth", "lineWidth"),
+      lineType: state("getState_LineType", "lineType")
+    })
+  );
+}
+
 export async function findWireById(api: () => EasyEdaApi, wireId: string): Promise<Record<string, unknown>> {
   const eda = api();
   if (eda.sch_PrimitiveWire?.get) {
     const wire = await optionalCall(() => eda.sch_PrimitiveWire.get(wireId));
-    if (isRecord(wire)) return wire;
+    if (isRecord(wire)) return wireReadbackData(wire);
   }
   ensureApi("sch_PrimitiveWire", "getAll", eda);
   const all = toArray(await eda.sch_PrimitiveWire.getAll());
   for (const w of all) {
     if (isRecord(w) && String(w.primitiveId ?? w.id ?? w.uuid ?? "") === wireId) {
-      return w;
+      return wireReadbackData(w);
     }
   }
   throw apiError("wire_not_found", `Schematic wire with id "${wireId}" was not found.`);
@@ -422,20 +440,33 @@ export async function executeSchematicWireMutation(
     ensureApi("sch_PrimitiveWire", "modify", eda);
     await eda.sch_PrimitiveWire.modify(op.wireId, op.properties);
 
-    const wire = await findWireById(api, op.wireId);
-    const points = op.properties.coordinates ? extractPointsFromFlat(op.properties.coordinates) : [];
-    const affectedConnections = points.length > 0 ? await findTouchingConnections(api, points) : [];
-
-    return {
-      executed: true,
-      readback: {
-        wireId: op.wireId,
-        properties: op.properties,
-        wire,
-        affectedConnections,
-        verified: true
+    try {
+      const wire = await findWireById(api, op.wireId);
+      if (op.properties.net !== undefined && wire.net !== op.properties.net) {
+        throw apiError("readback_verification_failed", `Wire ${op.wireId} net does not match the requested name.`, {
+          expected: op.properties.net,
+          actual: wire.net
+        });
       }
-    };
+      const points = op.properties.coordinates ? extractPointsFromFlat(op.properties.coordinates) : [];
+      const affectedConnections = points.length > 0 ? await findTouchingConnections(api, points) : [];
+
+      return {
+        executed: true,
+        readback: {
+          wireId: op.wireId,
+          properties: op.properties,
+          wire,
+          affectedConnections,
+          verified: true
+        }
+      };
+    } catch (error) {
+      throw apiError(
+        "write_readback_unknown",
+        `Wire modification completed but readback failed: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
   }
 
   if (op.action === "deleteWire") {
