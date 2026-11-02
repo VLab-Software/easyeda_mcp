@@ -1,3 +1,4 @@
+import { collectNativeNetlist } from "./nativeNetlist.js";
 import {
   assertSnapshotFresh,
   buildSchematicSnapshot,
@@ -66,8 +67,11 @@ export async function collectSchematicSnapshot(
     pinsByComponent,
     wires: await optionalCall(() => (eda.sch_PrimitiveWire?.getAll ? eda.sch_PrimitiveWire.getAll() : [])),
     texts: await optionalCall(() => (eda.sch_PrimitiveText?.getAll ? eda.sch_PrimitiveText.getAll() : [])),
-    includeRaw: options.includeRaw
+    includeRaw: options.includeRaw,
+    nativeNetlist: await collectNativeNetlist(eda, options.allPages)
   };
+  const afterInfo = await eda.dmt_SelectControl.getCurrentDocumentInfo();
+  assertDocumentTargetMatch(target, extractDocumentIdentity(afterInfo, undefined, "native_api"));
   return buildSchematicSnapshot(rawData);
 }
 

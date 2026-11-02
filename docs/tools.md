@@ -263,6 +263,23 @@ Builds a normalized snapshot of the active schematic: components, pins, wires, l
 
 ---
 
+**Native connectivity:** with `allPages: false`, the extension attempts
+`sch_ManufactureData.getNetlistFile("mcp-native-connectivity", "Protel2")` and reads the returned
+File in memory. It does not save an export or modify the schematic. The read has a 3-second budget
+and a 2 MB limit. Only supported Protel2 component and net records are parsed.
+
+The `nativeNetlist` result reports `status`, `format`, `matchedPins`, `conflicts`, and an optional
+`reason`. Pins matched by an exact, project-unique designator and pin number use
+`netSource: "native_netlist"`. Native membership takes precedence over geometric inference;
+disagreements produce warnings. Conflicting native memberships remain unknown.
+
+An absent member does not prove disconnection: exports may omit components. Missing APIs,
+unsupported files, timeouts, duplicate designators, and unmatched pins retain explicit geometric
+fallback. Multi-page snapshots currently do not apply native membership because page-local IDs
+and duplicate references need a separate scoped reconciliation. This integration requires a real
+editor check after reloading the rebuilt extension; parsing tests alone do not establish export
+compatibility with every EasyEDA version.
+
 ### `easyeda_get_schematic_nets`
 
 **Scope:** Schematic RPC (`readOnlyHint: true`, `idempotentHint: true`, default timeout: `30000` ms)
