@@ -1,3 +1,4 @@
+import { applyNativeNetlist } from "./nativeNetlist.js";
 import {
   extractSegments,
   formatPin,
@@ -302,6 +303,8 @@ export function buildSchematicSnapshot(raw: RawSchematicData): SchematicSnapshot
     ...(raw.texts ?? []).flatMap((text) => normalizeTextLabel(text, includeRaw))
   ];
   const resolved = resolveConnectivity(pins, wires, labels);
+  const native = applyNativeNetlist(resolved.pins, raw.nativeNetlist);
+  resolved.pins = native.pins;
   const nets = buildNets(resolved.pins, resolved.wires, labels);
   const warnings: string[] = [];
 
@@ -311,7 +314,7 @@ export function buildSchematicSnapshot(raw: RawSchematicData): SchematicSnapshot
   if (wires.length === 0) {
     warnings.push("No schematic wires were returned by EasyEDA Pro; wire-based checks may be incomplete.");
   }
-  warnings.push(...resolved.warnings);
+  warnings.push(...resolved.warnings, ...native.warnings);
 
   const completeness: DataCompleteness =
     raw.completeness ??
@@ -326,6 +329,7 @@ export function buildSchematicSnapshot(raw: RawSchematicData): SchematicSnapshot
 
   return {
     snapshotId,
+    nativeNetlist: native.report,
     target: raw.target,
     capturedAt,
     source,

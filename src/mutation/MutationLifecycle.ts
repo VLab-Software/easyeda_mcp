@@ -31,6 +31,21 @@ export type ApplyMutationOptions<TData = unknown> = {
 export class MutationLifecycle {
   private mutations = new Map<string, MutationRecord<any, any>>();
   private busy = false;
+  private activeMutationId?: string;
+
+  constructor(private readonly executionTimeoutMs = 45_000) {
+    if (!Number.isFinite(executionTimeoutMs) || executionTimeoutMs <= 0) {
+      throw new Error("Mutation execution timeout must be positive and finite");
+    }
+  }
+
+  private busyError(): Error & { code: string; details: unknown } {
+    const active = this.activeMutationId ? this.mutations.get(this.activeMutationId) : undefined;
+    return Object.assign(new Error("Another mutation is still pending; query its result without replaying it"), {
+      code: "mutation_busy",
+      details: active ? this.public(active) : undefined
+    });
+  }
   private generation = 0;
 
   getGeneration(): number {
@@ -50,9 +65,7 @@ export class MutationLifecycle {
     options: PrepareMutationOptions<TOperation, TData>
   ): MutationRecord<TOperation, TData> {
     if (this.busy) {
-      const error = new Error("Another mutation is currently in progress") as Error & { code: string };
-      error.code = "mutation_busy";
-      throw error;
+      throw this.busyError();
     }
 
     const mutationId =
@@ -182,9 +195,7 @@ export class MutationLifecycle {
     }
 
     if (this.busy) {
-      const error = new Error("Another mutation is currently in progress") as Error & { code: string };
-      error.code = "mutation_busy";
-      throw error;
+      throw this.busyError();
     }
 
     // Verify target matches
@@ -203,40 +214,82 @@ export class MutationLifecycle {
     }
 
     this.busy = true;
+    this.activeMutationId = record.mutationId;
     record.status = "running";
+    record.startedAt = new Date().toISOString();
+    record.phase = "execute";
 
-    try {
-      const execResult = await options.execute();
-      if (execResult === false) {
-        record.status = "failed";
-        record.error = "Mutation executor returned false";
-        const error = new Error("Mutation execution returned false; outcome unverified") as Error & {
-          code: string;
-        };
-        error.code = "write_unverified";
+    // Keep observing the original promise after the caller's deadline. A timeout
+    // cannot cancel an SDK write, so never release its lock or replay the write.
+    const completion = (async () => {
+      try {
+        const execResult = await options.execute();
+        if (execResult === false) {
+          record.status = "failed";
+          record.error = "Mutation executor returned false";
+          const error = new Error("Mutation execution returned false; outcome unverified") as Error & {
+            code: string;
+          };
+          error.code = "write_unverified";
+          throw error;
+        }
+
+        // Check target again after write
+        if (options.readbackTarget) {
+          assertDocumentTargetMatch(record.target, options.readbackTarget, {
+            requireTabMatch: true,
+            requirePageMatch: true
+          });
+        }
+
+        record.phase = "readback";
+        const readbackData = await options.readback();
+        record.after = copy(readbackData);
+        record.status = "applied";
+        delete record.error;
+        return this.public(record);
+      } catch (error) {
+        if (record.phase === "readback" || (error as { code?: string })?.code === "write_readback_unknown") {
+          record.status = "unknown";
+          record.error = `Write completed but readback could not be confirmed: ${error instanceof Error ? error.message : String(error)}`;
+          return this.public(record);
+        }
+        if (record.status === "running") {
+          record.status = "failed";
+          record.error = error instanceof Error ? error.message : String(error);
+        } else if (record.status === "unknown") {
+          record.error = `Outcome remains uncertain after executor rejection: ${error instanceof Error ? error.message : String(error)}`;
+        }
         throw error;
+      } finally {
+        record.phase = "settled";
+        record.settledAt = new Date().toISOString();
+        if (this.activeMutationId === record.mutationId) {
+          this.busy = false;
+          this.activeMutationId = undefined;
+        }
       }
+    })();
 
-      // Check target again after write
-      if (options.readbackTarget) {
-        assertDocumentTargetMatch(record.target, options.readbackTarget, {
-          requireTabMatch: true,
-          requirePageMatch: true
-        });
-      }
-
-      const readbackData = await options.readback();
-      record.after = copy(readbackData);
-      record.status = "applied";
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const deadline = new Promise<MutationRecord<any, TData>>((resolve) => {
+      timer = setTimeout(() => {
+        record.status = "unknown";
+        record.timedOutAt = new Date().toISOString();
+        record.error = "Execution deadline exceeded; the original operation is still being observed. Do not replay it.";
+        // A pending read-only readback cannot perform another write.
+        if (record.phase === "readback" && this.activeMutationId === record.mutationId) {
+          this.busy = false;
+          this.activeMutationId = undefined;
+        }
+        resolve(this.public(record));
+      }, this.executionTimeoutMs);
+    });
+    try {
+      await Promise.race([completion, deadline]);
       return this.public(record);
-    } catch (error) {
-      if (record.status === "running") {
-        record.status = "failed";
-        record.error = error instanceof Error ? error.message : String(error);
-      }
-      throw error;
     } finally {
-      this.busy = false;
+      if (timer !== undefined) clearTimeout(timer);
     }
   }
 
@@ -256,6 +309,17 @@ export class MutationLifecycle {
     return copy({
       ...record,
       status: record.status === "prepared" && Date.now() > Date.parse(record.expiresAt) ? "expired" : record.status,
+      execution: {
+        timeoutMs: this.executionTimeoutMs,
+        elapsedMs: record.startedAt
+          ? Math.max(0, (record.settledAt ? Date.parse(record.settledAt) : Date.now()) - Date.parse(record.startedAt))
+          : 0,
+        lockHeld: this.busy && this.activeMutationId === record.mutationId,
+        recovery:
+          this.busy && this.activeMutationId === record.mutationId
+            ? "Query this mutation; the lock releases automatically when the original executor settles. If it never settles, reload the extension and inspect the document before any retry."
+            : "No execution lock held. Inspect the result before preparing another operation."
+      },
       documentSaved: false as const
     });
   }
