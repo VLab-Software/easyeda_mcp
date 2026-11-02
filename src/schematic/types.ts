@@ -1,3 +1,4 @@
+import type { NativeNetlistData } from "./nativeNetlist.js";
 import type { DataCompleteness, DataSource, DocumentIdentity } from "../protocol/identity.js";
 
 export type Confidence = "high" | "partial" | "low";
@@ -7,7 +8,7 @@ export type Position = {
   y?: number;
 };
 
-export type ConnectivitySource = "direct" | "wire_inferred" | "label_inferred" | "unknown";
+export type ConnectivitySource = "direct" | "native_netlist" | "wire_inferred" | "label_inferred" | "unknown";
 
 export type ConnectivityEvidence = {
   source: ConnectivitySource;
@@ -79,6 +80,13 @@ export type SchematicNet = {
 };
 
 export type SchematicSnapshot = {
+  nativeNetlist?: {
+    status: NativeNetlistData["status"];
+    format: "Protel2";
+    matchedPins: number;
+    conflicts: number;
+    reason?: string;
+  };
   snapshotId?: string;
   target?: DocumentIdentity;
   capturedAt?: string;
@@ -102,6 +110,7 @@ export type SchematicSnapshot = {
 };
 
 export type RawSchematicData = {
+  nativeNetlist?: NativeNetlistData;
   snapshotId?: string;
   target?: DocumentIdentity;
   capturedAt?: string;

@@ -54,6 +54,11 @@ export type MutationRecord<TOperation = Record<string, unknown>, TData = unknown
   expiresAt: string;
   after?: TData;
   error?: string;
+  startedAt?: string;
+  timedOutAt?: string;
+  settledAt?: string;
+  phase?: "execute" | "readback" | "settled";
+  execution?: { timeoutMs: number; elapsedMs: number; lockHeld: boolean; recovery: string };
   documentSaved: false;
 };
 

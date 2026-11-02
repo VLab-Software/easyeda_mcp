@@ -6,12 +6,12 @@
     "url": "https://github.com/VLab-Software/easyeda_mcp",
     "source": "github"
   },
-  "version": "1.4.0",
+  "version": "1.4.1",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "@vlabsoftware/easyeda-pro-mcp",
-      "version": "1.4.0",
+      "version": "1.4.1",
       "transport": {
         "type": "stdio"
       },

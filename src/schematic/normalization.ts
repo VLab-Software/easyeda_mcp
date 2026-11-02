@@ -80,25 +80,34 @@ export function extractSegments(value: unknown): Segment[] {
     return [];
   }
   const segments: Segment[] = [];
-  const points: Required<Position>[] = [];
+  // EasyEDA returns both flat polylines and arrays of independent polylines.
+  // Never join the end of one independent path to the start of another.
+  if (value.some((item) => typeof item === "number")) {
+    if (value.length < 4 || value.length % 2 !== 0 || !value.every((item) => numberValue(item) !== undefined)) {
+      return [];
+    }
+    for (let index = 2; index < value.length; index += 2) {
+      segments.push({
+        start: { x: value[index - 2], y: value[index - 1] },
+        end: { x: value[index], y: value[index + 1] }
+      });
+    }
+    return segments;
+  }
+  let previousPoint: Required<Position> | undefined;
   for (const item of value) {
     if (Array.isArray(item) && item.length >= 4) {
-      const start = requiredPosition({ x: numberValue(item[0]), y: numberValue(item[1]) });
-      const end = requiredPosition({ x: numberValue(item[2]), y: numberValue(item[3]) });
-      if (start && end) {
-        segments.push({ start, end });
-      }
+      previousPoint = undefined;
+      segments.push(...extractSegments(item));
       continue;
     }
     const point = Array.isArray(item)
       ? requiredPosition({ x: numberValue(item[0]), y: numberValue(item[1]) })
       : requiredPosition({ x: numberValue(asRecord(item).x), y: numberValue(asRecord(item).y) });
-    if (point) {
-      points.push(point);
+    if (point && previousPoint) {
+      segments.push({ start: previousPoint, end: point });
     }
-  }
-  for (let index = 1; index < points.length; index += 1) {
-    segments.push({ start: points[index - 1], end: points[index] });
+    previousPoint = point;
   }
   return segments;
 }
@@ -204,7 +213,8 @@ export function pinEvidence(pin: SchematicPin): Record<string, unknown> {
 }
 
 export function netNodeId(net: string): string {
-  return `net:${canonicalNet(net)}`;
+  // Keep significant punctuation: USB_D+ and USB_D- are different nodes.
+  return `net:${net}`;
 }
 
 export function normalizeComponent(raw: unknown, includeRaw: boolean): SchematicComponent {
@@ -265,11 +275,22 @@ export function normalizePin(
 
 export function normalizeWire(raw: unknown, includeRaw: boolean): SchematicWire {
   const item = asRecord(raw);
+  const line = item.line;
+  const geometry = line ?? item.points ?? item.geometry;
+  // Native Wire.line readback packs independent segments as x1,y1,x2,y2.
+  // Joining consecutive segments introduces artificial paths between their ends.
+  const normalizedGeometry =
+    Array.isArray(line) &&
+    line.length > 0 &&
+    line.length % 4 === 0 &&
+    line.every((coordinate: unknown) => numberValue(coordinate) !== undefined)
+      ? Array.from({ length: line.length / 4 }, (_, index) => line.slice(index * 4, index * 4 + 4))
+      : geometry;
   return {
     primitiveId: stringValue(item.primitiveId ?? item.id ?? item.uuid),
     net: normalizeNetName(item.net ?? item.netName),
-    geometry: item.line ?? item.points ?? item.geometry,
-    endpoints: inferEndpoints(item.line ?? item.points ?? item.geometry),
+    geometry: normalizedGeometry,
+    endpoints: inferEndpoints(normalizedGeometry),
     raw: includeRaw ? compactRaw(item) : undefined
   };
 }

@@ -335,3 +335,75 @@ describe("Schematic Wire & Net Label Mutations", () => {
     });
   });
 });
+
+describe("native wire rename readback", () => {
+  function fixture(options: { ignoreWrite?: boolean; invalidReadback?: boolean } = {}) {
+    class NativeWire {
+      primitiveId = "native-wire";
+      net = "TEST_USB_GND";
+      line = [240, 620, 300, 620];
+      // These native members must never be copied into the lifecycle record.
+      nativeMetadata = new Map([["editor", "native"]]);
+      getState_PrimitiveId() {
+        return this.primitiveId;
+      }
+      getState_Net() {
+        return this.net;
+      }
+      getState_Line() {
+        return options.invalidReadback && this.net === "GND" ? [NaN] : this.line;
+      }
+    }
+    const wire = new NativeWire();
+    const modify = vi.fn(async (_id: string, properties: Record<string, unknown>) => {
+      if (!options.ignoreWrite) wire.net = String(properties.net);
+    });
+    const api = () => ({
+      dmt_SelectControl: { getCurrentDocumentInfo: async () => ({ uuid: "rename-sheet", documentType: 1 }) },
+      sch_PrimitiveWire: { get: async () => wire, getAll: async () => [wire], modify }
+    });
+    return { api, wire, modify };
+  }
+
+  it("confirms a native class instance as plain JSON after renaming once", async () => {
+    const { api, modify } = fixture();
+    const prepared = await prepareSchematicWireMutation(api, {
+      action: "modifyWire",
+      wireId: "native-wire",
+      net: "GND"
+    });
+    const result: any = await createActionHandlers(api, new DrcRules(api)).confirmedAction({
+      action: "mutation",
+      confirmation: prepared.confirmation,
+      params: { mutationId: prepared.mutationId }
+    });
+    expect(result.status).toBe("applied");
+    expect(result.after).toMatchObject({
+      wire: { primitiveId: "native-wire", net: "GND", line: [240, 620, 300, 620] },
+      verified: true
+    });
+    expect((result.after as any).wire.nativeMetadata).toBeUndefined();
+    expect(modify).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([{ ignoreWrite: true }, { invalidReadback: true }])(
+    "preserves uncertainty when native readback fails: %j",
+    async (options) => {
+      const { api, modify } = fixture(options);
+      const prepared = await prepareSchematicWireMutation(api, {
+        action: "modifyWire",
+        wireId: "native-wire",
+        net: "GND"
+      });
+      const result: any = await createActionHandlers(api, new DrcRules(api)).confirmedAction({
+        action: "mutation",
+        confirmation: prepared.confirmation,
+        params: { mutationId: prepared.mutationId }
+      });
+      expect(result.status).toBe("unknown");
+      expect(result.error).toMatch(/readback/);
+      expect(result.execution).toMatchObject({ lockHeld: false });
+      expect(modify).toHaveBeenCalledTimes(1);
+    }
+  );
+});

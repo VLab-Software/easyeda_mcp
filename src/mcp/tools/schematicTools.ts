@@ -108,7 +108,7 @@ export function registerSchematicTools(server: McpServer, bridge: EditorClient):
     name: "easyeda_schematic_snapshot",
     title: "Get EasyEDA Pro schematic snapshot",
     description:
-      "Returns a structured snapshot of the active schematic: components, pins, nets, wires, labels, and confidence metadata.",
+      "Returns components, pins, nets, wires, labels and provenance. Single-page reads attempt native Protel2 netlist membership and explicitly report geometric fallback.",
     method: "schematicSnapshot",
     inputSchema: {
       includeRaw: z

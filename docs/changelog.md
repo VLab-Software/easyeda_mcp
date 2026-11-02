@@ -4,6 +4,14 @@ All notable changes to the EasyEDA Pro MCP server and browser extension are docu
 
 For packaged `.eext` and `.mcpb` downloads and checksums, see [GitHub Releases](https://github.com/VLab-Software/easyeda_mcp/releases).
 
+## `1.4.1` (Extension `0.5.1`)
+
+- feat: reconcile single-page snapshots with native Protel2 netlists
+- fix: serialize native wire readback as plain JSON
+- fix: track mutation deadlines and reconcile late completion
+- fix: decode native wire segment groups without artificial diagonals
+- fix: preserve schematic wire geometry and net identity
+
 ## `1.4.0` (Extension `0.5.0`)
 
 - feat(spice): simulation feasibility assessment, component audit and SPICE netlist generation (Phase 5.5)

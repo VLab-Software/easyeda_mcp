@@ -263,6 +263,23 @@ Builds a normalized snapshot of the active schematic: components, pins, wires, l
 
 ---
 
+**Native connectivity:** with `allPages: false`, the extension attempts
+`sch_ManufactureData.getNetlistFile("mcp-native-connectivity", "Protel2")` and reads the returned
+File in memory. It does not save an export or modify the schematic. The read has a 3-second budget
+and a 2 MB limit. Only supported Protel2 component and net records are parsed.
+
+The `nativeNetlist` result reports `status`, `format`, `matchedPins`, `conflicts`, and an optional
+`reason`. Pins matched by an exact, project-unique designator and pin number use
+`netSource: "native_netlist"`. Native membership takes precedence over geometric inference;
+disagreements produce warnings. Conflicting native memberships remain unknown.
+
+An absent member does not prove disconnection: exports may omit components. Missing APIs,
+unsupported files, timeouts, duplicate designators, and unmatched pins retain explicit geometric
+fallback. Multi-page snapshots currently do not apply native membership because page-local IDs
+and duplicate references need a separate scoped reconciliation. This integration requires a real
+editor check after reloading the rebuilt extension; parsing tests alone do not establish export
+compatibility with every EasyEDA version.
+
 ### `easyeda_get_schematic_nets`
 
 **Scope:** Schematic RPC (`readOnlyHint: true`, `idempotentHint: true`, default timeout: `30000` ms)
@@ -1345,6 +1362,24 @@ Executes a mutating EasyEDA Pro action only after human confirmation is verified
   - For **`save`**, **`importChanges`**, **`autoroute`**, **`autolayout`**, **`unroute`**: explicit phrase containing `I confirm`, `confirmed`, `confirma`, or `confirmo`.
 - **`params`** (`object`, _optional_): Required for `editDrcRules` (`{ "editId": "<UUID>" }`) and `mutation` (`{ "mutationId": "<UUID>" }`).
 - **`timeoutMs`** (`number`, _optional_, default: `60000`): RPC timeout in ms.
+
+For staged mutations (`action: "mutation"`), the extension also tracks a 45-second execution deadline,
+independent of the RPC timeout. A deadline returns `status: "unknown"`, not proof of cancellation.
+Query `easyeda_get_mutation_result` with the same mutation ID; never replay an uncertain write.
+The result includes `phase`, execution timestamps, and `execution` diagnostics (`timeoutMs`,
+`elapsedMs`, `lockHeld`, and recovery guidance). Busy errors include the active mutation record.
+
+The original operation remains observed after the deadline. Late completion runs readback and
+updates the retained result; late rejection preserves uncertainty and releases the lock. A completed write whose readback fails validation or serialization remains `unknown`, with the
+original error and mutation ID available for inspection; it is not evidence that the write failed.
+Wire rename readback stores explicit plain state fields and verifies the returned net name.
+A pending
+executor retains its lock because the native SDK write cannot be cancelled by a JavaScript timeout.
+If it never settles, reload the extension and inspect the document before preparing another write.
+A stalled read-only lifecycle readback releases its lock at the deadline; its eventual completion
+cannot unlock another mutation. Executors that perform their own writes and readback internally
+are conservatively treated as pending writes until the entire executor settles.
+
 
 ::: code-group
 
