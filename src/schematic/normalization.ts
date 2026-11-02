@@ -275,11 +275,22 @@ export function normalizePin(
 
 export function normalizeWire(raw: unknown, includeRaw: boolean): SchematicWire {
   const item = asRecord(raw);
+  const line = item.line;
+  const geometry = line ?? item.points ?? item.geometry;
+  // Native Wire.line readback packs independent segments as x1,y1,x2,y2.
+  // Joining consecutive segments introduces artificial paths between their ends.
+  const normalizedGeometry =
+    Array.isArray(line) &&
+    line.length > 0 &&
+    line.length % 4 === 0 &&
+    line.every((coordinate: unknown) => numberValue(coordinate) !== undefined)
+      ? Array.from({ length: line.length / 4 }, (_, index) => line.slice(index * 4, index * 4 + 4))
+      : geometry;
   return {
     primitiveId: stringValue(item.primitiveId ?? item.id ?? item.uuid),
     net: normalizeNetName(item.net ?? item.netName),
-    geometry: item.line ?? item.points ?? item.geometry,
-    endpoints: inferEndpoints(item.line ?? item.points ?? item.geometry),
+    geometry: normalizedGeometry,
+    endpoints: inferEndpoints(normalizedGeometry),
     raw: includeRaw ? compactRaw(item) : undefined
   };
 }

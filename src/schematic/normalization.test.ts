@@ -70,6 +70,39 @@ describe("schematic wire geometry", () => {
     expect(snapshot.pins.map((pin) => pin.net)).toEqual(["VBAT_LIPO", "VBUS", "GND"]);
     expect(snapshot.pins.every((pin) => pin.connected)).toBe(true);
   });
+
+  it("keeps native PROG readback separate from STDBY without inventing a diagonal", () => {
+    const snapshot = buildSchematicSnapshot({
+      components: [
+        { primitiveId: "u5", designator: "U5", componentType: "part" },
+        { primitiveId: "r7", designator: "R7", componentType: "part" }
+      ],
+      pinsByComponent: {
+        u5: [
+          { pinNumber: "6", pinName: "PROG", x: 480, y: 430 },
+          { pinNumber: "5", pinName: "STDBY", x: 480, y: 410 }
+        ],
+        r7: [{ pinNumber: "2", pinName: "2", x: 520, y: 390 }]
+      },
+      wires: [
+        { primitiveId: "e6440", net: "", line: [520, 430, 520, 390, 480, 430, 520, 430] },
+        { primitiveId: "e5061", net: "STDBY", line: [500, 410, 480, 410] }
+      ]
+    });
+    expect(snapshot.pins[0].net).toBeUndefined();
+    expect(snapshot.pins[0].connected).toBe(true);
+    expect(snapshot.pins[0].nodeId).toBe(snapshot.pins[2].nodeId);
+    expect(snapshot.pins[0].nodeId).not.toBe(snapshot.pins[1].nodeId);
+    expect(snapshot.pins[1].net).toBe("STDBY");
+    const result = verifyConnections(snapshot, [
+      {
+        type: "same_node",
+        left: { component: "U5", pin: "6" },
+        right: { component: "U5", pin: "5" }
+      }
+    ]);
+    expect(result.checks[0].status).not.toBe("pass");
+  });
 });
 
 describe("schematic net identity", () => {
