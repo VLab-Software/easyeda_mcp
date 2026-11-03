@@ -6,6 +6,10 @@ Copy-pasteable prompts for common schematic and PCB workflows in EasyEDA Pro.
 Open your target schematic or PCB tab in EasyEDA Pro and confirm [`easyeda_doctor`](./tools.md#easyeda_doctor) reports `extension.connected: true`.
 :::
 
+::: info Enhance with HEA Skills
+Pair these workflows with our open-source **[Hardware Engineering Assistant (HEA)](./hea-skills.md)** skills suite for automated JLCPCB DFM rules, microcontroller boot strapping verification, and power tree validation.
+:::
+
 ---
 
 ## 1. Pre-Layout Schematic Review

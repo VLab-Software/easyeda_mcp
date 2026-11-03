@@ -17,6 +17,7 @@
   <a href="https://www.npmjs.com/package/@vlabsoftware/easyeda-pro-mcp"><img alt="npm" src="https://img.shields.io/npm/v/@vlabsoftware/easyeda-pro-mcp?label=npm"></a>
   <a href="https://github.com/VLab-Software/easyeda_mcp/releases"><img alt="Release" src="https://img.shields.io/github/v/release/VLab-Software/easyeda_mcp?include_prereleases&label=release"></a>
   <a href="./LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-blue"></a>
+  <a href="https://github.com/VLab-Software/HEA"><img alt="HEA Skills" src="https://img.shields.io/badge/Agent_Skills-HEA-8A2BE2?logo=github&logoColor=white"></a>
   <img alt="Node" src="https://img.shields.io/badge/node-%3E%3D20-339933">
   <img alt="Platforms" src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey">
   <a href="https://github.com/sponsors/vafreitas"><img alt="Sponsor" src="https://img.shields.io/badge/Sponsor-%E2%99%A5-ea4aaa?logo=githubsponsors&logoColor=white"></a>
@@ -33,6 +34,10 @@
   <a href="https://vlabsoft.org/easyeda_mcp/quick-start">Quick Start</a>
   ·
   <a href="https://vlabsoft.org/easyeda_mcp/ai-client-setup">AI Client Setup</a>
+  ·
+  <a href="https://vlabsoft.org/easyeda_mcp/workflows">Workflows</a>
+  ·
+  <a href="https://vlabsoft.org/easyeda_mcp/hea-skills">HEA Skills</a>
   ·
   <a href="https://vlabsoft.org/easyeda_mcp/tools">Tools</a>
   ·
@@ -52,6 +57,18 @@
 - **Native PCB DRC rule management** — Read active design rules, saved profiles, and net/region tables, preview changes safely, and apply confirmed rule updates with readback verification.
 - **Editor navigation & fabrication exports** — Focus components or regions directly in EasyEDA Pro and export BOM, Netlist, Gerber, and PDF files.
 - **Local & read-first by default** — Runs locally over `stdio` and `ws://127.0.0.1:8765`. Inspection is read-only; mutating actions require explicit human confirmation.
+
+## 🧠 Supercharge with HEA (Hardware Engineering Assistant)
+
+While **EasyEDA Pro MCP** gives your AI agent programmatic hands to inspect and manipulate schematics and PCBs, **[HEA (Hardware Engineering Assistant)](https://github.com/VLab-Software/HEA)** gives it an engineering brain.
+
+HEA is VLab Software's companion open-source suite of **Agent Skills** (compatible with Antigravity, Claude Code, Cursor, Codex, and others):
+- 🏭 **`pcb-dfm-jlcpcb`** — Design for Manufacturing checks, clearance rules, and SMT Basic vs. Extended parts optimization.
+- ⚡ **`power-tree-and-thermal`** — Regulator efficiency (LDO vs. Buck), thermal dissipation limits, and decoupling capacitor placement.
+- 🔬 **`mcu-strapping-and-pinout`** — Bootstrapping pin safety (ESP32, STM32, RP2040) and logic-level translation.
+- 📋 **`schematic-review-audit`** — Pre-layout audits for floating nets, bus pull-ups, and USB-C CC termination.
+
+👉 Pair them together for an end-to-end hardware engineering agent: read the **[HEA Integration Guide](https://vlabsoft.org/easyeda_mcp/hea-skills)** or star the **[VLab-Software/HEA Repository](https://github.com/VLab-Software/HEA)**.
 
 ## Requirements
 
@@ -229,6 +246,7 @@ Full parameter schemas and examples: **[Tools Reference](https://vlabsoft.org/ea
 | **[Quick Start](https://vlabsoft.org/easyeda_mcp/quick-start)** | Shortest path from zero to a working bridge |
 | **[AI Client Setup](https://vlabsoft.org/easyeda_mcp/ai-client-setup)** | Detailed setup for Claude Code, Codex, Claude Desktop, Cursor, VS Code, Antigravity & others |
 | **[Practical Workflows](https://vlabsoft.org/easyeda_mcp/workflows)** | Copy-pasteable prompts for schematic review, circuit assertions, DRC, and exports |
+| **[HEA Skills Integration](https://vlabsoft.org/easyeda_mcp/hea-skills)** | Supercharge your agent with hardware engineering knowledge, DFM, and schematic review skills |
 | **[Upgrading & Compatibility](https://vlabsoft.org/easyeda_mcp/upgrading)** | Server/Extension version matrix and 3-step upgrade checklist |
 | **[Troubleshooting](https://vlabsoft.org/easyeda_mcp/troubleshooting)** | Common fixes and bridge error code reference |
 | **[Architecture](https://vlabsoft.org/easyeda_mcp/architecture)** & **[Safety Model](https://vlabsoft.org/easyeda_mcp/safety)** | How the local WebSocket bridge and confirmation gates work |

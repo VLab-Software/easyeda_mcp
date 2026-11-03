@@ -113,6 +113,7 @@ You are ready when `easyeda_doctor` reports:
 ## Next Steps
 
 - **[AI Client Setup](./ai-client-setup.md)** — 1-click install links, client-specific config files, and environment variables
+- **[Hardware Engineering Assistant (HEA)](./hea-skills.md)** — empower your AI agent with expert DFM, MCU strapping, and schematic engineering skills
 - **[Practical Workflows](./workflows.md)** — copy-pasteable prompts for schematic reviews, circuit assertions, DRC rules, and manufacturing exports
 - **[Tools Reference](./tools.md)** — full specification of all 24 MCP tools
 - **[DRC Rule Editing](./drc-rules.md)** — two-phase preview and confirmation workflow for PCB design rules
