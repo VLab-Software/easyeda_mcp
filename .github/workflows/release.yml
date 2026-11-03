@@ -10,12 +10,16 @@ on:
         description: "Version bump level if current version is already tagged (auto, patch, minor, major)"
         required: false
         default: "auto"
+      channel:
+        description: "Release channel (auto, stable, beta)"
+        required: false
+        default: "auto"
 
 permissions:
   contents: write
 
 concurrency:
-  group: release-master
+  group: release-${{ github.ref_name }}
   cancel-in-progress: false
 
 jobs:
@@ -25,6 +29,8 @@ jobs:
     outputs:
       released: ${{ steps.prepare.outputs.skip == 'false' }}
       tag: ${{ steps.prepare.outputs.tag }}
+      channel: ${{ steps.prepare.outputs.channel }}
+      is_prerelease: ${{ steps.prepare.outputs.is_prerelease }}
     steps:
       - name: Checkout full history and tags
         uses: actions/checkout@v4
@@ -42,7 +48,16 @@ jobs:
 
       - name: Prepare release version
         id: prepare
-        run: node scripts/bump-version.mjs --bump "${{ inputs.bump || 'auto' }}"
+        run: |
+          CHANNEL="${{ inputs.channel || 'auto' }}"
+          if [ "$CHANNEL" = "auto" ]; then
+            if [ "${{ github.ref_name }}" = "master" ]; then
+              CHANNEL="stable"
+            else
+              CHANNEL="beta"
+            fi
+          fi
+          node scripts/bump-version.mjs --bump "${{ inputs.bump || 'auto' }}" --channel "$CHANNEL"
 
       - name: Validate
         if: steps.prepare.outputs.skip == 'false'
@@ -67,26 +82,30 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           TAG="${{ steps.prepare.outputs.tag }}"
+          TARGET_BRANCH="${{ github.ref_name }}"
 
           if [ "${{ steps.prepare.outputs.bumped }}" = "true" ]; then
             git add src/version.ts package.json package-lock.json server.json extension/extension.json docs/changelog.md
             git commit -m "chore(release): ${TAG}"
-            git push origin HEAD:master
+            git push origin "HEAD:${TARGET_BRANCH}"
           fi
 
           git tag -a "${TAG}" -m "Release ${TAG}"
           git push origin "refs/tags/${TAG}"
 
-          if git ls-remote --exit-code --heads origin develop >/dev/null 2>&1; then
-            git fetch origin develop
-            git checkout -B develop origin/develop
-            if git merge --no-edit "${TAG}"; then
-              git push origin develop || echo "::warning::Could not auto-sync develop branch."
-            else
-              git merge --abort || true
-              echo "::warning::develop has diverged with conflicts; merge master into develop manually."
+          # When releasing official stable from master, sync tag commit back into develop
+          if [ "${TARGET_BRANCH}" = "master" ]; then
+            if git ls-remote --exit-code --heads origin develop >/dev/null 2>&1; then
+              git fetch origin develop
+              git checkout -B develop origin/develop
+              if git merge --no-edit "${TAG}"; then
+                git push origin develop || echo "::warning::Could not auto-sync develop branch."
+              else
+                git merge --abort || true
+                echo "::warning::develop has diverged with conflicts; merge master into develop manually."
+              fi
+              git checkout -f "${TAG}"
             fi
-            git checkout -f "${TAG}"
           fi
 
       - name: Generate checksums
@@ -102,14 +121,34 @@ jobs:
           import fs from 'node:fs';
           const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
           const manifest = JSON.parse(fs.readFileSync('extension/extension.json', 'utf8'));
+          const isBeta = "${{ steps.prepare.outputs.is_prerelease }}" === "true";
+
+          const header = isBeta
+            ? [
+                `## EasyEDA Pro MCP v${pkg.version} (Extension v${manifest.version}) - Pre-release / Beta`,
+                '',
+                '> [!WARNING]',
+                `> This is a **pre-release (stage/beta)** version intended for validation before production.`,
+                '> Please report any bugs or feedback at: https://github.com/VLab-Software/easyeda_mcp/issues',
+                '',
+                '### Quick Install (Beta Testing)',
+                '',
+                '```bash',
+                'npx -y @vlabsoftware/easyeda-pro-mcp@beta setup',
+                '```'
+              ]
+            : [
+                `EasyEDA Pro MCP v${pkg.version} (Extension v${manifest.version}).`,
+                '',
+                '### Quick Install (All AI Clients)',
+                '',
+                '```bash',
+                'npx -y @vlabsoftware/easyeda-pro-mcp setup',
+                '```'
+              ];
+
           fs.writeFileSync('RELEASE_NOTES.md', [
-            `EasyEDA Pro MCP v${pkg.version} (Extension v${manifest.version}).`,
-            '',
-            '### Quick Install (All AI Clients)',
-            '',
-            '```bash',
-            'npx -y @vlabsoftware/easyeda-pro-mcp setup',
-            '```',
+            ...header,
             '',
             '### Release Assets',
             '',
@@ -130,12 +169,18 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           TAG="${{ steps.prepare.outputs.tag }}"
+          PRERELEASE_FLAG=""
+          if [ "${{ steps.prepare.outputs.is_prerelease }}" = "true" ]; then
+            PRERELEASE_FLAG="--prerelease"
+          fi
+
           gh release create "$TAG" \
             build/dist/*.eext \
             build/dist/*.mcpb \
             build/dist/SHA256SUMS.txt \
             --title "$TAG" \
-            --notes-file RELEASE_NOTES.md
+            --notes-file RELEASE_NOTES.md \
+            $PRERELEASE_FLAG
 
   publish-registries:
     needs: release
@@ -181,10 +226,15 @@ jobs:
             npm config set //registry.npmjs.org/:_authToken="${NODE_AUTH_TOKEN}"
           fi
 
-          if npm publish --provenance --access public; then
+          NPM_DIST_TAG="latest"
+          if [ "${{ needs.release.outputs.channel }}" = "beta" ] || [ "${{ needs.release.outputs.is_prerelease }}" = "true" ]; then
+            NPM_DIST_TAG="beta"
+          fi
+
+          if npm publish --provenance --access public --tag "${NPM_DIST_TAG}"; then
             echo "published=true" >> "$GITHUB_OUTPUT"
-          elif npm stage publish --provenance --access public; then
-            echo "::notice::Staged ${PKG_NAME}@${PKG_VERSION} on npm! Approve it on https://www.npmjs.com/package/${PKG_NAME} or run: npx -y npm@latest stage list && npx -y npm@latest stage approve <stage-id>"
+          elif npm stage publish --provenance --access public --tag "${NPM_DIST_TAG}"; then
+            echo "::notice::Staged ${PKG_NAME}@${PKG_VERSION} (tag: ${NPM_DIST_TAG}) on npm! Approve it on https://www.npmjs.com/package/${PKG_NAME} or run: npx -y npm@latest stage list && npx -y npm@latest stage approve <stage-id>"
             echo "published=staged" >> "$GITHUB_OUTPUT"
           else
             if [ -z "${NODE_AUTH_TOKEN:-}" ]; then
@@ -196,7 +246,7 @@ jobs:
           fi
 
       - name: Publish to Official MCP Registry
-        if: steps.npm_publish.outputs.published == 'true'
+        if: steps.npm_publish.outputs.published == 'true' && needs.release.outputs.is_prerelease != 'true'
         run: |
           ARCH=$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')
           OS=$(uname -s | tr '[:upper:]' '[:lower:]')

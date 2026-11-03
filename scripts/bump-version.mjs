@@ -6,19 +6,54 @@ import { fileURLToPath } from "node:url";
 const defaultRepoRoot = path.resolve(import.meta.dirname, "..");
 
 export function parseSemver(version) {
-  const match = /^(\d+)\.(\d+)\.(\d+)$/.exec(version.trim());
+  const match = /^(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?$/.exec(version.trim());
   if (!match) {
-    throw new Error(`Invalid semantic version: "${version}". Expected X.Y.Z.`);
+    throw new Error(`Invalid semantic version: "${version}". Expected X.Y.Z or X.Y.Z-prerelease.`);
+  }
+  const prerelease = match[4] || null;
+  let prereleaseTag = null;
+  let prereleaseNum = null;
+  if (prerelease) {
+    const preMatch = /^([a-zA-Z0-9-]+)(?:\.(\d+))?$/.exec(prerelease);
+    if (preMatch) {
+      prereleaseTag = preMatch[1];
+      prereleaseNum = preMatch[2] !== undefined ? Number(preMatch[2]) : null;
+    } else {
+      prereleaseTag = prerelease;
+      prereleaseNum = null;
+    }
   }
   return {
     major: Number(match[1]),
     minor: Number(match[2]),
-    patch: Number(match[3])
+    patch: Number(match[3]),
+    prerelease,
+    prereleaseTag,
+    prereleaseNum
   };
 }
 
-export function incSemver(version, level) {
+export function incSemver(version, level, options = {}) {
+  const channel = options.channel || "stable";
+  const prereleaseTag = options.prereleaseTag || (channel !== "stable" ? channel : "beta");
+  const isPrerelease = channel !== "stable";
   const parsed = parseSemver(version);
+
+  if (isPrerelease) {
+    // If already a prerelease on the same base, bump prerelease counter unless major is explicitly requested
+    if (parsed.prerelease && level !== "major") {
+      const nextNum = (parsed.prereleaseNum ?? -1) + 1;
+      return `${parsed.major}.${parsed.minor}.${parsed.patch}-${prereleaseTag}.${nextNum}`;
+    }
+    const base = incSemver(`${parsed.major}.${parsed.minor}.${parsed.patch}`, level, { channel: "stable" });
+    return `${base}-${prereleaseTag}.0`;
+  }
+
+  // Graduating from a prerelease directly to stable base:
+  if (parsed.prerelease && (level === "auto" || level === "graduate" || level === "patch" || level === "minor")) {
+    return `${parsed.major}.${parsed.minor}.${parsed.patch}`;
+  }
+
   if (level === "major") {
     return `${parsed.major + 1}.0.0`;
   }
@@ -211,9 +246,66 @@ function gitTagExists(repoRoot, tagName) {
   }
 }
 
+export function getLatestStableTag(repoRoot) {
+  try {
+    const rawTags = runGit(repoRoot, ["tag", "-l", "--sort=-v:refname", "v*"]);
+    const tags = rawTags
+      .split("\n")
+      .map((t) => t.trim())
+      .filter(Boolean);
+    for (const tag of tags) {
+      const v = tag.startsWith("v") ? tag.slice(1) : tag;
+      try {
+        const parsed = parseSemver(v);
+        if (!parsed.prerelease) {
+          return tag;
+        }
+      } catch {
+        // ignore non-semver tag
+      }
+    }
+  } catch {
+    // ignore
+  }
+  return null;
+}
+
+export function getNextPrereleaseVersion(repoRoot, baseVersion, prereleaseTag = "beta") {
+  const prefix = `v${baseVersion}-${prereleaseTag}.`;
+  let highestNum = -1;
+  try {
+    const rawTags = runGit(repoRoot, ["tag", "-l", `${prefix}*`]);
+    const lines = rawTags
+      .split("\n")
+      .map((l) => l.trim())
+      .filter(Boolean);
+    for (const tag of lines) {
+      const numStr = tag.slice(prefix.length);
+      const num = parseInt(numStr, 10);
+      if (!Number.isNaN(num) && num > highestNum) {
+        highestNum = num;
+      }
+    }
+  } catch {
+    // ignore git error
+  }
+
+  if (highestNum === -1) {
+    if (gitTagExists(repoRoot, `v${baseVersion}-${prereleaseTag}`)) {
+      highestNum = 0;
+    }
+  }
+
+  const nextNum = highestNum + 1;
+  return `${baseVersion}-${prereleaseTag}.${nextNum}`;
+}
+
 export function resolveAndPrepareRelease(options = {}) {
   const repoRoot = options.repoRoot ?? defaultRepoRoot;
   const requestedBump = options.requestedBump || "auto";
+  const channel = options.channel || "stable";
+  const prereleaseTag = options.prereleaseTag || (channel !== "stable" ? channel : "beta");
+  const isPrerelease = channel !== "stable";
 
   const pkg = JSON.parse(fs.readFileSync(path.join(repoRoot, "package.json"), "utf8"));
   const extManifest = JSON.parse(fs.readFileSync(path.join(repoRoot, "extension", "extension.json"), "utf8"));
@@ -221,6 +313,47 @@ export function resolveAndPrepareRelease(options = {}) {
   const currentServerVersion = pkg.version;
   const currentExtensionVersion = extManifest.version;
   const currentTag = `v${currentServerVersion}`;
+  const parsedServer = parseSemver(currentServerVersion);
+  const parsedExt = parseSemver(currentExtensionVersion);
+
+  // Case 0: Graduation from prerelease on stable channel
+  // e.g. pkg.version is 1.5.0-beta.2, and we are releasing on master (channel === "stable")
+  if (!isPrerelease && parsedServer.prerelease) {
+    const graduatedServerVersion = `${parsedServer.major}.${parsedServer.minor}.${parsedServer.patch}`;
+    const graduatedExtensionVersion = `${parsedExt.major}.${parsedExt.minor}.${parsedExt.patch}`;
+    const targetTag = `v${graduatedServerVersion}`;
+
+    if (!gitTagExists(repoRoot, targetTag)) {
+      const lastStableTag = getLatestStableTag(repoRoot);
+      const diffBase = lastStableTag && gitTagExists(repoRoot, lastStableTag) ? lastStableTag : currentTag;
+      const rawLog = runGit(repoRoot, ["log", `${diffBase}..HEAD`, "--format=%s%x1f%b%x1e"]);
+      const commits = rawLog
+        .split("\x1e")
+        .map((entry) => entry.trim())
+        .filter(Boolean)
+        .map((entry) => {
+          const [subject = "", body = ""] = entry.split("\x1f");
+          return { subject: subject.trim(), body: body.trim() };
+        });
+
+      applyVersionFiles(repoRoot, {
+        serverVersion: graduatedServerVersion,
+        extensionVersion: graduatedExtensionVersion,
+        commitSubjects: commits.map((c) => c.subject)
+      });
+
+      return {
+        skip: false,
+        bumped: true,
+        bumpLevel: "graduate",
+        channel: "stable",
+        isPrerelease: false,
+        serverVersion: graduatedServerVersion,
+        extensionVersion: graduatedExtensionVersion,
+        tag: targetTag
+      };
+    }
+  }
 
   // Case A: package.json already holds an untagged version (e.g. manually bumped on develop)
   if (!gitTagExists(repoRoot, currentTag)) {
@@ -228,6 +361,8 @@ export function resolveAndPrepareRelease(options = {}) {
       skip: false,
       bumped: false,
       bumpLevel: "prebumped",
+      channel,
+      isPrerelease,
       serverVersion: currentServerVersion,
       extensionVersion: currentExtensionVersion,
       tag: currentTag
@@ -250,6 +385,8 @@ export function resolveAndPrepareRelease(options = {}) {
       skip: true,
       bumped: false,
       bumpLevel: "none",
+      channel,
+      isPrerelease,
       serverVersion: currentServerVersion,
       extensionVersion: currentExtensionVersion,
       tag: currentTag,
@@ -262,6 +399,8 @@ export function resolveAndPrepareRelease(options = {}) {
       skip: true,
       bumped: false,
       bumpLevel: "none",
+      channel,
+      isPrerelease,
       serverVersion: currentServerVersion,
       extensionVersion: currentExtensionVersion,
       tag: currentTag,
@@ -284,6 +423,8 @@ export function resolveAndPrepareRelease(options = {}) {
       skip: true,
       bumped: false,
       bumpLevel: "none",
+      channel,
+      isPrerelease,
       serverVersion: currentServerVersion,
       extensionVersion: currentExtensionVersion,
       tag: currentTag,
@@ -292,7 +433,21 @@ export function resolveAndPrepareRelease(options = {}) {
   }
 
   const bumpLevel = detectBumpLevel(commits, requestedBump);
-  const nextServerVersion = incSemver(currentServerVersion, bumpLevel);
+
+  let nextServerVersion;
+  if (isPrerelease) {
+    if (parsedServer.prerelease && bumpLevel !== "major") {
+      const baseVersion = `${parsedServer.major}.${parsedServer.minor}.${parsedServer.patch}`;
+      nextServerVersion = getNextPrereleaseVersion(repoRoot, baseVersion, prereleaseTag);
+    } else {
+      const currentBase = `${parsedServer.major}.${parsedServer.minor}.${parsedServer.patch}`;
+      const nextBase = incSemver(currentBase, bumpLevel, { channel: "stable" });
+      nextServerVersion = getNextPrereleaseVersion(repoRoot, nextBase, prereleaseTag);
+    }
+  } else {
+    const currentBase = `${parsedServer.major}.${parsedServer.minor}.${parsedServer.patch}`;
+    nextServerVersion = incSemver(currentBase, bumpLevel, { channel: "stable" });
+  }
 
   // Bump extension version only if extension/ changed since currentTag and wasn't manually bumped yet
   let prevExtensionVersion = currentExtensionVersion;
@@ -305,10 +460,21 @@ export function resolveAndPrepareRelease(options = {}) {
 
   const changedExtFiles = runGit(repoRoot, ["diff", "--name-only", `${currentTag}..HEAD`, "--", "extension/"]);
   const extensionChanged = changedExtFiles.length > 0;
-  const nextExtensionVersion =
-    extensionChanged && currentExtensionVersion === prevExtensionVersion
-      ? incSemver(currentExtensionVersion, bumpLevel === "major" ? "minor" : bumpLevel)
-      : currentExtensionVersion;
+
+  let nextExtensionVersion = currentExtensionVersion;
+  if (extensionChanged && currentExtensionVersion === prevExtensionVersion) {
+    const extBumpLevel = bumpLevel === "major" ? "minor" : bumpLevel;
+    const currentExtBase = `${parsedExt.major}.${parsedExt.minor}.${parsedExt.patch}`;
+    const nextExtBase = incSemver(currentExtBase, extBumpLevel, { channel: "stable" });
+    if (isPrerelease) {
+      nextExtensionVersion = getNextPrereleaseVersion(repoRoot, nextExtBase, prereleaseTag);
+    } else {
+      nextExtensionVersion = nextExtBase;
+    }
+  } else if (isPrerelease && extensionChanged && parsedExt.prerelease) {
+    const currentExtBase = `${parsedExt.major}.${parsedExt.minor}.${parsedExt.patch}`;
+    nextExtensionVersion = getNextPrereleaseVersion(repoRoot, currentExtBase, prereleaseTag);
+  }
 
   applyVersionFiles(repoRoot, {
     serverVersion: nextServerVersion,
@@ -320,6 +486,8 @@ export function resolveAndPrepareRelease(options = {}) {
     skip: false,
     bumped: true,
     bumpLevel,
+    channel,
+    isPrerelease,
     serverVersion: nextServerVersion,
     extensionVersion: nextExtensionVersion,
     tag: `v${nextServerVersion}`
@@ -328,6 +496,7 @@ export function resolveAndPrepareRelease(options = {}) {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   let requestedBump = "auto";
+  let channel = "stable";
   let githubOutputPath = process.env.GITHUB_OUTPUT;
   let checkPrTitle = null;
   let baseRef = "develop";
@@ -336,6 +505,8 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   for (let i = 0; i < args.length; i += 1) {
     if (args[i] === "--bump" && args[i + 1]) {
       requestedBump = args[++i];
+    } else if (args[i] === "--channel" && args[i + 1]) {
+      channel = args[++i];
     } else if (args[i] === "--github-output" && args[i + 1]) {
       githubOutputPath = args[++i];
     } else if (args[i] === "--check-pr-title" && args[i + 1] !== undefined) {
@@ -355,7 +526,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     process.exit(0);
   }
 
-  const result = resolveAndPrepareRelease({ requestedBump });
+  const result = resolveAndPrepareRelease({ requestedBump, channel });
   console.log(JSON.stringify(result, null, 2));
 
   if (githubOutputPath) {
@@ -363,6 +534,8 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
       `skip=${result.skip}`,
       `bumped=${result.bumped}`,
       `bump_level=${result.bumpLevel}`,
+      `channel=${result.channel || "stable"}`,
+      `is_prerelease=${result.isPrerelease ? "true" : "false"}`,
       `server_version=${result.serverVersion}`,
       `extension_version=${result.extensionVersion}`,
       `tag=${result.tag}`
