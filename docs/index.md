@@ -35,6 +35,7 @@ hero:
     <div class="support-pill-row support-pill-row-secondary">
       <a href="/easyeda_mcp/quick-start">Quick Start</a>
       <a href="/easyeda_mcp/workflows">Workflows</a>
+      <a href="/easyeda_mcp/hea-skills">HEA Skills</a>
       <a href="/easyeda_mcp/tools">Tools Reference</a>
       <a href="/easyeda_mcp/drc-rules">DRC Rules</a>
       <a href="/easyeda_mcp/upgrading">Upgrading</a>
@@ -66,6 +67,13 @@ hero:
     <strong>Confirmation-gated</strong>
     <p>Read-only by default. Editor-changing actions require explicit confirmation.</p>
   </div>
+</div>
+
+<div class="intro-panel surface-card" style="margin-top: 1.5rem;">
+  <strong>Supercharge with HEA Skills</strong>
+  <p>
+    Give your agent an engineering brain with <a href="/easyeda_mcp/hea-skills"><strong>HEA (Hardware Engineering Assistant)</strong></a> — our companion open-source skills suite providing DFM manufacturing rules for JLCPCB, MCU strapping pin safety, and power tree verification.
+  </p>
 </div>
 
 <div class="about-panel surface-card">

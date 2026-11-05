@@ -18,3 +18,7 @@ Connect any MCP-compatible AI client to your live EasyEDA Pro session.
 - [Safety Model](./safety.md): read-only defaults, confirmation gates, and confidence levels
 - [Troubleshooting](./troubleshooting.md): quick fixes by symptom
 - [Changelog](./changelog.md): release history
+
+## Ecosystem
+
+- [Hardware Engineering Assistant (HEA)](./hea-skills.md): open-source companion Agent Skills suite for DFM, MCU strapping, and power validation

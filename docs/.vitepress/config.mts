@@ -13,6 +13,7 @@ export default defineConfig({
       { text: "AI Clients", link: "/ai-client-setup" },
       { text: "Workflows", link: "/workflows" },
       { text: "Tools", link: "/tools" },
+      { text: "HEA Skills", link: "/hea-skills" },
       { text: "Upgrading", link: "/upgrading" },
       { text: "Changelog", link: "/changelog" },
       { text: "GitHub", link: "https://github.com/VLab-Software/easyeda_mcp" }
@@ -37,6 +38,12 @@ export default defineConfig({
           { text: "Safety Model", link: "/safety" },
           { text: "Troubleshooting", link: "/troubleshooting" },
           { text: "Changelog", link: "/changelog" }
+        ]
+      },
+      {
+        text: "Ecosystem",
+        items: [
+          { text: "Hardware Engineering Assistant (HEA)", link: "/hea-skills" }
         ]
       },
       {
