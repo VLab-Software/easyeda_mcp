@@ -58,6 +58,10 @@ describe("bump-version automation script", () => {
     expect(incSemver("1.2.0", "patch")).toBe("1.2.1");
     expect(incSemver("1.2.4", "minor")).toBe("1.3.0");
     expect(incSemver("1.2.4", "major")).toBe("2.0.0");
+    expect(incSemver("1.2.0", "minor", { channel: "beta" })).toBe("1.3.0-beta.0");
+    expect(incSemver("1.3.0-beta.0", "patch", { channel: "beta" })).toBe("1.3.0-beta.1");
+    expect(incSemver("1.3.0-beta.5", "minor", { channel: "beta" })).toBe("1.3.0-beta.6");
+    expect(incSemver("1.3.0-beta.2", "graduate", { channel: "stable" })).toBe("1.3.0");
 
     expect(detectBumpLevel([{ subject: "fix: resolve timeout", body: "" }])).toBe("patch");
     expect(detectBumpLevel([{ subject: "docs: update guide", body: "" }])).toBe("patch");
@@ -81,6 +85,8 @@ describe("bump-version automation script", () => {
       skip: false,
       bumped: false,
       bumpLevel: "prebumped",
+      channel: "stable",
+      isPrerelease: false,
       serverVersion: "1.2.0",
       extensionVersion: "0.2.0",
       tag: "v1.2.0"
@@ -101,6 +107,8 @@ describe("bump-version automation script", () => {
       skip: false,
       bumped: true,
       bumpLevel: "minor",
+      channel: "stable",
+      isPrerelease: false,
       serverVersion: "1.3.0",
       extensionVersion: "0.2.0",
       tag: "v1.3.0"
@@ -131,6 +139,8 @@ describe("bump-version automation script", () => {
       skip: false,
       bumped: true,
       bumpLevel: "patch",
+      channel: "stable",
+      isPrerelease: false,
       serverVersion: "1.2.1",
       extensionVersion: "0.2.1",
       tag: "v1.2.1"
@@ -146,6 +156,92 @@ describe("bump-version automation script", () => {
 
     const res = resolveAndPrepareRelease({ repoRoot: repo });
     expect(res.skip).toBe(true);
+  });
+
+  it("produces a beta prerelease on channel: beta", () => {
+    const repo = makeTempGitRepo();
+    tempDirs.push(repo);
+    execFileSync("git", ["tag", "v1.2.0"], { cwd: repo, stdio: "ignore" });
+
+    fs.writeFileSync(path.join(repo, "src", "feature.ts"), "export const betaFeature = true;\n");
+    execFileSync("git", ["add", "."], { cwd: repo, stdio: "ignore" });
+    execFileSync("git", ["commit", "-m", "feature: add beta test endpoint"], { cwd: repo, stdio: "ignore" });
+
+    const res = resolveAndPrepareRelease({ repoRoot: repo, channel: "beta" });
+    expect(res).toEqual({
+      skip: false,
+      bumped: true,
+      bumpLevel: "minor",
+      channel: "beta",
+      isPrerelease: true,
+      serverVersion: "1.3.0-beta.0",
+      extensionVersion: "0.2.0",
+      tag: "v1.3.0-beta.0"
+    });
+    expect(JSON.parse(fs.readFileSync(path.join(repo, "package.json"), "utf8")).version).toBe("1.3.0-beta.0");
+    expect(fs.readFileSync(path.join(repo, "src", "version.ts"), "utf8")).toContain('MCP_SERVER_VERSION = "1.3.0-beta.0"');
+  });
+
+  it("increments prerelease suffix sequentially when beta tags already exist", () => {
+    const repo = makeTempGitRepo();
+    tempDirs.push(repo);
+    execFileSync("git", ["tag", "v1.2.0"], { cwd: repo, stdio: "ignore" });
+
+    fs.writeFileSync(path.join(repo, "src", "feature.ts"), "export const beta1 = 1;\n");
+    execFileSync("git", ["add", "."], { cwd: repo, stdio: "ignore" });
+    execFileSync("git", ["commit", "-m", "feature: first beta commit"], { cwd: repo, stdio: "ignore" });
+
+    const beta0 = resolveAndPrepareRelease({ repoRoot: repo, channel: "beta" });
+    expect(beta0.tag).toBe("v1.3.0-beta.0");
+    execFileSync("git", ["add", "."], { cwd: repo, stdio: "ignore" });
+    execFileSync("git", ["commit", "-m", "chore(release): v1.3.0-beta.0"], { cwd: repo, stdio: "ignore" });
+    execFileSync("git", ["tag", "v1.3.0-beta.0"], { cwd: repo, stdio: "ignore" });
+
+    fs.writeFileSync(path.join(repo, "src", "fix.ts"), "export const fix = 2;\n");
+    execFileSync("git", ["add", "."], { cwd: repo, stdio: "ignore" });
+    execFileSync("git", ["commit", "-m", "fix: fix edge case in beta"], { cwd: repo, stdio: "ignore" });
+
+    const beta1 = resolveAndPrepareRelease({ repoRoot: repo, channel: "beta" });
+    expect(beta1).toEqual({
+      skip: false,
+      bumped: true,
+      bumpLevel: "patch",
+      channel: "beta",
+      isPrerelease: true,
+      serverVersion: "1.3.0-beta.1",
+      extensionVersion: "0.2.0",
+      tag: "v1.3.0-beta.1"
+    });
+  });
+
+  it("graduates prerelease to stable on master (channel: stable)", () => {
+    const repo = makeTempGitRepo();
+    tempDirs.push(repo);
+    execFileSync("git", ["tag", "v1.2.0"], { cwd: repo, stdio: "ignore" });
+
+    fs.writeFileSync(path.join(repo, "src", "feature.ts"), "export const beta = true;\n");
+    execFileSync("git", ["add", "."], { cwd: repo, stdio: "ignore" });
+    execFileSync("git", ["commit", "-m", "feature: add beta feature"], { cwd: repo, stdio: "ignore" });
+
+    resolveAndPrepareRelease({ repoRoot: repo, channel: "beta" });
+    execFileSync("git", ["add", "."], { cwd: repo, stdio: "ignore" });
+    execFileSync("git", ["commit", "-m", "chore(release): v1.3.0-beta.0"], { cwd: repo, stdio: "ignore" });
+    execFileSync("git", ["tag", "v1.3.0-beta.0"], { cwd: repo, stdio: "ignore" });
+
+    // Merged into master -> channel: stable
+    const stableRes = resolveAndPrepareRelease({ repoRoot: repo, channel: "stable" });
+    expect(stableRes).toEqual({
+      skip: false,
+      bumped: true,
+      bumpLevel: "graduate",
+      channel: "stable",
+      isPrerelease: false,
+      serverVersion: "1.3.0",
+      extensionVersion: "0.2.0",
+      tag: "v1.3.0"
+    });
+    expect(JSON.parse(fs.readFileSync(path.join(repo, "package.json"), "utf8")).version).toBe("1.3.0");
+    expect(fs.readFileSync(path.join(repo, "docs", "changelog.md"), "utf8")).toContain("## `1.3.0` (Extension `0.2.0`)");
   });
 
   it("skips version bump when only .github/ files changed since the last tag", () => {
